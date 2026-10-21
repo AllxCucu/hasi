@@ -28,6 +28,7 @@ public sealed class Announcer(OutputHub hub, ITextNormalizer normalizer, IDiagno
 
     private void Present(Utterance utterance)
     {
+        if (utterance.Priority == UtterancePriority.Interrupt) hub.Cancel();
         var spoken = normalizer.Normalize(utterance.Text);
         if (log.IsEnabled)
         {
@@ -36,7 +37,6 @@ public sealed class Announcer(OutputHub hub, ITextNormalizer normalizer, IDiagno
             log.Write("SAY", $"[{utterance.Priority}] text=\"{text}\"");
             log.Write("", $"normalized=\"{normalized}\"");
         }
-        if (utterance.Priority == UtterancePriority.Interrupt) hub.Cancel();
         hub.Present(new Announcement(utterance, spoken));
     }
 }
