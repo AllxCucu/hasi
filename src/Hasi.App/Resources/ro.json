@@ -9,6 +9,7 @@
   "shell.keyUnavailable": "Această tastă nu are nicio funcție aici. Pentru ajutor, apăsați F1 sau Control H.",
   "shell.exit.confirm": "Sigur doriți să închideți HASI?",
   "shell.exit.goodbye": "La revedere.",
+  "shell.focusLost": "HASI nu mai este în prim-plan, iar tastele merg către altă fereastră. Pentru a reveni, țineți apăsată tasta Alt și apăsați Tab.",
   "shell.unexpectedError": "A apărut o problemă neașteptată. Puteți continua să folosiți HASI.",
 
   "mainMenu.title": "Meniu principal",
@@ -52,12 +53,12 @@
 
   "about.title": "Despre HASI",
   "about.help": "Folosiți săgețile sus și jos pentru a citi rând cu rând.",
-  "about.name": "HASI, Human Assisted Information, versiunea {version}.",
-  "about.purpose": "Mediu de lucru vorbit pentru nevăzători și slabvăzători.",
-  "about.license": "HASI este program liber, sub Licența Publică Generală GNU, versiunea 3 sau ulterioară. Este oferit fără nicio garanție.",
-  "about.rhvoice": "Sinteza vocală RHVoice, de Olga Yakovleva și colaboratorii, sub licența GNU LGPL, versiunea 2.1 sau ulterioară.",
-  "about.paul": "Vocea românească Paul, de Stefan Moisei, Paul Bogorin și Zvonimir Stanecic, cu egalizare de Tomasz Bilecki, sub licența Creative Commons Atribuire, Distribuire în condiții identice, versiunea 4.0.",
-  "about.systemSpeech": "Componenta System.Speech, de la .NET Foundation, sub licența MIT.",
+  "about.name": "HASI, Human Assisted Information, versiunea {version}",
+  "about.purpose": "Mediu de lucru vorbit pentru nevăzători și slabvăzători",
+  "about.license": "HASI este program liber, sub Licența Publică Generală GNU, versiunea 3 sau ulterioară. Este oferit fără nicio garanție",
+  "about.rhvoice": "Sinteza vocală RHVoice, de Olga Yakovleva și colaboratorii, sub licența GNU LGPL, versiunea 2.1 sau ulterioară",
+  "about.paul": "Vocea românească Paul, de Stefan Moisei, Paul Bogorin și Zvonimir Stanecic, cu egalizare de Tomasz Bilecki, sub licența Creative Commons Atribuire, Distribuire în condiții identice, versiunea 4.0",
+  "about.systemSpeech": "Componenta System.Speech, de la .NET Foundation, sub licența MIT",
 
   "exit.title": "Ieșire",
   "exit.closeHasi": "Închide HASI",

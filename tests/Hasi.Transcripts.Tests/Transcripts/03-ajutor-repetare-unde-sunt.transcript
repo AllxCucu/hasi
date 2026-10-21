@@ -1,0 +1,36 @@
+# M0-08 ... M0-10: ajutor (F1 / Control H), repetare (F2 / Control R), unde sunt (F3 / Control U).
+
+> start
+< Bun venit în HASI. Meniu principal. 4 opțiuni. Selectat: Setări, 1 din 4.
+> Enter
+< Setări. 12 opțiuni. Selectat: Voce, 1 din 12.
+
+# M0-08 Ajutor în Setări
+> F1
+< Ajutor pentru Setări. Folosiți săgețile sus și jos pentru a alege o opțiune. Apăsați Enter pentru a o deschide și Escape pentru a vă întoarce. F2 sau Control R repetă ultimul mesaj. F3 sau Control U vă spune unde vă aflați. Tasta Control oprește vorbirea. Aici veți putea schimba vocea, viteza vorbirii, culorile și alte preferințe.
+> Ctrl+H
+< Ajutor pentru Setări. Folosiți săgețile sus și jos pentru a alege o opțiune. Apăsați Enter pentru a o deschide și Escape pentru a vă întoarce. F2 sau Control R repetă ultimul mesaj. F3 sau Control U vă spune unde vă aflați. Tasta Control oprește vorbirea. Aici veți putea schimba vocea, viteza vorbirii, culorile și alte preferințe.
+
+# M0-09 Repetă ultimul mesaj
+> Down
+< Viteză, 2 din 12.
+> F2
+< Viteză, 2 din 12.
+> Ctrl+R
+< Viteză, 2 din 12.
+
+# M0-10 Unde sunt, în Setări, apoi în Viteză
+> F3
+< Sunteți în: Meniu principal, Setări.
+> Enter
+< Viteză. Această funcție va fi disponibilă într-o versiune următoare. Apăsați Escape pentru a vă întoarce.
+> Ctrl+U
+< Sunteți în: Meniu principal, Setări, Viteză.
+
+# Ajutor pe un ecran cu mesaj
+> F1
+< Ajutor pentru Viteză. Apăsați Enter pentru a asculta din nou mesajul și Escape pentru a vă întoarce.
+
+# Ajutorul nu mută selecția
+> Escape
+< Setări. Selectat: Viteză, 2 din 12.

@@ -1,0 +1,40 @@
+# M0-05 ... M0-07: intrarea într-un ecran și întoarcerea cu Escape.
+
+> start
+< Bun venit în HASI. Meniu principal. 4 opțiuni. Selectat: Setări, 1 din 4.
+
+# M0-05 Enter pe Setări
+> Enter
+< Setări. 12 opțiuni. Selectat: Voce, 1 din 12.
+> Down
+< Viteză, 2 din 12.
+
+# O setare încă neimplementată
+> Enter
+< Viteză. Această funcție va fi disponibilă într-o versiune următoare. Apăsați Escape pentru a vă întoarce.
+> Enter
+< Această funcție va fi disponibilă într-o versiune următoare. Apăsați Escape pentru a vă întoarce.
+> Escape
+< Setări. Selectat: Viteză, 2 din 12.
+
+# M0-06 Escape din Setări
+> Escape
+< Meniu principal. Selectat: Setări, 1 din 4.
+
+# M0-07 Escape în meniul principal: HASI nu se închide
+> Escape
+< Sunteți în meniul principal. Pentru a închide HASI, alegeți Ieșire.
+
+# Tastatura numerică: 5 alege, 0 înapoi
+> NumPad5
+< Setări. 12 opțiuni. Selectat: Voce, 1 din 12.
+> NumPad0
+< Meniu principal. Selectat: Setări, 1 din 4.
+
+# Învață tastele (încă neimplementat)
+> Down
+< Învață tastele, 2 din 4.
+> Enter
+< Învață tastele. Această funcție va fi disponibilă într-o versiune următoare. Apăsați Escape pentru a vă întoarce.
+> Escape
+< Meniu principal. Selectat: Învață tastele, 2 din 4.

@@ -1,0 +1,43 @@
+# M0-01 ... M0-04: pornirea și navigarea în meniul principal.
+# Format: "> tastă" = ce apeși, "< text" = ce trebuie să auzi, în ordine.
+# "[sunet]" = mesajul vine cu un sunet scurt. O tastă fără rânduri "<" = liniște.
+
+# M0-01 Pornire
+> start
+< Bun venit în HASI. Meniu principal. 4 opțiuni. Selectat: Setări, 1 din 4.
+
+# M0-02 Săgeata jos de 3 ori
+> Down
+< Învață tastele, 2 din 4.
+> Down
+< Despre HASI, 3 din 4.
+> Down
+< Ieșire, 4 din 4.
+
+# M0-03 Încă o dată jos pe ultima opțiune: lista nu sare la început
+> Down
+< [sunet] Sfârșitul listei. Ieșire, 4 din 4.
+
+# M0-04 Home, apoi End
+> Home
+< Setări, 1 din 4.
+> Up
+< [sunet] Începutul listei. Setări, 1 din 4.
+> End
+< Ieșire, 4 din 4.
+
+# Alternativele pentru laptop: Control + săgeată sus / jos
+> Ctrl+Up
+< Setări, 1 din 4.
+> Ctrl+Down
+< Ieșire, 4 din 4.
+
+# Tastatura numerică: 8 sus, 2 jos, 7 prima, 1 ultima
+> NumPad8
+< Despre HASI, 3 din 4.
+> NumPad7
+< Setări, 1 din 4.
+> NumPad2
+< Învață tastele, 2 din 4.
+> NumPad1
+< Ieșire, 4 din 4.

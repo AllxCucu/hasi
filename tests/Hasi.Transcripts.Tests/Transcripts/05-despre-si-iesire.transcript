@@ -1,0 +1,40 @@
+﻿# Despre HASI (M0-20, varianta din etapa 0.3) și Ieșire (M0-21, M0-22).
+
+> start
+< Bun venit în HASI. Meniu principal. 4 opțiuni. Selectat: Setări, 1 din 4.
+
+> Down
+< Învață tastele, 2 din 4.
+> Down
+< Despre HASI, 3 din 4.
+> Enter
+< Despre HASI. 6 rânduri. Selectat: HASI, Human Assisted Information, versiunea 0.1.0, 1 din 6.
+> Down
+< Mediu de lucru vorbit pentru nevăzători și slabvăzători, 2 din 6.
+> Down
+< HASI este program liber, sub Licența Publică Generală GNU, versiunea 3 sau ulterioară. Este oferit fără nicio garanție, 3 din 6.
+> Down
+< Sinteza vocală RHVoice, de Olga Yakovleva și colaboratorii, sub licența GNU LGPL, versiunea 2.1 sau ulterioară, 4 din 6.
+> Down
+< Vocea românească Paul, de Stefan Moisei, Paul Bogorin și Zvonimir Stanecic, cu egalizare de Tomasz Bilecki, sub licența Creative Commons Atribuire, Distribuire în condiții identice, versiunea 4.0, 5 din 6.
+> Down
+< Componenta System.Speech, de la .NET Foundation, sub licența MIT, 6 din 6.
+> Escape
+< Meniu principal. Selectat: Despre HASI, 3 din 4.
+
+# M0-21 Ieșire, apoi renunț
+> Down
+< Ieșire, 4 din 4.
+> Enter
+< Ieșire. 1 opțiune. Selectat: Închide HASI, 1 din 1.
+> Enter
+< Sigur doriți să închideți HASI? Apăsați Enter pentru da sau Escape pentru nu.
+> Escape
+< Anulat. Ieșire. Selectat: Închide HASI, 1 din 1.
+
+# M0-22 Alt+F4 cere aceeași confirmare; Enter închide
+> Alt+F4
+< Sigur doriți să închideți HASI? Apăsați Enter pentru da sau Escape pentru nu.
+> Enter
+< La revedere.
+! exit

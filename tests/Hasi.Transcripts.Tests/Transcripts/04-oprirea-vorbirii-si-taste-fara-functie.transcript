@@ -1,0 +1,21 @@
+# M0-11 ... M0-12: orice tastă întrerupe vorbirea; Control oprește vorbirea fără să spună nimic.
+# Întreruperea propriu-zisă se aude doar în aplicație. Aici verificăm că nu se spune nimic în plus.
+
+> start
+< Bun venit în HASI. Meniu principal. 4 opțiuni. Selectat: Setări, 1 din 4.
+
+# M0-12 Control singur: liniște
+> LeftCtrl
+> RightCtrl
+
+# Shift și Alt singure: liniște
+> LeftShift
+> LeftAlt
+
+# O literă fără funcție în meniu
+> Q
+< [sunet] Această tastă nu are nicio funcție aici. Pentru ajutor, apăsați F1 sau Control H.
+
+# După oprire, F2 repetă ultimul mesaj
+> F2
+< [sunet] Această tastă nu are nicio funcție aici. Pentru ajutor, apăsați F1 sau Control H.
