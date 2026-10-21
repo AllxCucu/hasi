@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Hasi.Core\Hasi.Core.csproj" />
+    <ProjectReference Include="..\..\src\Hasi.Speech\Hasi.Speech.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Hasi.Modules.Settings\Hasi.Modules.Settings.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Hasi.Modules.KeyTutor\Hasi.Modules.KeyTutor.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Hasi.Modules.About\Hasi.Modules.About.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Hasi.Modules.Exit\Hasi.Modules.Exit.csproj" />
+  </ItemGroup>
+
+</Project>

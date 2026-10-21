@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Hasi.App/Hasi.App.csproj" />
+    <Project Path="src/Hasi.Core/Hasi.Core.csproj" />
+    <Project Path="src/Hasi.Speech/Hasi.Speech.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/">
+    <Project Path="src/Modules/Hasi.Modules.About/Hasi.Modules.About.csproj" />
+    <Project Path="src/Modules/Hasi.Modules.Exit/Hasi.Modules.Exit.csproj" />
+    <Project Path="src/Modules/Hasi.Modules.KeyTutor/Hasi.Modules.KeyTutor.csproj" />
+    <Project Path="src/Modules/Hasi.Modules.Settings/Hasi.Modules.Settings.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Hasi.Architecture.Tests/Hasi.Architecture.Tests.csproj" />
+    <Project Path="tests/Hasi.Core.Tests/Hasi.Core.Tests.csproj" />
+    <Project Path="tests/Hasi.Transcripts.Tests/Hasi.Transcripts.Tests.csproj" />
+  </Folder>
+</Solution>
