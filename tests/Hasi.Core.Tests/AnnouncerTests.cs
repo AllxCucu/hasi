@@ -84,6 +84,24 @@ public class AnnouncerTests
         Assert.Contains("ERROR", writer.ToString());
     }
 
+    private sealed class FailingWriter : TextWriter
+    {
+        public override System.Text.Encoding Encoding => System.Text.Encoding.UTF8;
+
+        public override void WriteLine(string? value) => throw new IOException("disk full");
+    }
+
+    [Fact]
+    public void A_failing_diagnostic_log_never_throws_and_switches_itself_off()
+    {
+        var log = new TextDiagnosticLog(new FailingWriter(), TimeProvider.System);
+
+        log.Write("KEY", "Down");
+        log.Write("KEY", "Up");
+
+        Assert.False(log.IsEnabled);
+    }
+
     [Fact]
     public void Repeat_without_history_does_nothing()
     {

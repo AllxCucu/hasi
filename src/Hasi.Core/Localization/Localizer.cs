@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace Hasi.Core.Localization;
 
@@ -96,16 +97,22 @@ public sealed class JsonLocalizer : ILocalizer
         return Fill(template, [("count", count), .. args]);
     }
 
+    /// <summary>Fills placeholders in one pass, so inserted values are never read as placeholders.</summary>
     private string Fill(string template, (string Name, object Value)[] args)
     {
         if (args.Length == 0) return template;
-        var text = new StringBuilder(template);
-        foreach (var (name, value) in args)
+        return Placeholder.Replace(template, match =>
         {
-            text.Replace("{" + name + "}", Convert.ToString(value, Culture));
-        }
-        return text.ToString();
+            var name = match.Groups[1].Value;
+            foreach (var arg in args)
+            {
+                if (arg.Name == name) return Convert.ToString(arg.Value, Culture) ?? "";
+            }
+            return match.Value;
+        });
     }
+
+    private static readonly Regex Placeholder = new(@"\{(\w+)\}", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 }
 
 public enum PluralCategory

@@ -74,4 +74,17 @@ public sealed class ShellHarness
         }
         return [.. Output.Announcements.Skip(before).Select(a => a.Utterance.Text)];
     }
+
+    /// <summary>Holds a key down: one press followed by <paramref name="repeats"/> auto-repeats.</summary>
+    public IReadOnlyList<string> Hold(KeyChord key, int repeats)
+    {
+        var before = Output.Announcements.Count;
+        var command = KeyMap.Resolve(key);
+        Shell.Dispatch(new InputEvent(command, key));
+        for (var i = 0; i < repeats; i++)
+        {
+            Shell.Dispatch(new InputEvent(command, key, IsRepeat: true));
+        }
+        return [.. Output.Announcements.Skip(before).Select(a => a.Utterance.Text)];
+    }
 }

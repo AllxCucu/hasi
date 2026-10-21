@@ -44,6 +44,14 @@ public class LocalizationTests
     }
 
     [Fact]
+    public void Inserted_values_are_not_treated_as_placeholders()
+    {
+        var l = JsonLocalizer.Parse("""{ "k": "{a} și {b}" }""", CultureInfo.GetCultureInfo("ro-RO"), RomanianPlural.Categorize);
+
+        Assert.Equal("{b} și doi", l.Get("k", ("a", "{b}"), ("b", "doi")));
+    }
+
+    [Fact]
     public void Missing_keys_are_visible_and_recorded()
     {
         var l = JsonLocalizer.Parse("{}", CultureInfo.GetCultureInfo("ro-RO"), RomanianPlural.Categorize);

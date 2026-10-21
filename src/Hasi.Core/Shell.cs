@@ -50,7 +50,9 @@ public sealed class Shell : IShellServices, IScreenContext
     {
         if (_stack.Count == 0) throw new InvalidOperationException("The shell has not been started.");
 
-        _log.Write("KEY", input.Key.ToString());
+        if (input.IsRepeat && !input.Command.RepeatsWhenHeld()) return;
+
+        _log.Write("KEY", input.IsRepeat ? $"{input.Key} (repeat)" : input.Key.ToString());
         if (input.Command != Command.None) _log.Write("CMD", input.Command.ToString());
 
         // Any key interrupts speech. A modifier pressed alone does nothing else.
