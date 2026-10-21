@@ -87,6 +87,22 @@ public sealed class Shell : IShellServices, IScreenContext
         Apply(result);
     }
 
+    /// <summary>Another window took the keyboard: say so, otherwise keys silently go elsewhere.</summary>
+    public void FocusLost()
+    {
+        if (_stack.Count == 0) return;
+        _log.Write("FOCUS", "lost");
+        _announcer.Say(Localizer.Get("shell.focusLost"));
+    }
+
+    /// <summary>HASI has the keyboard again: say where the user is.</summary>
+    public void FocusRegained()
+    {
+        if (_stack.Count == 0) return;
+        _log.Write("FOCUS", "regained");
+        _announcer.Say(Current.Enter(EnterReason.Return, this));
+    }
+
     public ScreenResult ConfirmExit() => ScreenResult.Confirm(
         Localizer.Get("shell.exit.confirm"),
         () =>
