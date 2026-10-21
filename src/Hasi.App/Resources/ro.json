@@ -1,1 +1,66 @@
-﻿{}
+﻿{
+  // All user-facing HASI text. Keys are English, values Romanian.
+  // Spoken key names are written out in words ("Control H"), never abbreviated.
+  // Plural values use the CLDR categories for Romanian: one (1), few (0, 2-19, 101-119...), other (20+).
+
+  "shell.welcome": "Bun venit în HASI.",
+  "shell.whereAmI": "Sunteți în: {path}.",
+  "shell.atRoot": "Sunteți în meniul principal. Pentru a închide HASI, alegeți Ieșire.",
+  "shell.keyUnavailable": "Această tastă nu are nicio funcție aici. Pentru ajutor, apăsați F1 sau Control H.",
+  "shell.exit.confirm": "Sigur doriți să închideți HASI?",
+  "shell.exit.goodbye": "La revedere.",
+  "shell.unexpectedError": "A apărut o problemă neașteptată. Puteți continua să folosiți HASI.",
+
+  "mainMenu.title": "Meniu principal",
+
+  "menu.count.options": { "one": "{count} opțiune", "few": "{count} opțiuni", "other": "{count} de opțiuni" },
+  "menu.count.lines": { "one": "{count} rând", "few": "{count} rânduri", "other": "{count} de rânduri" },
+  "menu.enter": "{title}. {count}. Selectat: {item}, {index} din {total}.",
+  "menu.return": "{title}. Selectat: {item}, {index} din {total}.",
+  "menu.item": "{item}, {index} din {total}.",
+  "menu.endOfList": "Sfârșitul listei. {item}, {index} din {total}.",
+  "menu.startOfList": "Începutul listei. {item}, {index} din {total}.",
+  "menu.empty": "{title}. Lista este goală. Apăsați Escape pentru a vă întoarce.",
+  "menu.help": "Ajutor pentru {title}. Folosiți săgețile sus și jos pentru a alege o opțiune. Apăsați Enter pentru a o deschide și Escape pentru a vă întoarce. F2 sau Control R repetă ultimul mesaj. F3 sau Control U vă spune unde vă aflați. Tasta Control oprește vorbirea.",
+
+  "confirm.title": "Confirmare",
+  "confirm.prompt": "{question} Apăsați Enter pentru da sau Escape pentru nu.",
+  "confirm.cancelled": "Anulat.",
+  "confirm.help": "Vi se cere o confirmare. Apăsați Enter pentru da sau Escape pentru nu.",
+
+  "message.enter": "{title}. {message}",
+  "message.help": "Ajutor pentru {title}. Apăsați Enter pentru a asculta din nou mesajul și Escape pentru a vă întoarce.",
+
+  "common.notYetAvailable": "Această funcție va fi disponibilă într-o versiune următoare. Apăsați Escape pentru a vă întoarce.",
+
+  "settings.title": "Setări",
+  "settings.help": "Aici veți putea schimba vocea, viteza vorbirii, culorile și alte preferințe.",
+  "settings.voice": "Voce",
+  "settings.rate": "Viteză",
+  "settings.volume": "Volum",
+  "settings.pitch": "Ton",
+  "settings.keyEcho": "Ecoul tastelor",
+  "settings.colors": "Culori",
+  "settings.textSize": "Mărimea textului",
+  "settings.listEnd": "Capătul listei",
+  "settings.autostart": "Pornire automată",
+  "settings.screenReader": "Cititor de ecran",
+  "settings.diagnostic": "Diagnostic",
+  "settings.updates": "Actualizări",
+
+  "keyTutor.title": "Învață tastele",
+
+  "about.title": "Despre HASI",
+  "about.help": "Folosiți săgețile sus și jos pentru a citi rând cu rând.",
+  "about.name": "HASI, Human Assisted Information, versiunea {version}.",
+  "about.purpose": "Mediu de lucru vorbit pentru nevăzători și slabvăzători.",
+  "about.license": "HASI este program liber, sub Licența Publică Generală GNU, versiunea 3 sau ulterioară. Este oferit fără nicio garanție.",
+  "about.rhvoice": "Sinteza vocală RHVoice, de Olga Yakovleva și colaboratorii, sub licența GNU LGPL, versiunea 2.1 sau ulterioară.",
+  "about.paul": "Vocea românească Paul, de Stefan Moisei, Paul Bogorin și Zvonimir Stanecic, cu egalizare de Tomasz Bilecki, sub licența Creative Commons Atribuire, Distribuire în condiții identice, versiunea 4.0.",
+  "about.systemSpeech": "Componenta System.Speech, de la .NET Foundation, sub licența MIT.",
+
+  "exit.title": "Ieșire",
+  "exit.closeHasi": "Închide HASI",
+
+  "speech.voiceFallback": "Vocea Paul nu este instalată. Folosesc vocea {voice}."
+}

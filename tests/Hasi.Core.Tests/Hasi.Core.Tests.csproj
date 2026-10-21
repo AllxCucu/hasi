@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Hasi.Core\Hasi.Core.csproj" />
+    <ProjectReference Include="..\Hasi.Testing\Hasi.Testing.csproj" />
   </ItemGroup>
 
   <ItemGroup>
