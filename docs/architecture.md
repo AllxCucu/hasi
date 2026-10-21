@@ -174,6 +174,7 @@ Pe lângă asta, folosim **transcrieri de referință**: un fișier text cu „t
   1. **Faza 0:** prin **SAPI5**, cu vocea instalată de installer-ul oficial Paul, nemodificat. Programul e separat, deci nu apare nicio problemă de licență la legare, iar integrarea e cea mai simplă.
   2. **După audit de licență și un experiment de probă:** apeluri directe în `RHVoice.dll` (P/Invoke), cu ieșire audio proprie (WASAPI). Câștigăm oprire instantanee, poziția cuvântului curent, instalare fără administrator și voce inclusă în pachetul HASI. Decizia o scriu ca ADR, după ce vedem rezultatele.
 - **OneCore:** vocea Microsoft Andrei (ro-RO), dacă e instalat pachetul de vorbire românesc din Windows.
+  Constatare din etapa 0.3: `System.Speech` sub .NET 10 vede vocile OneCore și prin SAPI5 (Andrei apare în listă), deci rezerva românească funcționează deja prin SAPI5. Motorul `OneCoreEngine` direct a fost adus înainte din etapa 0.5, în formă minimă, și intervine doar dacă SAPI5 nu pornește.
 - **Coada de mesaje:** priorități `Interrupt` (navigare), `Queue` (citire continuă), `Notification` (memento: așteaptă finalul propoziției curente, apoi vorbește).
 - **Normalizare** (`Hasi.Text.Ro`), ca lanț de etape pure, fiecare cu tabel de teste:
   1. Unicode NFC; ş/ţ/Ş/Ţ (sedilă) → ș/ț/Ș/Ț (virgulă). Opțional, reparăm mojibake-ul frecvent (de exemplu `Ã®` → `î`).

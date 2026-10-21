@@ -109,5 +109,12 @@ The voice output is the source of truth; visuals are secondary.
 ```
 dotnet build
 dotnet test
-dotnet run --project src/Hasi.App
+dotnet run --project src/Hasi.App                       # add: -- --diagnostic --voice "Paul" --rate 0
 ```
+
+- Diagnostic transcripts: `%LOCALAPPDATA%\HASI\diagnostic\sesiune-*.log`; error log: `%LOCALAPPDATA%\HASI\logs\errors.log`.
+- Golden transcripts: `tests/Hasi.Transcripts.Tests/Transcripts/*.transcript`
+  (`> key`, `< expected text`, `[sunet]` = earcon, `! exit`). The tester may edit them;
+  a failing transcript then means `ro.json` must follow the tester's wording.
+- When launching HASI from an agent/background process, Windows does not give it the keyboard.
+  Never send keystrokes without first checking that HASI is the foreground window.
