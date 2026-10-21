@@ -61,6 +61,13 @@ public partial class App : Application, ISystemActions
         var hub = new OutputHub(
             [new SpeechOutputChannel(engine, earcons, _log), new VisualChannel(_window)],
             _log);
+        engine.Failed += (_, ex) =>
+        {
+            // Never fail in silence: log it and play the error tone so the user knows something is wrong.
+            ErrorLog.Write(ex);
+            _log.Write("ERROR", $"{engine.Id}: {ex.GetType().Name}: {ex.Message}");
+            earcons.Play(Earcon.Error);
+        };
         _announcer = new Announcer(hub, new PassThroughNormalizer(), _log);
         _shell = new Shell(_announcer, localizer, new ShellOptions(), this, _log);
 
@@ -69,7 +76,7 @@ public partial class App : Application, ISystemActions
         var context = new ModuleContext(localizer, _shell, new ApplicationInfo(version));
 
         _shell.ScreenChanged += (_, _) => _window.ShowTitle(_shell.Current.Title);
-        _window.KeyPressed += (_, chord) => OnKey(chord);
+        _window.KeyPressed += (_, key) => OnKey(key.Chord, key.IsRepeat);
         _window.CloseRequested += (_, _) => OnKey(new KeyChord(Key.F4, KeyModifiers.Alt));
         var focusWasLost = false;
         _window.Deactivated += (_, _) =>
@@ -89,7 +96,11 @@ public partial class App : Application, ISystemActions
         _window.Activate();
 
         _shell.Start(MainMenu.Create(modules, context));
-        if (voiceNotice is not null) _announcer.Say(new Utterance(voiceNotice, UtterancePriority.Queue));
+        if (voiceNotice is not null)
+        {
+            var earcon = engine is NullSpeechEngine ? Earcon.Error : Earcon.None;
+            _announcer.Say(new Utterance(voiceNotice, UtterancePriority.Queue, earcon));
+        }
 
         // Windows may refuse to give the new window the keyboard (for example when started from a
         // background process). Without this check the user's keys would silently go elsewhere.
@@ -114,20 +125,33 @@ public partial class App : Application, ISystemActions
         base.OnExit(e);
     }
 
-    private void OnKey(KeyChord chord)
+    private void OnKey(KeyChord chord, bool isRepeat = false)
     {
         if (_exiting || _shell is null) return;
-        _shell.Dispatch(new InputEvent(_keyMap.Resolve(chord), chord));
+        _shell.Dispatch(new InputEvent(_keyMap.Resolve(chord), chord, IsRepeat: isRepeat));
         if (_exitRequested) _ = ExitAfterSpeechAsync();
     }
 
+    /// <summary>Lets "La revedere" finish, then closes. Closes even if waiting fails.</summary>
     private async Task ExitAfterSpeechAsync()
     {
         _exiting = true;
-        _log.Write("EXIT", "user confirmed");
-        await _engine!.WaitUntilIdleAsync(TimeSpan.FromSeconds(5)).ConfigureAwait(true);
-        _window!.AllowClose = true;
-        Shutdown();
+        try
+        {
+            _log.Write("EXIT", "user confirmed");
+            await _engine!.WaitUntilIdleAsync(TimeSpan.FromSeconds(5)).ConfigureAwait(true);
+        }
+#pragma warning disable CA1031 // Nothing may stop a confirmed exit.
+        catch (Exception ex)
+#pragma warning restore CA1031
+        {
+            ErrorLog.Write(ex);
+        }
+        finally
+        {
+            _window!.AllowClose = true;
+            Shutdown();
+        }
     }
 
     private void OnUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
@@ -144,9 +168,17 @@ public partial class App : Application, ISystemActions
     private IDiagnosticLog CreateDiagnosticLog(StartupOptions options)
     {
         if (!options.Diagnostic) return NullDiagnosticLog.Instance;
-        var path = AppPaths.NewDiagnosticSessionFile(DateTimeOffset.Now);
-        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-        return new TextDiagnosticLog(new StreamWriter(path, append: false, new UTF8Encoding(true)), TimeProvider.System);
+        try
+        {
+            var path = AppPaths.NewDiagnosticSessionFile(DateTimeOffset.Now);
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            return new TextDiagnosticLog(new StreamWriter(path, append: false, new UTF8Encoding(true)), TimeProvider.System);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            ErrorLog.Write(ex);
+            return NullDiagnosticLog.Instance;
+        }
     }
 
     /// <summary>
@@ -162,38 +194,43 @@ public partial class App : Application, ISystemActions
         _log.Write("VOICES", string.Join(", ", voices.Select(v => $"{v.Engine}:\"{v.Name}\" {v.Culture}")));
 
         var preferred = options.Voice ?? VoiceChooser.DefaultPreferredVoice;
-        var voice = VoiceChooser.Choose(voices, preferred);
-        ISpeechEngine? engine = voice?.Engine switch
+        ISpeechEngine? engine = null;
+        VoiceCandidate? voice = null;
+        // A voice that is listed may still fail to start; then try the next best one.
+        foreach (var candidate in VoiceChooser.Rank(voices, preferred))
         {
-            "sapi5" => Attempt("SAPI5 voice", () =>
+            engine = candidate.Engine switch
             {
-                sapi!.SelectVoice(voice.Name);
-                if (options.Rate is { } rate) sapi.Rate = rate;
-                return sapi;
-            }),
-            "onecore" => Attempt("OneCore voice", () =>
-            {
-                var oneCore = new OneCoreEngine();
-                oneCore.SelectVoice(voice.Name);
-                if (options.Rate is { } rate) oneCore.Rate = rate;
-                oneCore.Failed += (_, ex) =>
+                "sapi5" when sapi is not null => Attempt($"SAPI5 voice {candidate.Name}", () =>
                 {
-                    ErrorLog.Write(ex);
-                    _log.Write("ERROR", $"OneCore: {ex.Message}");
-                };
-                return oneCore;
-            }),
-            _ => null,
-        };
+                    sapi.SelectVoice(candidate.Name);
+                    if (options.Rate is { } rate) sapi.Rate = rate;
+                    return sapi;
+                }),
+                "onecore" => Attempt($"OneCore voice {candidate.Name}", () =>
+                {
+                    var oneCore = new OneCoreEngine();
+                    oneCore.SelectVoice(candidate.Name);
+                    if (options.Rate is { } rate) oneCore.Rate = rate;
+                    return oneCore;
+                }),
+                _ => null,
+            };
+            if (engine is not null)
+            {
+                voice = candidate;
+                break;
+            }
+        }
         if (!ReferenceEquals(engine, sapi)) sapi?.Dispose();
 
-        if (engine is null)
+        if (engine is null || voice is null)
         {
             _log.Write("ERROR", "no working voice; text is shown on screen only");
-            return (new NullSpeechEngine(), null);
+            return (new NullSpeechEngine(), localizer.Get("speech.noVoice"));
         }
-        var notice = options.Voice is null && !VoiceChooser.IsPreferred(voice!, preferred)
-            ? localizer.Get("speech.voiceFallback", ("voice", voice!.Name))
+        var notice = options.Voice is null && !VoiceChooser.IsPreferred(voice, preferred)
+            ? localizer.Get("speech.voiceFallback", ("voice", voice.Name))
             : null;
         return (engine, notice);
     }

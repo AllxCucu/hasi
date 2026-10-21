@@ -63,5 +63,6 @@
   "exit.title": "Ieșire",
   "exit.closeHasi": "Închide HASI",
 
-  "speech.voiceFallback": "Vocea Paul nu este instalată. Folosesc vocea {voice}."
+  "speech.voiceFallback": "Vocea Paul nu este instalată. Folosesc vocea {voice}.",
+  "speech.noVoice": "Nu am găsit nicio voce care să funcționeze. Mesajele apar doar pe ecran."
 }

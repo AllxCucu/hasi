@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
@@ -19,7 +19,7 @@ public partial class ShellWindow : Window
     }
 
     /// <summary>Raised for every key press, already translated to a platform-neutral chord.</summary>
-    public event EventHandler<KeyChord>? KeyPressed;
+    public event EventHandler<KeyPress>? KeyPressed;
 
     /// <summary>Raised when something other than HASI tries to close the window (taskbar, Alt+F4 outside our handler).</summary>
     public event EventHandler? CloseRequested;
@@ -39,7 +39,7 @@ public partial class ShellWindow : Window
         ArgumentNullException.ThrowIfNull(e);
         // Every key belongs to HASI: no menu activation on Alt, no focus moves on Tab.
         e.Handled = true;
-        KeyPressed?.Invoke(this, KeyTranslator.Translate(e));
+        KeyPressed?.Invoke(this, new KeyPress(KeyTranslator.Translate(e), e.IsRepeat));
     }
 
     [DllImport("user32.dll")]
@@ -57,3 +57,6 @@ public partial class ShellWindow : Window
         base.OnClosing(e);
     }
 }
+
+/// <param name="IsRepeat">Sent by keyboard auto-repeat while the key is held down.</param>
+public readonly record struct KeyPress(KeyChord Chord, bool IsRepeat);

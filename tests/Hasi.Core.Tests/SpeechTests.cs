@@ -24,6 +24,12 @@ public class SpeechTests
 
         public Task WaitUntilIdleAsync(TimeSpan timeout) => Task.CompletedTask;
 
+        public event EventHandler<Exception>? Failed
+        {
+            add { }
+            remove { }
+        }
+
         public void Dispose() { }
     }
 
@@ -106,6 +112,12 @@ public class SpeechTests
     public void Falls_back_to_any_voice()
     {
         Assert.Equal(David, VoiceChooser.Choose([David], "Paul"));
+    }
+
+    [Fact]
+    public void Ranking_lists_every_voice_best_first_for_fallback()
+    {
+        Assert.Equal([Paul, Andrei, David], VoiceChooser.Rank([David, Andrei, Paul], "Paul"));
     }
 
     [Fact]

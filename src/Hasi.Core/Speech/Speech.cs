@@ -19,6 +19,9 @@ public interface ISpeechEngine : IDisposable
     void Stop();
 
     Task WaitUntilIdleAsync(TimeSpan timeout);
+
+    /// <summary>A queued message could not be spoken. Raised on the thread that uses the engine.</summary>
+    event EventHandler<Exception>? Failed;
 }
 
 public interface IEarconPlayer
@@ -40,6 +43,12 @@ public sealed class NullSpeechEngine : ISpeechEngine
     public void Stop() { }
 
     public Task WaitUntilIdleAsync(TimeSpan timeout) => Task.CompletedTask;
+
+    public event EventHandler<Exception>? Failed
+    {
+        add { }
+        remove { }
+    }
 
     public void Dispose() { }
 }
@@ -80,13 +89,22 @@ public static class VoiceChooser
     /// Picks the preferred voice by name, else a Romanian voice, else the first one; ties go to the
     /// earlier voice in the list. Returns null only when there are no voices at all.
     /// </summary>
-    public static VoiceCandidate? Choose(IReadOnlyList<VoiceCandidate> voices, string preferredName)
-    {
-        return voices.FirstOrDefault(v => v.Name.Equals(preferredName, StringComparison.OrdinalIgnoreCase))
-            ?? voices.FirstOrDefault(v => v.Name.Contains(preferredName, StringComparison.OrdinalIgnoreCase))
-            ?? voices.FirstOrDefault(v => v.Culture.StartsWith("ro", StringComparison.OrdinalIgnoreCase))
-            ?? voices.FirstOrDefault();
-    }
+    public static VoiceCandidate? Choose(IReadOnlyList<VoiceCandidate> voices, string preferredName) =>
+        Rank(voices, preferredName).FirstOrDefault();
+
+    /// <summary>All voices, best first, so the next one can be tried when a voice fails to start.</summary>
+    public static IReadOnlyList<VoiceCandidate> Rank(IReadOnlyList<VoiceCandidate> voices, string preferredName) =>
+        [.. voices
+            .Select((voice, index) => (voice, index))
+            .OrderBy(v => Score(v.voice, preferredName))
+            .ThenBy(v => v.index)
+            .Select(v => v.voice)];
+
+    private static int Score(VoiceCandidate voice, string preferredName) =>
+        voice.Name.Equals(preferredName, StringComparison.OrdinalIgnoreCase) ? 0
+        : voice.Name.Contains(preferredName, StringComparison.OrdinalIgnoreCase) ? 1
+        : voice.Culture.StartsWith("ro", StringComparison.OrdinalIgnoreCase) ? 2
+        : 3;
 
     public static bool IsPreferred(VoiceCandidate voice, string preferredName) =>
         voice.Name.Contains(preferredName, StringComparison.OrdinalIgnoreCase);

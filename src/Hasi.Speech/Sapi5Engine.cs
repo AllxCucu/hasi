@@ -15,7 +15,13 @@ public sealed class Sapi5Engine : ISpeechEngine
     public Sapi5Engine()
     {
         _synthesizer.SetOutputToDefaultAudioDevice();
+        _synthesizer.SpeakCompleted += (_, e) =>
+        {
+            if (!e.Cancelled && e.Error is not null) Failed?.Invoke(this, e.Error);
+        };
     }
+
+    public event EventHandler<Exception>? Failed;
 
     public string Id => "sapi5";
 
