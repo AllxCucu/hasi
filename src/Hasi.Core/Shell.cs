@@ -18,11 +18,14 @@ public sealed class Shell : IShellServices, IScreenContext
     private readonly Announcer _announcer;
     private readonly ISystemActions _system;
     private readonly IDiagnosticLog _log;
+    private readonly IDiagnosticsService? _diagnostics;
     private readonly PowerWatch _power = new();
     private bool _focusLostWhilePowerPending;
 
-    public Shell(Announcer announcer, ILocalizer localizer, ShellOptions options, ISystemActions system, IDiagnosticLog log)
+    public Shell(Announcer announcer, ILocalizer localizer, ShellOptions options, ISystemActions system, IDiagnosticLog log,
+        IDiagnosticsService? diagnostics = null)
     {
+        _diagnostics = diagnostics;
         _announcer = announcer;
         Localizer = localizer;
         Options = options;
@@ -91,6 +94,13 @@ public sealed class Shell : IShellServices, IScreenContext
                 return;
             case Command.Exit:
                 Apply(ConfirmExit());
+                return;
+            case Command.ToggleDiagnostic when _diagnostics is not null:
+                var turnOn = !_diagnostics.IsOn;
+                if (!turnOn) _log.Write("DIAG", "turned off");
+                var said = DiagnosticsMessages.Switch(_diagnostics, Localizer, turnOn);
+                if (turnOn) _log.Write("DIAG", $"turned on by {input.Key}");
+                _announcer.Say(said);
                 return;
         }
 

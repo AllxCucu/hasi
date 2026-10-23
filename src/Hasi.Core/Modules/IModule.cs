@@ -1,4 +1,5 @@
-﻿using Hasi.Core.Localization;
+﻿using Hasi.Core.Diagnostics;
+using Hasi.Core.Localization;
 using Hasi.Core.Output;
 using Hasi.Core.Power;
 using Hasi.Core.Screens;
@@ -37,6 +38,9 @@ public interface IModuleContext
 
     /// <summary>The user's settings (read, change, save), or null when the host has none.</summary>
     ISettingsService? Settings { get; }
+
+    /// <summary>Diagnostic mode and copying its log, or null when the host has none.</summary>
+    IDiagnosticsService? Diagnostics { get; }
 }
 
 /// <summary>Shell features that modules may trigger.</summary>
@@ -81,7 +85,8 @@ public sealed record ModuleContext(
     ApplicationInfo Application,
     ITextNormalizer Normalizer,
     IVoiceComparison? VoiceComparison = null,
-    ISettingsService? Settings = null) : IModuleContext;
+    ISettingsService? Settings = null,
+    IDiagnosticsService? Diagnostics = null) : IModuleContext;
 
 public static class MainMenu
 {

@@ -24,12 +24,16 @@ public enum Command
     WhereAmI,
     StopSpeech,
     Exit,
+
+    /// <summary>Turns diagnostic mode on or off (Ctrl+Shift+F12 / Ctrl+Shift+D).</summary>
+    ToggleDiagnostic,
 }
 
 public static class CommandExtensions
 {
     public static bool IsGlobal(this Command command) => command is
-        Command.Help or Command.RepeatLast or Command.WhereAmI or Command.StopSpeech or Command.Exit;
+        Command.Help or Command.RepeatLast or Command.WhereAmI or Command.StopSpeech or Command.Exit
+        or Command.ToggleDiagnostic;
 
     /// <summary>
     /// Whether a key held down keeps repeating the command. Only moving and adjusting do; holding

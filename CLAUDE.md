@@ -120,6 +120,7 @@ dotnet run --project src/Hasi.App                       # add: -- --diagnostic -
                                                         #      --rhvoice-path <folder> --pitch 0 --volume 100
                                                         #      --audio-idle-seconds 60 --test-voice-failure
                                                         #      --simulate-power | --real-power (one session; else Settings → Diagnostic → Simulare oprire)
+                                                        #      --test-error crash|hang|ui (serious error after 5 s, to test recovery)
 ```
 
 - User settings: `%APPDATA%\HASI\settings.json` (`UserSettings`, schema version 1, migrations in `SettingsFile`).

@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.IO;
+using Hasi.Core.Diagnostics;
 
 namespace Hasi.App;
 
@@ -24,26 +25,15 @@ internal static class AppPaths
         $"sesiune-{now.ToString("yyyy-MM-dd_HH-mm-ss", CultureInfo.InvariantCulture)}.log");
 }
 
-/// <summary>Always-on error log, separate from the optional diagnostic transcript.</summary>
+/// <summary>The always-on error log (<see cref="ErrorLogFile"/>), separate from the optional diagnostic transcript.</summary>
 internal static class ErrorLog
 {
-    private static readonly Lock Sync = new();
+    private static ErrorLogFile _file = new(AppPaths.ErrorLog, "HASI", TimeProvider.System);
 
-    public static void Write(Exception exception)
-    {
-        try
-        {
-            lock (Sync)
-            {
-                Directory.CreateDirectory(Path.GetDirectoryName(AppPaths.ErrorLog)!);
-                File.AppendAllText(AppPaths.ErrorLog,
-                    $"{DateTimeOffset.Now:O} {exception}{Environment.NewLine}{Environment.NewLine}");
-            }
-        }
-#pragma warning disable CA1031 // Logging an error must never cause another one.
-        catch
-#pragma warning restore CA1031
-        {
-        }
-    }
+    public static string Path => _file.Path;
+
+    /// <summary>Called once at startup, so every entry says which version and Windows it comes from.</summary>
+    public static void Initialize(string header) => _file = new ErrorLogFile(AppPaths.ErrorLog, header, TimeProvider.System);
+
+    public static void Write(Exception? exception, string context = "error") => _file.Write(context, exception);
 }

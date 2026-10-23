@@ -31,7 +31,11 @@ public partial class App : Application, ISystemActions
     private Shell? _shell;
     private Announcer? _announcer;
     private ISpeechEngine? _engine;
-    private IDiagnosticLog _log = NullDiagnosticLog.Instance;
+    private readonly SwitchableDiagnosticLog _log = new();
+    private readonly ErrorBurst _errorBurst = new();
+    private AppDiagnostics? _diagnostics;
+    private CrashRecovery? _recovery;
+    private ILocalizer? _localizer;
     private readonly KeyMap _keyMap = KeyMap.CreateDefault();
     private bool _exitRequested;
     private PowerAction? _power;
@@ -44,10 +48,19 @@ public partial class App : Application, ISystemActions
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        var options = StartupOptions.Parse(e.Args);
+        _options = options;
+        var version = ApplicationVersion();
+        var header = $"HASI {version}, {Environment.OSVersion.VersionString}";
+        ErrorLog.Initialize(header);
+        _recovery = new CrashRecovery(e.Args, _log);
         DispatcherUnhandledException += OnUnhandledException;
         AppDomain.CurrentDomain.UnhandledException += (_, args) =>
         {
-            if (args.ExceptionObject is Exception ex) ErrorLog.Write(ex);
+            // The process is ending: restart it, so the user is not left in silence.
+            ErrorLog.Write(args.ExceptionObject as Exception, "crash");
+            _log.Write("ERROR", $"crash: {(args.ExceptionObject as Exception)?.Message}");
+            RecoverFromSeriousError("crash");
         };
         SessionEnding += (_, _) =>
         {
@@ -56,13 +69,13 @@ public partial class App : Application, ISystemActions
             _shell?.PowerSessionEnding();
         };
 
-        var options = StartupOptions.Parse(e.Args);
-        _options = options;
-        var version = ApplicationVersion();
-        _log = CreateDiagnosticLog(options);
-        _log.Write("START", $"HASI {version}, {Environment.OSVersion.VersionString}");
+        _diagnostics = new AppDiagnostics(_log, header, TimeProvider.System);
+        _recovery.DiagnosticIsOn = () => _diagnostics.IsOn;
+        if (options.Diagnostic) _diagnostics.TurnOn();
+        if (options.AfterError) _log.Write("START", "restarted after a serious error");
 
         var localizer = JsonLocalizer.LoadRomanian(AppPaths.Resources);
+        _localizer = localizer;
         var normalizer = new RomanianNormalizer(
             AcronymLexicon.Load(AcronymLexicon.DefaultPath),
             NounGenderLexicon.LoadDefault(),
@@ -106,14 +119,14 @@ public partial class App : Application, ISystemActions
         };
         _announcer = new Announcer(hub, normalizer, _log);
         var shellOptions = new ShellOptions();
-        _shell = new Shell(_announcer, localizer, shellOptions, this, _log);
+        _shell = new Shell(_announcer, localizer, shellOptions, this, _log, _diagnostics);
         var settings = new AppSettingsService(AppPaths.SettingsFile, savedSettings, options, speech, engine, shellOptions, _window, _log);
         _settings = settings;
         settings.SaveFailed += (_, _) => _announcer.Say(new Utterance(localizer.Get("settings.saveProblem"), UtterancePriority.Queue, Earcon.Error));
 
         // Main menu order. Keep in sync with tests/Hasi.Transcripts.Tests/TranscriptTests.cs.
         IModule[] modules = [new SettingsModule(), new KeyTutorModule(), new AboutModule(), new ExitModule()];
-        var context = new ModuleContext(localizer, _shell, new ApplicationInfo(version), normalizer, comparison, settings);
+        var context = new ModuleContext(localizer, _shell, new ApplicationInfo(version), normalizer, comparison, settings, _diagnostics);
 
         _shell.ScreenChanged += (_, _) => _window.ShowTitle(_shell.Current.Title);
         _window.ProducesText = chord => TextRouting.ProducesText(chord, _keyMap, _shell.IsTextEntryActive, ShellWindow.NumLockOn);
@@ -164,6 +177,12 @@ public partial class App : Application, ISystemActions
         {
             _announcer.Say(new Utterance(localizer.Get("power.realNotice"), UtterancePriority.Queue));
         }
+        if (options.AfterError)
+        {
+            _announcer.Say(new Utterance(localizer.Get("error.restarted"), UtterancePriority.Queue, Earcon.Error));
+        }
+        HangWatchdog.Start(Dispatcher, () => RecoverFromSeriousError("frozen"));
+        if (options.TestError is { } test) TestErrors.Schedule(test, Dispatcher);
 
         // Windows may refuse to give the new window the keyboard (for example when started from a
         // background process). Without this check the user's keys would silently go elsewhere.
@@ -197,7 +216,7 @@ public partial class App : Application, ISystemActions
     {
         _engine?.Dispose();
         foreach (var disposable in _disposables) disposable.Dispose();
-        (_log as IDisposable)?.Dispose();
+        _diagnostics?.Dispose();
         base.OnExit(e);
     }
 
@@ -291,28 +310,42 @@ public partial class App : Application, ISystemActions
 
     private void OnUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
-        ErrorLog.Write(e.Exception);
+        ErrorLog.Write(e.Exception, "unhandled UI exception");
         _log.Write("ERROR", $"{e.Exception.GetType().Name}: {e.Exception.Message}");
-        if (_announcer is not null && _shell is not null)
+        if (_announcer is null || _shell is null) return; // During startup: the crash handler restarts HASI.
+        e.Handled = true;
+        if (_errorBurst.Add(DateTimeOffset.Now))
         {
-            e.Handled = true;
-            _announcer.Say(new Utterance(_shell.Localizer.Get("shell.unexpectedError"), Earcon: Earcon.Error));
+            // Something is broken for good. Off the window's thread, so the message can still be said.
+            Task.Run(() => RecoverFromSeriousError("repeated errors"));
+            return;
         }
+        _announcer.Say(new Utterance(_shell.Localizer.Get("shell.unexpectedError"), Earcon: Earcon.Error));
     }
 
-    private IDiagnosticLog CreateDiagnosticLog(StartupOptions options)
+    /// <summary>Restarts HASI after a serious error, or stops with a spoken explanation if restarting does not help.</summary>
+    private void RecoverFromSeriousError(string reason)
     {
-        if (!options.Diagnostic) return NullDiagnosticLog.Instance;
+        var restarting = _localizer?.Get("error.restarting") ?? "";
+        var givingUp = _localizer?.Get("error.givingUp") ?? "";
+        _recovery?.RestartOrGiveUp(reason, restarting, givingUp, SayWithHasi);
+    }
+
+    /// <summary>Says <paramref name="text"/> with HASI's own voice and waits for it, if the window still answers.</summary>
+    private bool SayWithHasi(string text)
+    {
+        if (_announcer is not { } announcer || _engine is not { } engine || text.Length == 0 || Dispatcher.CheckAccess()) return false;
         try
         {
-            var path = AppPaths.NewDiagnosticSessionFile(DateTimeOffset.Now);
-            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-            return new TextDiagnosticLog(new StreamWriter(path, append: false, new UTF8Encoding(true)), TimeProvider.System);
+            var say = Dispatcher.InvokeAsync(() => announcer.Say(new Utterance(text, Earcon: Earcon.Error)));
+            if (say.Wait(TimeSpan.FromSeconds(1)) != DispatcherOperationStatus.Completed) return false;
+            return engine.WaitUntilIdleAsync(TimeSpan.FromSeconds(8)).Wait(TimeSpan.FromSeconds(9));
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+#pragma warning disable CA1031 // The voice may be what is broken; the caller then uses Windows' voice.
+        catch (Exception)
+#pragma warning restore CA1031
         {
-            ErrorLog.Write(ex);
-            return NullDiagnosticLog.Instance;
+            return false;
         }
     }
 

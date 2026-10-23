@@ -9,7 +9,8 @@ namespace Hasi.App;
 /// <c>--audio-idle-seconds N</c> (0 = keep the audio stream open), <c>--test-voice-failure</c>,
 /// <c>--simulate-power</c> (restart and shut down only log, and HASI closes),
 /// <c>--real-power</c> (restart and shut down are real for this session, whatever "Simulare oprire" says;
-/// <c>--simulate-power</c> wins if both are given).
+/// <c>--simulate-power</c> wins if both are given), <c>--after-error</c> (set by HASI itself when it restarts after a
+/// serious error), <c>--test-error crash|hang|ui</c> (causes a serious error 5 seconds after start, for testing).
 /// </summary>
 internal sealed record StartupOptions(
     bool Diagnostic,
@@ -22,7 +23,9 @@ internal sealed record StartupOptions(
     int? Volume = null,
     int? AudioIdleSeconds = null,
     bool SimulatePower = false,
-    bool RealPower = false)
+    bool RealPower = false,
+    bool AfterError = false,
+    string? TestError = null)
 {
     public static StartupOptions Parse(IReadOnlyList<string> args)
     {
@@ -37,6 +40,13 @@ internal sealed record StartupOptions(
                     break;
                 case "--simulate-power":
                     options = options with { SimulatePower = true };
+                    break;
+                case "--after-error":
+                    options = options with { AfterError = true };
+                    break;
+                case "--test-error" when next is not null:
+                    options = options with { TestError = next.ToLowerInvariant() };
+                    i++;
                     break;
                 case "--real-power":
                     options = options with { RealPower = true };

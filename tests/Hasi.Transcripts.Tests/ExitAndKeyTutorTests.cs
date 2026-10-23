@@ -50,6 +50,17 @@ public class ExitAndKeyTutorTests
     }
 
     [Fact]
+    public void The_tutor_names_the_diagnostic_key_without_switching_it()
+    {
+        var h = Started();
+        h.Press(Key.Down, Key.Enter);
+
+        Assert.Equal(["Control plus Shift plus litera D: pornește sau oprește modul de diagnostic."],
+            h.Press(new KeyChord(Key.D, KeyModifiers.Ctrl | KeyModifiers.Shift)));
+        Assert.False(h.Diagnostics.IsOn);
+    }
+
+    [Fact]
     public void Holding_a_key_in_the_tutor_says_it_once()
     {
         var h = Started();

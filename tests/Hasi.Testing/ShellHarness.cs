@@ -38,6 +38,34 @@ public sealed class FakeSystemActions : ISystemActions
     public IReadOnlyList<OpenProgram> OpenPrograms() => [.. Programs];
 }
 
+/// <summary>Diagnostic mode in memory: records the switches and returns the copy result a test sets.</summary>
+public sealed class FakeDiagnosticsService : IDiagnosticsService
+{
+    public bool IsOn { get; private set; }
+
+    /// <summary>Simulates a log file that cannot be written.</summary>
+    public bool FailToStart { get; set; }
+
+    public LogCopyResult CopyResult { get; set; } = LogCopyResult.Copied;
+
+    public int Copies { get; private set; }
+
+    public bool TurnOn()
+    {
+        if (FailToStart) return false;
+        IsOn = true;
+        return true;
+    }
+
+    public void TurnOff() => IsOn = false;
+
+    public LogCopyResult CopyToDesktop()
+    {
+        Copies++;
+        return CopyResult;
+    }
+}
+
 /// <summary>
 /// Runs the real shell with the real Romanian resources and no audio or window:
 /// press keys, then check what would have been said.
@@ -54,7 +82,8 @@ public sealed class ShellHarness
         Normalizer = normalizer ?? new PassThroughNormalizer();
         var log = NullDiagnosticLog.Instance;
         Announcer = new Announcer(new OutputHub([Output], log), Normalizer, log);
-        Shell = new Shell(Announcer, Localizer, options ?? new ShellOptions(), System, log);
+        Diagnostics = new FakeDiagnosticsService();
+        Shell = new Shell(Announcer, Localizer, options ?? new ShellOptions(), System, log, Diagnostics);
         Settings = settings ?? new InMemorySettingsService();
         System.Simulated = () => Settings.Current.SimulatePower;
         if (Settings is InMemorySettingsService memory)
@@ -66,7 +95,7 @@ public sealed class ShellHarness
                 Shell.Options.KeyEcho = s.KeyEcho;
             };
         }
-        ModuleContext = new ModuleContext(Localizer, Shell, new ApplicationInfo("0.1.0"), Normalizer, comparison, Settings);
+        ModuleContext = new ModuleContext(Localizer, Shell, new ApplicationInfo("0.1.0"), Normalizer, comparison, Settings, Diagnostics);
     }
 
     public JsonLocalizer Localizer { get; }
@@ -80,6 +109,8 @@ public sealed class ShellHarness
     public ITextNormalizer Normalizer { get; }
 
     public ISettingsService Settings { get; }
+
+    public FakeDiagnosticsService Diagnostics { get; }
 
     public Announcer Announcer { get; }
 

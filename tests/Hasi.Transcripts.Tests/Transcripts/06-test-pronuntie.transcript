@@ -41,8 +41,26 @@
 > Escape
 < Diagnostic. Selectat: Comparare voci, 2 din 5.
 
-# Celelalte două opțiuni vin în etapa 0.8
+# Mod de diagnostic (etapa 0.8): Pornit sau Oprit, la fel ca Control Shift D
 > Down
 < Mod de diagnostic, 3 din 5.
 > Enter
-< Mod de diagnostic. Această funcție va fi disponibilă într-o versiune următoare. Apăsați Escape pentru a vă întoarce.
+< Mod de diagnostic. 2 opțiuni. Selectat: Oprit, actual, 2 din 2.
+> Up
+< Pornit: tastele și mesajele se scriu într-un jurnal, doar pe acest calculator, 1 din 2.
+> Enter
+< Modul de diagnostic este pornit. Tastele și mesajele se scriu într-un jurnal, doar pe acest calculator. Diagnostic. Selectat: Mod de diagnostic, 3 din 5.
+> Ctrl+Shift+D
+< Modul de diagnostic este oprit.
+> Ctrl+Shift+F12
+< Modul de diagnostic este pornit. Tastele și mesajele se scriu într-un jurnal, doar pe acest calculator.
+
+# Copiază jurnalul pe Desktop
+> Down
+< Copiază jurnalul pe Desktop, 4 din 5.
+> Enter
+< Jurnalul a fost copiat pe Desktop.
+
+# Simulare oprire: vezi PowerTests
+> Down
+< Simulare oprire, 5 din 5.

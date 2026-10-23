@@ -1,4 +1,5 @@
-﻿using Hasi.Core.Localization;
+﻿using Hasi.Core.Diagnostics;
+using Hasi.Core.Localization;
 using Hasi.Core.Modules;
 using Hasi.Core.Output;
 using Hasi.Core.Screens;
@@ -114,14 +115,30 @@ public sealed class SettingsModule : IModule
         [
             new MenuItem(l.Get("diagnostic.pronunciation"), _ => ScreenResult.Push(PronunciationTest(context))),
             new MenuItem(l.Get("diagnostic.compare"), _ => ScreenResult.Push(VoiceComparison(context))),
-            NotYetAvailable(l.Get("diagnostic.mode"), context),
-            NotYetAvailable(l.Get("diagnostic.copyLog"), context),
+            context.Diagnostics is { } diagnostics
+                ? new MenuItem(l.Get("diagnostic.mode"), _ => ScreenResult.Push(DiagnosticMode(context, diagnostics)))
+                : NotYetAvailable(l.Get("diagnostic.mode"), context),
+            context.Diagnostics is { } copy
+                ? new MenuItem(l.Get("diagnostic.copyLog"), _ => ScreenResult.Say(DiagnosticsMessages.CopyToDesktop(copy, l)))
+                : NotYetAvailable(l.Get("diagnostic.copyLog"), context),
             context.Settings is { } settings
                 ? new MenuItem(l.Get("diagnostic.simulatePower"), _ => ScreenResult.Push(Choice(context, "diagnostic.simulatePower",
                     ["settings.simulatePower.on", "settings.simulatePower.off"],
                     settings.Current.SimulatePower ? 0 : 1, i => settings.SetSimulatePower(i == 0))))
                 : NotYetAvailable(l.Get("diagnostic.simulatePower"), context),
         ]);
+    }
+
+    /// <summary>On or off; the same as Ctrl+Shift+D. Turning it on starts a new session file.</summary>
+    private static ChoiceScreen DiagnosticMode(IModuleContext context, IDiagnosticsService diagnostics)
+    {
+        var l = context.Localizer;
+        return new ChoiceScreen(
+            l.Get("diagnostic.mode"),
+            [l.Get("diagnostic.mode.on"), l.Get("diagnostic.mode.off")],
+            diagnostics.IsOn ? 0 : 1,
+            (index, _) => ScreenResult.Pop(prefix: DiagnosticsMessages.Switch(diagnostics, l, index == 0)),
+            l.Get("settings.choice.current"));
     }
 
     /// <summary>The phrases are fixed, so every comparison is made on the same text.</summary>

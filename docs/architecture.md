@@ -364,7 +364,11 @@ Fiecare mesaj apare pe trei niveluri, ca să poți spune exact unde e greșeala:
 
 Dacă `normalized` e corect, dar pronunția e greșită, problema e a vocii. Dacă `normalized` e deja greșit, problema e a normalizatorului. Mesajele marcate `Sensitive` (de exemplu parolele) apar ca `•••` pe toate cele trei niveluri.
 
-Modul de diagnostic se pornește din Setări → Diagnostic → „Mod de diagnostic” sau cu Ctrl+Shift+F12 / Ctrl+Shift+D (etapa 0.8). Până atunci se pornește din linia de comandă, cu `--diagnostic`. Opțiunea „Copiază jurnalul pe Desktop” îl pune acolo unde îl poți găsi ușor ca să mi-l trimiți.
+Modul de diagnostic se pornește din Setări → Diagnostic → „Mod de diagnostic” sau cu Ctrl+Shift+F12 / Ctrl+Shift+D (etapa 0.8), oriunde în HASI; din linia de comandă, cu `--diagnostic`. E oprit la fiecare pornire (jurnalul conține tot ce se spune). Fiecare pornire a modului începe un fișier nou. Opțiunea „Copiază jurnalul pe Desktop” pune sesiunea curentă (sau, dacă modul e oprit, ultima sesiune) într-un singur fișier text, `HASI-jurnal-<data>.txt`, împreună cu sfârșitul jurnalului de erori, ca să mi-l poți trimite.
+
+**Jurnalul de erori** (`%LOCALAPPDATA%\HASI\logs\errors.log`) e mereu pornit și conține doar erori, nu ce ai scris sau auzit. Fiecare intrare: un rând cu data, locul erorii, versiunea HASI și a Windows, apoi eroarea, indentată. Peste 1 MB, fișierul devine `errors.old.log` și începe unul nou.
+
+**Eroare gravă** (etapa 0.8): HASI se blochează, trei erori neașteptate în 30 de secunde, sau fereastra nu mai răspunde 20 de secunde. HASI spune, dacă vocea încă merge, „A apărut o problemă gravă. HASI se repornește.”, se pornește din nou singur (cu aceleași opțiuni, cu modul de diagnostic păstrat) și, după bun venit, spune „HASI a fost repornit după o problemă neașteptată. Ne cerem scuze.” După 3 reporniri automate în 10 minute se oprește și spune, cu vocea lui sau cu o voce Windows, „HASI s-a oprit din cauza unei probleme care se repetă. Reporniți calculatorul. Dacă problema rămâne, cereți ajutor.” O singură eroare neașteptată nu repornește nimic: HASI spune „A apărut o problemă neașteptată. Puteți continua să folosiți HASI.”
 
 **Ecranul „Test pronunție”** (Setări → Diagnostic → Test pronunție, etapa 0.4): scrii un text, apeși Enter și îl auzi normalizat. Ecranul îl afișează și scris, iar ambele variante intră în jurnalul de diagnostic, ca să-mi poți raporta pronunțiile greșite.
 

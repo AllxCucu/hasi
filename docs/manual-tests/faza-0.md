@@ -196,6 +196,25 @@ Etapa 0.9 (coexistența cu cititoarele de ecran) a fost scoasă din Faza 0, la d
 - Scenariile M0-25 (NVDA cu add-on) și M0-26 (NVDA fără add-on) sunt scoase: add-on-ul și trecerea prin NVDA nu se mai fac.
 - M0-27 (Naratorul) se mută la etapa 0.10, mai jos.
 
+## Etapa 0.8 – diagnostic și erori (M0-24, G-01…G-09)
+
+Pornire: `dotnet run --project src\Hasi.App` (fără `--diagnostic`, ca să vezi că modul e oprit la pornire).
+
+| ID | Ce faci | Ce trebuie să auzi |
+|---|---|---|
+| G-01 | Control + Shift + D, în meniul principal | „Modul de diagnostic este pornit. Tastele și mesajele se scriu într-un jurnal, doar pe acest calculator.” Încă o dată: „Modul de diagnostic este oprit.” |
+| G-02 | Control + Shift + F12, apoi din nou | la fel ca G-01 (pe laptop poate trebui și Fn) |
+| G-03 | Setări → Diagnostic → Mod de diagnostic | „Mod de diagnostic. 2 opțiuni. Selectat: Oprit, actual, 2 din 2.” Săgeata sus, Enter → „Modul de diagnostic este pornit. … Diagnostic. Selectat: Mod de diagnostic, 3 din 5.” |
+| G-04 | În Învață tastele: Control + Shift + D | „Control plus Shift plus litera D: pornește sau oprește modul de diagnostic.”; modul nu se schimbă |
+| M0-24 | Pornești modul (G-01), faci 5 pași prin meniuri, apoi Setări → Diagnostic → Copiază jurnalul pe Desktop | „Jurnalul a fost copiat pe Desktop.” Pe Desktop apare `HASI-jurnal-<data>.txt`, care se deschide în Notepad și conține fiecare tastă (`KEY`) și fiecare mesaj (`SAY`, `normalized`, `SPEAK`), apoi, la sfârșit, `===== errors.log =====` dacă au fost erori |
+| G-05 | Fără să fi pornit vreodată modul (sau după ce ștergi folderul `%LOCALAPPDATA%\HASI\diagnostic`): Copiază jurnalul pe Desktop | „Nu există încă niciun jurnal. Porniți mai întâi modul de diagnostic, apoi folosiți HASI ca de obicei.” |
+| G-06 | Pornești cu `-- --test-error ui` și aștepți 5 secunde | „A apărut o problemă neașteptată…” (poate fi întreruptă), apoi „A apărut o problemă gravă. HASI se repornește.”; HASI se închide și pornește singur: bun venit, apoi „HASI a fost repornit după o problemă neașteptată. Ne cerem scuze.” Nu se repornește din nou. |
+| G-07 | Pornești cu `-- --diagnostic --test-error crash` | „A apărut o problemă gravă. HASI se repornește.”, repornirea ca la G-06; modul de diagnostic rămâne pornit (noul jurnal începe cu `START restarted after a serious error`). Nu apare nicio fereastră Windows de eroare. |
+| G-08 | Pornești cu `-- --test-error hang`, aștepți ~25 de secunde | 5 secunde merge normal, apoi tăcere (HASI e blocat intenționat); după aproximativ 20 de secunde HASI pornește din nou singur și spune „HASI a fost repornit…”. **Spune-mi cât a durat tăcerea.** |
+| G-09 | Faci G-07 de 4 ori la rând, în mai puțin de 10 minute | primele 3 dăți HASI repornește; a patra oară: „HASI s-a oprit din cauza unei probleme care se repetă. Reporniți calculatorul. Dacă problema rămâne, cereți ajutor.” și nu mai pornește. (După 10 minute, repornirea automată merge din nou.) |
+
+Jurnalul de erori: `%LOCALAPPDATA%\HASI\logs\errors.log`. După G-06…G-09 conține câte o intrare pentru fiecare eroare (data, locul, versiunea, eroarea), fără nimic din ce ai scris.
+
 ## Etapa 0.10 – integrare în sistem (planificată)
 
 | ID | Ce faci | Ce trebuie să auzi |

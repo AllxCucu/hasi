@@ -46,6 +46,8 @@ public sealed class KeyMap
             .Bind(Key.F2, Command.RepeatLast).Bind(new(Key.R, ctrl), Command.RepeatLast).Bind(Key.Multiply, Command.RepeatLast)
             .Bind(Key.F3, Command.WhereAmI).Bind(new(Key.U, ctrl), Command.WhereAmI).Bind(Key.Subtract, Command.WhereAmI)
             .Bind(Key.LeftCtrl, Command.StopSpeech).Bind(Key.RightCtrl, Command.StopSpeech)
-            .Bind(new(Key.F4, KeyModifiers.Alt), Command.Exit);
+            .Bind(new(Key.F4, KeyModifiers.Alt), Command.Exit)
+            .Bind(new(Key.F12, ctrl | KeyModifiers.Shift), Command.ToggleDiagnostic)
+            .Bind(new(Key.D, ctrl | KeyModifiers.Shift), Command.ToggleDiagnostic);
     }
 }
