@@ -162,7 +162,7 @@ public interface ITextNormalizer { string Normalize(string text); }
 var h = new ShellHarness(modules: [settings, about]);
 h.Start();
 h.Press(Key.Down, Key.Enter);
-h.LastSpoken.Should().Be("Setări. 12 opțiuni. Selectat: Voce, 1 din 12.");
+h.LastSpoken.Should().Be("Setări. 11 opțiuni. Selectat: Voce, 1 din 11.");
 ```
 
 Pe lângă asta, folosim **transcrieri de referință**: un fișier text cu „tastă → ce trebuie să se audă” pentru fiecare ecran. Orice schimbare de formulare apare clar în diff, iar tu poți revizui formulările direct în acele fișiere.
@@ -378,7 +378,7 @@ Formulările sunt propuneri; tu le validezi după ureche.
 | M0-02 | ↓ de 3 ori | „Învață tastele, 2 din 4”, „Despre HASI, 3 din 4”, „Ieșire, 4 din 4” |
 | M0-03 | Încă o dată ↓ pe ultima opțiune | un sunet scurt și „Sfârșitul listei. Ieșire, 4 din 4.” (lista nu sare la început) |
 | M0-04 | Home, apoi End | „Setări, 1 din 4”, apoi „Ieșire, 4 din 4” |
-| M0-05 | Enter pe Setări | „Setări. 12 opțiuni. Selectat: Voce, 1 din 12.” |
+| M0-05 | Enter pe Setări | „Setări. 11 opțiuni. Selectat: Voce, 1 din 11.” |
 | M0-06 | Escape | „Meniu principal. Selectat: Setări, 1 din 4.” |
 | M0-07 | Escape în meniul principal | „Sunteți în meniul principal. Pentru a închide HASI, alegeți Ieșire.” (nu se închide) |
 | M0-08 | F1 în Setări | ajutor scurt despre ecranul curent și tastele lui, apoi „Apăsați orice tastă pentru a continua.” |

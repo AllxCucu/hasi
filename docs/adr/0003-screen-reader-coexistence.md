@@ -20,6 +20,9 @@ in this ADR is therefore not needed now.
 NVDA Controller Client (never added to the code, to THIRD-PARTY-NOTICES or to "Despre HASI"), UI Automation
 notifications for Narrator, and JAWS scripts.
 
+**Settings → "Cititor de ecran"** (a placeholder planned for this phase) was removed from the Settings menu
+on the owner's request (2026-10-24); Settings now has 11 items.
+
 **Kept, moved to phase 0.10:** at startup, if Narrator is running (`Narrator.exe`), HASI says
 "Naratorul Windows este pornit și va vorbi peste HASI. Pentru a-l opri, apăsați împreună Control, tasta
 Windows și Enter." Narrator has no per-application sleep mode, so the user has to turn it off.

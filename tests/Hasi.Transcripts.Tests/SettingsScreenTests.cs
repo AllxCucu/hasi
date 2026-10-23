@@ -37,7 +37,7 @@ public class SettingsScreenTests
         Assert.Equal(["55", "60"], h.Press(Key.Right, Key.Right));
         Assert.Equal(2, settings.Current.Rate);
         Assert.Equal(2, settings.Saved.Count);
-        Assert.Equal(["Setări. Selectat: Viteză, 2 din 12."], h.Press(Key.Escape));
+        Assert.Equal(["Setări. Selectat: Viteză, 2 din 11."], h.Press(Key.Escape));
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public class SettingsScreenTests
 
         Assert.Equal("Voce. 4 opțiuni. Selectat: Paul, RHVoice direct, actual, 1 din 4.", h.LastSaid);
         h.Press(Key.Down);
-        Assert.Equal(["Vocea a fost schimbată: Paul, prin SAPI. Setări. Selectat: Voce, 1 din 12."], h.Press(Key.Enter));
+        Assert.Equal(["Vocea a fost schimbată: Paul, prin SAPI. Setări. Selectat: Voce, 1 din 11."], h.Press(Key.Enter));
         Assert.Equal("sapi5:Paul", settings.Current.Voice);
     }
 
@@ -112,7 +112,7 @@ public class SettingsScreenTests
 
         Assert.Equal("Ecoul tastelor. 3 opțiuni. Selectat: Fiecare caracter, actual, 1 din 3.", h.LastSaid);
         h.Press(Key.Down);
-        Assert.Equal(["Ecoul tastelor: Fiecare cuvânt. Setări. Selectat: Ecoul tastelor, 5 din 12."], h.Press(Key.Enter));
+        Assert.Equal(["Ecoul tastelor: Fiecare cuvânt. Setări. Selectat: Ecoul tastelor, 5 din 11."], h.Press(Key.Enter));
         Assert.Equal(KeyEcho.Word, settings.Current.KeyEcho);
         Assert.Equal(KeyEcho.Word, h.Shell.Options.KeyEcho);
     }
@@ -142,6 +142,6 @@ public class SettingsScreenTests
         Assert.True(h.Shell.Options.WrapLists);
         // The settings list itself now wraps.
         h.Press(Key.Home);
-        Assert.Equal(["Actualizări, 12 din 12."], h.Press(Key.Up));
+        Assert.Equal(["Actualizări, 11 din 11."], h.Press(Key.Up));
     }
 }

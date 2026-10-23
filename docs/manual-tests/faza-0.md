@@ -1,4 +1,4 @@
-# Teste manuale – Faza 0
+﻿# Teste manuale – Faza 0
 
 Lista completă a scenariilor M0-01…M0-33 e în `docs/architecture.md` §4.2. Aici sunt scenariile
 **adaptate la ce s-a implementat efectiv**, etapă cu etapă. Formulările exacte sunt și în
@@ -14,11 +14,11 @@ Convenții: „[sunet]” = un ton scurt înaintea mesajului.
 | M0-02 | Săgeata jos de 3 ori | „Învață tastele, 2 din 4.”, „Despre HASI, 3 din 4.”, „Ieșire, 4 din 4.” |
 | M0-03 | Încă o dată săgeata jos | [sunet] „Sfârșitul listei. Ieșire, 4 din 4.” (lista nu sare la început) |
 | M0-04 | Home, apoi End (pe laptop: Control + săgeată sus, apoi Control + săgeată jos) | „Setări, 1 din 4.”, apoi „Ieșire, 4 din 4.” |
-| M0-05 | Home, apoi Enter pe Setări | „Setări. 12 opțiuni. Selectat: Voce, 1 din 12.” |
+| M0-05 | Home, apoi Enter pe Setări | „Setări. 11 opțiuni. Selectat: Voce, 1 din 11.” |
 | M0-06 | Escape | „Meniu principal. Selectat: Setări, 1 din 4.” |
 | M0-07 | Încă o dată Escape, în meniul principal | „Sunteți în meniul principal. Pentru a închide HASI, alegeți Ieșire.” HASI rămâne deschis. |
 | M0-08 | Enter pe Setări, apoi F1 (sau Control H) | „Ajutor pentru Setări. Folosiți săgețile sus și jos…”, la final „…Aici veți putea schimba vocea, viteza vorbirii, culorile și alte preferințe.” |
-| M0-09 | Săgeata jos, apoi F2 (sau Control R) | „Viteză, 2 din 12.”, apoi exact același mesaj încă o dată |
+| M0-09 | Săgeata jos, apoi F2 (sau Control R) | „Viteză, 2 din 11.”, apoi exact același mesaj încă o dată |
 | M0-10 | F3 (sau Control U); apoi Enter pe Viteză și din nou F3 | „Sunteți în: Meniu principal, Setări.”; apoi mesajul despre Viteză; apoi „Sunteți în: Meniu principal, Setări, Viteză.” |
 | M0-11 | Apeși F1 (mesaj lung) și, în timp ce vorbește, săgeata jos | Vorbirea se oprește **imediat** și auzi doar opțiunea nouă |
 | M0-12 | Apeși F1 și, în timp ce vorbește, tasta Control | Liniște imediată, fără niciun alt mesaj |

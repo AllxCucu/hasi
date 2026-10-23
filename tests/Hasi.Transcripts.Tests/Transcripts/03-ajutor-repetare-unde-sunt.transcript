@@ -3,7 +3,7 @@
 > start
 < Bun venit în HASI. Meniu principal. 4 opțiuni. Selectat: Setări, 1 din 4.
 > Enter
-< Setări. 12 opțiuni. Selectat: Voce, 1 din 12.
+< Setări. 11 opțiuni. Selectat: Voce, 1 din 11.
 
 # M0-08 Ajutor în Setări
 > F1
@@ -13,11 +13,11 @@
 
 # M0-09 Repetă ultimul mesaj
 > Down
-< Viteză, 2 din 12.
+< Viteză, 2 din 11.
 > F2
-< Viteză, 2 din 12.
+< Viteză, 2 din 11.
 > Ctrl+R
-< Viteză, 2 din 12.
+< Viteză, 2 din 11.
 
 # M0-10 Unde sunt, în Setări, apoi în Viteză
 > F3
@@ -33,4 +33,4 @@
 
 # Ajutorul nu mută selecția
 > Escape
-< Setări. Selectat: Viteză, 2 din 12.
+< Setări. Selectat: Viteză, 2 din 11.

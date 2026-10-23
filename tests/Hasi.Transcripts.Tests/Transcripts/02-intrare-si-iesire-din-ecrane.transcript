@@ -1,37 +1,35 @@
-# M0-05 ... M0-07: intrarea într-un ecran și întoarcerea cu Escape.
+﻿# M0-05 ... M0-07: intrarea într-un ecran și întoarcerea cu Escape.
 
 > start
 < Bun venit în HASI. Meniu principal. 4 opțiuni. Selectat: Setări, 1 din 4.
 
 # M0-05 Enter pe Setări
 > Enter
-< Setări. 12 opțiuni. Selectat: Voce, 1 din 12.
+< Setări. 11 opțiuni. Selectat: Voce, 1 din 11.
 > Down
-< Viteză, 2 din 12.
+< Viteză, 2 din 11.
 
 # Viteza (etapa 0.6): Enter deschide valoarea, Escape se întoarce
 > Enter
 < Viteză. 50, viteza normală. Săgețile stânga și dreapta schimbă valoarea. Enter sau Escape vă întoarce.
 > Escape
-< Setări. Selectat: Viteză, 2 din 12.
+< Setări. Selectat: Viteză, 2 din 11.
 
 # O setare încă neimplementată (pornirea automată vine în etapa 0.10)
 > End
-< Actualizări, 12 din 12.
+< Actualizări, 11 din 11.
 > Up
-< Diagnostic, 11 din 12.
+< Diagnostic, 10 din 11.
 > Up
-< Cititor de ecran, 10 din 12.
-> Up
-< Pornire automată, 9 din 12.
+< Pornire automată, 9 din 11.
 > Enter
 < Pornire automată. Această funcție va fi disponibilă într-o versiune următoare. Apăsați Escape pentru a vă întoarce.
 > Enter
 < Această funcție va fi disponibilă într-o versiune următoare. Apăsați Escape pentru a vă întoarce.
 > Escape
-< Setări. Selectat: Pornire automată, 9 din 12.
+< Setări. Selectat: Pornire automată, 9 din 11.
 > Home
-< Voce, 1 din 12.
+< Voce, 1 din 11.
 
 # M0-06 Escape din Setări
 > Escape
@@ -43,7 +41,7 @@
 
 # Tastatura numerică: 5 alege, 0 înapoi
 > NumPad5
-< Setări. 12 opțiuni. Selectat: Voce, 1 din 12.
+< Setări. 11 opțiuni. Selectat: Voce, 1 din 11.
 > NumPad0
 < Meniu principal. Selectat: Setări, 1 din 4.
 

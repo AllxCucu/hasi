@@ -1,4 +1,4 @@
-using Hasi.Core.Localization;
+﻿using Hasi.Core.Localization;
 using Hasi.Core.Modules;
 using Hasi.Core.Output;
 using Hasi.Core.Screens;
@@ -8,7 +8,7 @@ namespace Hasi.Modules.Settings;
 
 /// <summary>
 /// User preferences (phase 0.6): voice, rate, volume, pitch, key echo, colours, text size and list ends,
-/// saved at once and applied immediately. Autostart (0.10), screen reader (0.9) and updates (0.11) follow later.
+/// saved at once and applied immediately. Autostart (0.10) and updates (0.11) follow later.
 /// </summary>
 public sealed class SettingsModule : IModule
 {
@@ -40,7 +40,6 @@ public sealed class SettingsModule : IModule
             Item("settings.listEnd", () => Choice(context, "settings.listEnd", ["settings.listEnd.stop", "settings.listEnd.wrap"],
                 s!.Current.WrapLists ? 1 : 0, i => s.Update(u => u with { WrapLists = i == 1 }))),
             Item("settings.autostart", null),
-            Item("settings.screenReader", null),
             new MenuItem(l.Get("settings.diagnostic"), _ => ScreenResult.Push(DiagnosticMenu(context))),
             Item("settings.updates", null),
         ];
