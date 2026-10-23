@@ -64,10 +64,24 @@ public partial class App : Application, ISystemActions
             _log);
         engine.Failed += (_, ex) =>
         {
-            // Never fail in silence: log it and play the error tone so the user knows something is wrong.
+            // Every voice has failed. Never fail in silence: log it and play the error tone.
             ErrorLog.Write(ex);
-            _log.Write("ERROR", $"{engine.Id}: {ex.GetType().Name}: {ex.Message}");
+            _log.Write("ERROR", $"no voice left: {ex.GetType().Name}: {ex.Message}");
             earcons.Play(Earcon.Error);
+            _announcer?.Say(new Utterance(localizer.Get("speech.noVoice"), Earcon: Earcon.Error));
+        };
+        engine.VoiceSwitched += (_, switched) =>
+        {
+            ErrorLog.Write(switched.Reason);
+            _log.Write("ENGINE", $"switched from \"{switched.FailedVoice}\" to \"{switched.NewVoice}\": {switched.Reason.Message}");
+            // Posted, because the failure may be reported in the middle of saying something: once that
+            // message is recorded as the last one, tell the user and repeat it, so nothing is lost.
+            Dispatcher.BeginInvoke(() =>
+            {
+                if (_announcer is null || _exiting) return;
+                Utterance notice = localizer.Get("speech.switched", ("failed", switched.FailedVoice), ("voice", switched.NewVoice));
+                _announcer.Say(_announcer.Last is { } last ? notice.Then(last) : notice);
+            });
         };
         var normalizer = new RomanianNormalizer(AcronymLexicon.Load(AcronymLexicon.DefaultPath));
         _announcer = new Announcer(hub, normalizer, _log);
@@ -110,7 +124,7 @@ public partial class App : Application, ISystemActions
         _shell.Start(MainMenu.Create(modules, context));
         if (voiceNotice is not null)
         {
-            var earcon = engine is NullSpeechEngine ? Earcon.Error : Earcon.None;
+            var earcon = engine.CurrentVoiceName is null ? Earcon.Error : Earcon.None;
             _announcer.Say(new Utterance(voiceNotice, UtterancePriority.Queue, earcon));
         }
 
@@ -204,54 +218,62 @@ public partial class App : Application, ISystemActions
     /// Paul (RHVoice through SAPI5) if installed; otherwise a Romanian voice from SAPI5 or OneCore
     /// (Microsoft Andrei); otherwise any voice. A fallback is said aloud.
     /// </summary>
-    private (ISpeechEngine Engine, string? Notice) CreateSpeechEngine(StartupOptions options, ILocalizer localizer)
+    private (FallbackSpeechEngine Engine, string? Notice) CreateSpeechEngine(StartupOptions options, ILocalizer localizer)
     {
-        Sapi5Engine? sapi = Attempt("SAPI5", () => new Sapi5Engine());
         var voices = new List<VoiceCandidate>();
-        voices.AddRange(Attempt("SAPI5 voices", () => sapi?.Voices) ?? []);
+        voices.AddRange(Attempt("SAPI5 voices", () =>
+        {
+            using var lister = new Sapi5Engine();
+            return lister.Voices;
+        }) ?? []);
         voices.AddRange(Attempt("OneCore voices", () => OneCoreEngine.Voices) ?? []);
         _log.Write("VOICES", string.Join(", ", voices.Select(v => $"{v.Engine}:\"{v.Name}\" {v.Culture}")));
 
         var preferred = options.Voice ?? VoiceChooser.DefaultPreferredVoice;
-        ISpeechEngine? engine = null;
-        VoiceCandidate? voice = null;
-        // A voice that is listed may still fail to start; then try the next best one.
-        foreach (var candidate in VoiceChooser.Rank(voices, preferred))
-        {
-            engine = candidate.Engine switch
+        var ranked = VoiceChooser.Rank(voices, preferred)
+            .Where(v => options.Engine is null || v.Engine.Equals(options.Engine, StringComparison.OrdinalIgnoreCase))
+            .Select((voice, index) => new SpeechCandidate(voice.Name, () =>
             {
-                "sapi5" when sapi is not null => Attempt($"SAPI5 voice {candidate.Name}", () =>
-                {
-                    sapi.SelectVoice(candidate.Name);
-                    if (options.Rate is { } rate) sapi.Rate = rate;
-                    return sapi;
-                }),
-                "onecore" => Attempt($"OneCore voice {candidate.Name}", () =>
-                {
-                    var oneCore = new OneCoreEngine();
-                    oneCore.SelectVoice(candidate.Name);
-                    if (options.Rate is { } rate) oneCore.Rate = rate;
-                    return oneCore;
-                }),
-                _ => null,
-            };
-            if (engine is not null)
-            {
-                voice = candidate;
-                break;
-            }
-        }
-        if (!ReferenceEquals(engine, sapi)) sapi?.Dispose();
+                var engine = StartVoice(voice, options);
+                // --test-voice-failure: the best voice breaks after three messages, to hear the fallback.
+                return engine is not null && index == 0 && options.TestVoiceFailure ? new FailingAfterEngine(engine, 3) : engine;
+            }));
 
-        if (engine is null || voice is null)
+        var chain = FallbackSpeechEngine.Start(ranked, (voice, ex) =>
+        {
+            ErrorLog.Write(ex);
+            _log.Write("ERROR", $"voice \"{voice}\" did not start: {ex.Message}");
+        });
+        if (chain.CurrentVoiceName is not { } current)
         {
             _log.Write("ERROR", "no working voice; text is shown on screen only");
-            return (new NullSpeechEngine(), localizer.Get("speech.noVoice"));
+            return (chain, localizer.Get("speech.noVoice"));
         }
-        var notice = options.Voice is null && !VoiceChooser.IsPreferred(voice, preferred)
-            ? localizer.Get("speech.voiceFallback", ("voice", voice.Name))
+        // No notice when the tester chose the voice or the engine on the command line.
+        var notice = options.Voice is null && options.Engine is null && !current.Contains(preferred, StringComparison.OrdinalIgnoreCase)
+            ? localizer.Get("speech.voiceFallback", ("voice", current))
             : null;
-        return (engine, notice);
+        return (chain, notice);
+    }
+
+    /// <summary>Each voice gets its own engine, so a failing one can be thrown away without affecting the next.</summary>
+    private static ISpeechEngine? StartVoice(VoiceCandidate voice, StartupOptions options)
+    {
+        switch (voice.Engine)
+        {
+            case "sapi5":
+                var sapi = new Sapi5Engine();
+                sapi.SelectVoice(voice.Name);
+                if (options.Rate is { } sapiRate) sapi.Rate = sapiRate;
+                return sapi;
+            case "onecore":
+                var oneCore = new OneCoreEngine();
+                oneCore.SelectVoice(voice.Name);
+                if (options.Rate is { } oneCoreRate) oneCore.Rate = oneCoreRate;
+                return oneCore;
+            default:
+                return null;
+        }
     }
 
     private T? Attempt<T>(string what, Func<T?> action) where T : class
