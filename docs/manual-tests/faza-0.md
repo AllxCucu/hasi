@@ -60,3 +60,30 @@ Textele se scriu de la tastatură; Enter le rostește. Fiecare rând de mai jos 
 | P-14 | În meniul principal, ții apăsată săgeata jos | opțiunile, apoi o singură dată [sunet] „Sfârșitul listei. Ieșire, 4 din 4.” |
 
 Opțional: dacă ai aspectul de tastatură „Română (moștenit)”, care scrie ş/ţ cu sedilă, scrie `ţară` și apasă Enter: pe ecran, la „Rostit”, trebuie să apară „țară”, cu virgulă.
+
+Rezultat (raportul din 23 octombrie 2026): toate au trecut; diacriticele ajung corect în câmp. Alegeri: orele întregi fără „fix”; „21:20” rămâne „ora douăzeci și unu și douăzeci de minute”. Preferința la P-13 nu a fost completată în raport.
+
+## Etapa 0.4 bis – corecturi, acronime, tastatura numerică (A-01…A-03, N-01…N-05)
+
+| ID | Ce faci | Ce trebuie să auzi |
+|---|---|---|
+| A-01 | Test pronunție: `14:00`, `ora 2:00`, `1:00` | „ora paisprezece”, „ora două”, „ora unu” (fără „fix”) |
+| A-02 | Test pronunție: `Bilet CFR la STB și RATB` | „Bilet ce fe re la se te be și ra te be” |
+| A-03 | Test pronunție: `Declarația la ANAF, CNP-ul meu` | „Declarația la Anaf, ce ne pe-ul meu” |
+| N-01 | În Test pronunție, cu Num Lock **pornit**, apeși 1, 2, 3 de pe tastatura numerică | „1”, „2”, „3” (se scriu cifre) |
+| N-02 | Apeși Num Lock (îl oprești) | „Tastatura numerică: navigare.” |
+| N-03 | Cu Num Lock **oprit**, apeși 8 de pe tastatura numerică | „Textul scris: …” (săgeata sus) |
+| N-04 | Apeși din nou Num Lock | „Tastatura numerică: cifre.” |
+| N-05 | Te întorci în meniu (Escape) și apeși 2 și 8 de pe tastatura numerică, cu Num Lock pornit | navigare, ca înainte; apăsarea pe Num Lock în meniu nu spune nimic |
+
+Acronimele se editează în `Data\acronime.txt`, lângă `hasi.exe` (în sursă: `src\Hasi.Text.Ro\Data\acronime.txt`).
+
+## Etapa 0.5 – motoarele de voce și lanțul de rezervă (V-01…V-05)
+
+| ID | Cum pornești / ce faci | Ce trebuie să auzi |
+|---|---|---|
+| V-01 | `dotnet run --project src\Hasi.App -- --diagnostic` | ca până acum, cu Paul; în jurnal: `ENGINE sapi5 voice="Paul"` |
+| V-02 | `dotnet run --project src\Hasi.App -- --diagnostic --engine onecore` | HASI vorbește cu Microsoft Andrei prin motorul OneCore (fără mesaj despre Paul); navighează 1–2 minute și urmărește dacă oprirea vorbirii la apăsarea unei taste e la fel de rapidă ca la Paul |
+| V-03 | `dotnet run --project src\Hasi.App -- --diagnostic --test-voice-failure`, apoi apeși săgeata jos de 3–4 ori | după al treilea mesaj, vocea principală „se strică”: „Vocea Paul nu mai funcționează. Folosesc vocea …”, urmat de ultimul mesaj, repetat cu vocea nouă; apoi totul continuă normal |
+| V-04 | Ca la V-03, apoi F2 | ultimul mesaj, cu vocea nouă |
+| V-05 | `--engine onecore --rate -3` | Andrei vorbește mai rar |

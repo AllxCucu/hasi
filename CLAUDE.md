@@ -115,7 +115,15 @@ The voice output is the source of truth; visuals are secondary.
 dotnet build
 dotnet test
 dotnet run --project src/Hasi.App                       # add: -- --diagnostic --voice "Paul" --rate 0
+                                                        #      --engine sapi5|onecore --test-voice-failure
 ```
+
+- Editable data next to the executable: `Data/acronime.txt` (acronyms). Normalizer cases:
+  `tests/Hasi.Text.Ro.Tests/Cases/*.cases` (`written => spoken`).
+- `spikes/` holds throw-away experiments (not in the solution, not in CI). Third-party binaries used by a
+  spike are downloaded to a temp folder and never committed.
+- Pending decisions (do not implement before the user decides): ADR 0004 (RHVoice.dll direct),
+  ADR 0005 (noun-gender dictionary), binding numpad Clear (NumLock off 5) to Activate.
 
 - Diagnostic transcripts: `%LOCALAPPDATA%\HASI\diagnostic\sesiune-*.log`; error log: `%LOCALAPPDATA%\HASI\logs\errors.log`.
 - Golden transcripts: `tests/Hasi.Transcripts.Tests/Transcripts/*.transcript`
