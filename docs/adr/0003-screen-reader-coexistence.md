@@ -1,10 +1,10 @@
 # ADR 0003 – Coexistence with NVDA, Narrator and JAWS
 
-- Status: **Superseded** (2026-10-24, owner's decision) – phase 0.9 is removed from Phase 0.
+- Status: **Superseded** (2026-10-23, owner's decision) – phase 0.9 is removed from Phase 0.
   Only the Narrator detection remains, moved to phase 0.10. The original decision is kept below for history.
 - Deciders: project owner (tester), lead developer
 
-## Why it was superseded (2026-10-24)
+## Why it was superseded (2026-10-23)
 
 The owner tested HASI with NVDA running and heard **one voice only, HASI's**. Conditions of the test:
 - NVDA restarted, **without** sleep mode active for HASI (no add-on);
@@ -21,7 +21,7 @@ NVDA Controller Client (never added to the code, to THIRD-PARTY-NOTICES or to "D
 notifications for Narrator, and JAWS scripts.
 
 **Settings → "Cititor de ecran"** (a placeholder planned for this phase) was removed from the Settings menu
-on the owner's request (2026-10-24); Settings now has 11 items.
+on the owner's request (2026-10-23); Settings now has 11 items.
 
 **Kept, moved to phase 0.10:** at startup, if Narrator is running (`Narrator.exe`), HASI says
 "Naratorul Windows este pornit și va vorbi peste HASI. Pentru a-l opri, apăsați împreună Control, tasta

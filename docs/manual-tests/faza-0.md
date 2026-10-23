@@ -189,7 +189,7 @@ Pornire: `dotnet run --project src\Hasi.App -- --diagnostic` (pentru E-04, adaug
 
 Pentru O-07…O-09, trimite-mi jurnalul de diagnostic: rândurile `POWER` arată fiecare pas (comanda, „session ending”, „waiting”, „cancelled”).
 
-## Plan modificat (24 octombrie 2026): etapa 0.9 scoasă
+## Plan modificat (23 octombrie 2026): etapa 0.9 scoasă
 
 Etapa 0.9 (coexistența cu cititoarele de ecran) a fost scoasă din Faza 0, la decizia testerului. Cu NVDA pornit și repornit, fără modul de somn, cu tastatura numerică în aspectul desktop și cu ecoul tastării în „Test pronunție”, s-a auzit o singură voce, a HASI, iar tastele au ajuns la HASI (ADR 0003, acum „înlocuit”).
 

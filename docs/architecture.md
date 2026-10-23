@@ -1,6 +1,6 @@
 ﻿# HASI – Arhitectură și plan pentru Faza 0
 
-> **Stare:** APROBAT pe 21 octombrie 2026, cu ajustările cerute (vezi §5). Plan modificat pe 24 octombrie 2026: etapa 0.9 (cititoarele de ecran) a fost scoasă, iar detectarea Naratorului a trecut în 0.10 (§1.6, ADR 0003).
+> **Stare:** APROBAT pe 21 octombrie 2026, cu ajustările cerute (vezi §5). Plan modificat pe 23 octombrie 2026: etapa 0.9 (cititoarele de ecran) a fost scoasă, iar detectarea Naratorului a trecut în 0.10 (§1.6, ADR 0003).
 > Deciziile importante sunt explicate și în `docs/adr/`.
 
 Cuprins:
@@ -193,7 +193,7 @@ Pe lângă asta, folosim **transcrieri de referință**: un fișier text cu „t
 
 ### 1.6 Coexistența cu cititoarele de ecran
 
-**Schimbare de plan (24 octombrie 2026, decizia testerului):** etapa 0.9 a fost scoasă din Faza 0. Motivul este un test făcut de tester cu NVDA pornit: s-a auzit o singură voce, a HASI. Condițiile testului:
+**Schimbare de plan (23 octombrie 2026, decizia testerului):** etapa 0.9 a fost scoasă din Faza 0. Motivul este un test făcut de tester cu NVDA pornit: s-a auzit o singură voce, a HASI. Condițiile testului:
 - NVDA repornit, fără modul de somn activ;
 - tastatura numerică în aspectul desktop al NVDA;
 - ecoul tastării în „Test pronunție”.
@@ -299,8 +299,8 @@ Hasi/
 
 | # | Risc | Impact | Măsuri |
 |---|---|---|---|
-| R1 | **Vorbire dublă cu NVDA/Narator.** Cititorul anunță focusul și face ecou tastelor peste HASI. | Mare → urmărit | **Observat pe 24 octombrie 2026:** cu NVDA pornit (fără modul de somn), testerul a auzit o singură voce, a HASI, inclusiv la tastarea în „Test pronunție”. Etapa 0.9 a fost scoasă (ADR 0003). Rămâne: mesajul pentru Narator, la pornire (etapa 0.10). Dacă vorbirea dublă reapare (altă versiune NVDA, alte setări, alt cititor), redeschidem ADR 0003. |
-| R2 | **NVDA preia tastele.** În aspectul desktop, tastatura numerică comandă cursorul de examinare, iar Insert/CapsLock sunt modificatori NVDA. | Mare → urmărit | **Observat pe 24 octombrie 2026:** tastatura numerică în aspectul desktop al NVDA a funcționat în HASI. Urmărim același lucru la fiecare test cu NVDA; dacă reapare, redeschidem ADR 0003. |
+| R1 | **Vorbire dublă cu NVDA/Narator.** Cititorul anunță focusul și face ecou tastelor peste HASI. | Mare → urmărit | **Observat pe 23 octombrie 2026:** cu NVDA pornit (fără modul de somn), testerul a auzit o singură voce, a HASI, inclusiv la tastarea în „Test pronunție”. Etapa 0.9 a fost scoasă (ADR 0003). Rămâne: mesajul pentru Narator, la pornire (etapa 0.10). Dacă vorbirea dublă reapare (altă versiune NVDA, alte setări, alt cititor), redeschidem ADR 0003. |
+| R2 | **NVDA preia tastele.** În aspectul desktop, tastatura numerică comandă cursorul de examinare, iar Insert/CapsLock sunt modificatori NVDA. | Mare → urmărit | **Observat pe 23 octombrie 2026:** tastatura numerică în aspectul desktop al NVDA a funcționat în HASI. Urmărim același lucru la fiecare test cu NVDA; dacă reapare, redeschidem ADR 0003. |
 | R3 | **Licența mixtă RHVoice:** antet LGPL-2.1+, dar `LICENSE.md` din rădăcină e GPL-2.0. | Mare, juridic | Faza 0 folosește SAPI (program separat, nemodificat). Legăm direct DLL-ul doar după audit pe fișiere. Dacă apare cod GPL-2.0-only în DLL, rămânem pe SAPI. |
 | R4 | **RHVoice prin SAPI:** installer-ul poate cere drepturi de administrator; oprirea prin SAPI e mai lentă; nu știm ce formă a diacriticelor așteaptă lexiconul lui Paul; numerele pot fi citite inconsecvent de motor. | Mediu | Test de oprire (țintă sub 50 ms). Test de pronunție pe o listă de cuvinte cu ș/ț (ambele forme). Normalizarea noastră trimite deja numerele scrise în litere. |
 | R5 | **Pierderea focusului:** notificări, UAC, Windows Update sau alte aplicații fură fereastra și utilizatorul „se pierde”. Pe desktopul securizat UAC, HASI nu poate nici vorbi, nici asculta. | Mare | Tastă globală de revenire; detectarea pierderii focusului și anunț; instalare per-utilizator, ca să evităm UAC; documentăm limita UAC. |
@@ -332,7 +332,7 @@ Fiecare etapă înseamnă commit-uri mici (Conventional Commits, în engleză) c
 | **0.6 Setări** | voce, viteză, volum, ton, ecoul tastelor, culori (seturi cu contrast ridicat), mărimea textului, persistență | salvare, reîncărcare, migrare |
 | **0.7 Ajutor și orientare** | F1, F2, F3, „Învață tastele”, „Despre HASI”, meniul de ieșire cu confirmări, Alt+F4 | un test pentru fiecare tastă globală, pe toate ecranele |
 | **0.8 Diagnostic și erori** | mod de diagnostic (fișier de sesiune), jurnal permanent de erori, la eroare gravă mesaj rostit și repornire automată | formatul jurnalului, mascare `Sensitive` |
-| ~~0.9 Coexistența cu cititoarele de ecran~~ | **scoasă din Faza 0** pe 24 octombrie 2026 (decizia testerului, ADR 0003): cu NVDA, HASI funcționează cu o singură voce. Detectarea Naratorului trece în 0.10. | – |
+| ~~0.9 Coexistența cu cititoarele de ecran~~ | **scoasă din Faza 0** pe 23 octombrie 2026 (decizia testerului, ADR 0003): cu NVDA, HASI funcționează cu o singură voce. Detectarea Naratorului trece în 0.10. | – |
 | **0.10 Integrare în sistem** | pornire automată (opțională), o singură instanță, tasta globală de revenire, detectarea pierderii focusului; **detectarea Naratorului** la pornire, cu mesajul din §1.6 | detectarea Naratorului cu un detector simulat; restul manual |
 | **0.11 Instalare și actualizare** | installer Velopack per-utilizator, actualizare cu anunț rostit; sursa e configurabilă (vezi §1.8); semnare prin SignPath Foundation, dacă proiectul e acceptat. **Înainte de 0.11:** „Simulare oprire” (Setări → Diagnostic) devine implicit **oprită**; acum e pornită implicit, doar pe durata dezvoltării (ADR 0006). Tot înainte de 0.11: construirea RHVoice.dll în CI (ADR 0004). În 0.11, „Pornire automată” trebuie să indice executabilul instalat de Velopack (acum indică `hasi.exe` din folderul de build) | publicare de test în CI |
 

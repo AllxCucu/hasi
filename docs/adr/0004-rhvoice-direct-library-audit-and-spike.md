@@ -151,7 +151,9 @@ unplugging headphones, resume from sleep.
 ### CI build of RHVoice.dll – plan only (not implemented)
 
 1. Add RHVoice as a git submodule pinned to a release tag (e.g. 1.18.4) and its commit hash.
-2. A GitHub Actions job on `windows-latest` (MSVC available) builds only the library (`RHVoice_core`,
+2. (Note 2026-10-23: upstream's own Windows CI builds with SCons on `windows-latest` — `pip install lxml scons`,
+   then `scons`; the repository also has a `CMakeLists.txt`. Prefer upstream's SCons path.)
+   A GitHub Actions job on `windows-latest` (MSVC available) builds only the library (`RHVoice_core`,
    `libhts_engine`, `RHVoice`) for x64 with CMake, Release, and uploads `RHVoice.dll` as an artifact.
 3. Paul's data comes from the pinned `paul-ron` release, checked by SHA-256.
 4. The installer (phase 0.11) ships the DLL and data, with the RHVoice license texts, the exact source commit

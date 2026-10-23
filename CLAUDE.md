@@ -16,6 +16,8 @@ The voice output is the source of truth; visuals are secondary.
   Automated tests use `ShellHarness` only; ear-testing is done by the user.
 - **Ask before changing the plan.** Moving anything from one milestone to another, or changing scope,
   needs the user's approval first, not a notice afterwards.
+- **A request for a proposal stops at the proposal.** No implementation until the user approves that proposal.
+- **One milestone = one stop** for the user's ear-test, unless the user explicitly says to continue.
 - When unsure about a data source or its license: **verify and report**, never assume.
 - No telemetry. User data stays local. Passwords only in Windows Credential Manager.
 
@@ -24,7 +26,7 @@ The voice output is the source of truth; visuals are secondary.
 - All **UI text in Romanian**, only in `src/Hasi.App/Resources/ro.json` (i18n-ready). Never hardcode
   user-facing strings in code. Use correct diacritics: ș ț (comma below, U+0219/U+021B), never ş ţ.
 - **Code, comments, commit messages, ADRs: English.**
-- Conversation with the user, manual test scenarios and user docs: Romanian.
+- Conversation with the user, manual test scenarios and user docs: Romanian. Address the user with "tu".
 
 ## Tech stack
 
@@ -88,8 +90,12 @@ The voice output is the source of truth; visuals are secondary.
 - Diagnostic mode logs every key, command, screen and utterance. Each utterance is logged with the
   original `text`, the `normalized` text, and the exact string sent to the engine (`SPEAK`), so a
   normalizer error can be told apart from a voice error. Utterances marked `Sensitive` are masked.
-- Hard stop after each milestone that the user marks for ear-testing (currently after 0.3):
-  deliver a runnable build plus scenarios, and wait for the user's report.
+- Hard stop after each milestone: deliver a runnable build plus scenarios, and wait for the user's report.
+- **Smoke run before every hand-over.** Launch HASI once, for a few seconds, with `--diagnostic` and
+  **without sending any keys**, then close it and check the new session log in
+  `%LOCALAPPDATA%\HASI\diagnostic`: `START`, `ENGINE`, the welcome `SAY`/`SPEAK`, no `ERROR`; and no new
+  entry in `errors.log`. Report the result. (This one launch is approved by the user; keys still are not.)
+  If HASI is already running, the single-instance rule brings that one forward instead: check first.
 
 ## Commits
 

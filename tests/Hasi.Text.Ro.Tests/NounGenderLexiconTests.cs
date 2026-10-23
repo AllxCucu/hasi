@@ -81,7 +81,7 @@ public class NounGenderLexiconTests
     [Fact]
     public void The_testers_file_fixes_a_real_word_with_a_wrongly_guessed_gender()
     {
-        // "postare" is not in MULTEXT-East (checked 2026-10-24). Its ending gives no reliable gender, so it is
+        // "postare" is not in MULTEXT-East (checked 2026-10-23). Its ending gives no reliable gender, so it is
         // guessed masculine ("un postare") and reported; the correct form is "o postare".
         var reported = new List<string>();
         var guessed = new RomanianNormalizer(AcronymLexicon.Empty, NounGenderLexicon.LoadDefault(), reported.Add);

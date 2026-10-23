@@ -1,76 +1,113 @@
-﻿# HASI – Răspuns după repornire și oprire, etapa 0.8 și etapa 0.10
+﻿# HASI – Răspuns: corecturi, lista de regresie și ce lipsește pentru 0.11
 
-Am implementat și am pus pe GitHub soluția pentru repornire și oprire, etapa 0.8 și etapa 0.10. Toate cele **295 de teste automate** trec, iar CI-ul este verde:
+Nu am început etapa 0.11. Toate cele **307 teste automate** trec:
 
 | Proiect de test | Teste |
 |---|---|
-| nucleu | 175 |
-| transcrieri și ecrane | 55 |
+| nucleu | 186 |
+| transcrieri și ecrane | 56 |
 | motoare de voce | 29 |
 | normalizator | 27 |
 | arhitectură | 9 |
 
-Nu am pornit deloc HASI: nimic din aceste trei părți nu a fost ascultat încă, asta rămâne pentru dumneavoastră.
+---
 
-**Pornire:** `dotnet run --project src\Hasi.App -- --diagnostic`.
+## 1. Ce am corectat
+
+**Rezultatele tale au rămas necompletate.** În mesaj erau doar „...”. M-am uitat atunci în jurnalele tale de diagnostic de azi, de la 22:22 la 22:28. Din ele reiese că au mers:
+- Control + Alt + H, după pierderea focusului;
+- Alt + F4;
+- Pornire automată → Nu;
+- întrebarea de la Repornește, în mod de test.
+
+**Problemă găsită și corectată: numele programelor se auzeau prost.** HASI a spus „Windows Terminal Host, 2 ferestre, Notepad.exe, Firefox, WhatsApp.Root”. Am verificat ce scriu programele astea în fișierele lor, pe calculatorul tău. Acum HASI alege un nume curat: „Windows Terminal”, „Notepad”, „Firefox”, „WhatsApp”. Cazurile sunt test automat, cu datele reale ale celor patru programe.
+
+**Datele greșite:** am înlocuit „24 octombrie” cu „23 octombrie” peste tot:
+- în `architecture.md`, `faza-0.md` și ADR 0003;
+- într-un comentariu din teste.
+
+**Regulile tale sunt acum în `CLAUDE.md`:**
+- o cerere de propunere se oprește la propunere;
+- o etapă înseamnă o oprire pentru testul tău, dacă nu îmi spui explicit să continui;
+- înainte de fiecare predare pornesc HASI o dată, câteva secunde, fără taste, și verific jurnalul;
+- îți vorbesc cu „tu”.
+
+Pentru repornire și oprire, propunerea ți-am trimis-o și am implementat după „Da, aprob”. Greșeala a fost că am făcut trei etape într-o singură rundă și ți le-am predat fără să fi pornit HASI măcar o dată. Nu se mai întâmplă.
+
+**Proba de pornire de azi** (22:40, fără taste, 8 secunde):
+- pornește cu vocea salvată, „Paul, prin SAPI”;
+- RHVoice direct se încarcă;
+- bun venitul se rostește: în jurnal sunt `SAY`, `SPEAK` și primele cuvinte;
+- nicio linie `ERROR`, nimic nou în `errors.log`.
+
+Mesajul „HASI nu mai este în prim-plan” a apărut și el. E normal când HASI e pornit de mine: Windows nu dă tastele unei ferestre deschise din fundal.
 
 ---
 
-## 1. Ce s-a făcut
+## 2. Lista de regresie
 
-### Repornire și oprire (`4bfc96a`)
+Este în `docs/manual-tests/regresie-faza-0.md`:
+- **40 de pași**, într-o singură sesiune, în ordinea în care îi parcurgi, fiecare cu „ce apăs / ce trebuie să aud”;
+- grupați pe părți: pornire și navigare, setări, Test pronunție, diagnostic, Învață tastele și Despre, Ieșire, focus și o singură instanță, jurnal, pornire după eroare, Narator;
+- la final, scenariile care nu încap într-o sesiune: repornirea Windows, Bluetooth, repausul, repornirea reală.
 
-- Înainte de confirmare, HASI numește programele deschise (doar numele, nu titlul ferestrei) și avertizează că modificările nesalvate se pot pierde.
-- După confirmare HASI rămâne deschis și vă spune ce se întâmplă: dacă Windows refuză, dacă repornirea nu începe în 10 secunde, dacă un program o blochează (mesajul se repetă la 30 de secunde) sau dacă a fost anulată.
-- Repornirea forțată nu se face niciodată implicit. Apare doar ca a doua confirmare, după o încercare blocată, și numai dacă programele sunt încă deschise. Oprirea este completă, fără Pornirea rapidă.
-- Setarea „Simulare oprire” (Setări → Diagnostic) este pornită implicit, exact cum ați cerut. Există și `--real-power`, care face repornirea și oprirea reale doar pentru sesiunea curentă. În planul pentru 0.11 am notat că valoarea implicită devine „oprită”. Decizia e descrisă în ADR 0006.
+Pașii care se pot verifica fără sunet sunt și test automat (`08-regresie.transcript`), deci textele din listă sunt confirmate de cod.
 
-### Etapa 0.8 (`7c46aad`)
-
-- Modul de diagnostic se pornește și se oprește din meniu sau cu Control+Shift+D și Control+Shift+F12, oriunde în HASI.
-- „Copiază jurnalul pe Desktop” pune sesiunea și sfârșitul jurnalului de erori într-un singur fișier text.
-- Jurnalul de erori este permanent. Când trece de 1 MB, fișierul vechi e păstrat separat și începe unul nou.
-- La o eroare gravă HASI se repornește singur și vă spune ce s-a întâmplat. Eroare gravă înseamnă: o prăbușire, trei erori în 30 de secunde sau o fereastră care nu mai răspunde 20 de secunde. După 3 reporniri automate în 10 minute, HASI se oprește și vă spune de ce. Aceste praguri le-am ales eu și se pot schimba ușor.
-
-### Etapa 0.10 (`e9bdfd6`)
-
-- HASI rulează într-o singură instanță.
-- Control+Alt+H aduce HASI în față din orice program.
-- Pornirea automată se alege din Setări.
-- Dacă Naratorul e pornit, HASI o spune la pornire, cu mesajul exact pe care l-ați cerut.
+Două lucruri de știut înainte să o rulezi:
+- În setările tale e salvată vocea „Paul, prin SAPI”. Pașii 9–10 o readuc la „Paul, RHVoice direct”.
+- În Test pronunție, Enter nu golește câmpul. Lista îți spune când să ieși și să intri din nou.
 
 ---
 
-## 2. Scenarii de testat
+## 3. Ce mai lipsește pentru 0.11
 
-Lista completă, cu textele exacte, este în `docs/manual-tests/faza-0.md`, la secțiunile O, G și I.
+### a) Înainte de 0.11 (din plan)
 
-| Ce apăsați | Ce trebuie să auziți |
-|---|---|
-| Ieșire → Repornește, cu Notepad deschis | „… Mod de test: calculatorul nu va reporni. Este deschis un program: Notepad. Dacă aveți modificări nesalvate, se pot pierde. …” |
-| Setări → Diagnostic → Simulare oprire → Oprită, apoi porniți HASI din nou | o singură dată: „Atenție: repornirea și oprirea calculatorului sunt reale.” |
-| (real, cu Notepad nesalvat) Repornește → Enter, așteptați | „Repornirea așteaptă. Probabil un program are modificări nesalvate …”; după „Anulare” pe ecranul Windows: „Repornirea a fost anulată. …” |
-| Control+Shift+D | „Modul de diagnostic este pornit. …”, iar a doua oară „… este oprit.” |
-| Copiază jurnalul pe Desktop | „Jurnalul a fost copiat pe Desktop.” |
-| Porniți cu `-- --test-error ui` (apoi `crash` și `hang`) | „A apărut o problemă gravă. HASI se repornește.”, apoi „HASI a fost repornit după o problemă neașteptată. Ne cerem scuze.” |
-| Treceți în Notepad, apoi Control+Alt+H | „… Pentru a reveni, apăsați împreună Control, Alt și H.”, apoi ecranul curent |
-| Porniți HASI a doua oară | nu se deschide a doua fereastră; HASI cel deschis vine în față |
-| Porniți cu Naratorul activ | „Naratorul Windows este pornit și va vorbi peste HASI. …” |
+1. **Compilarea RHVoice.dll în CI** (ADR 0004). Pași:
+   - RHVoice ca submodul git, fixat pe o versiune și un commit;
+   - un job GitHub Actions pe Windows (MSVC) care construiește doar biblioteca, pe x64 și Release;
+   - datele lui Paul dintr-o versiune fixată, verificate cu SHA-256;
+   - în „Despre” și în `THIRD-PARTY-NOTICES.md`: commitul exact și legătura spre sursă, cum cere GPL.
+
+   Am verificat azi depozitul RHVoice (ultima versiune: 1.18.4). Are și `CMakeLists.txt`, și `SConstruct`, dar propriul CI de Windows construiește cu **SCons** pe `windows-latest` (`pip install lxml scons`, apoi `scons`). Propun să facem la fel, nu CMake cum scria în planul ADR 0004, fiindcă varianta asta e deja dovedită pe același tip de mașină. Ce rămâne de aflat la implementare: dacă SCons poate construi doar biblioteca x64, fără restul pachetului NVDA/SAPI.
+2. **„Simulare oprire” devine oprită implicit.** Pentru utilizatorii noi e suficient să schimb valoarea implicită. Fișierul tău de setări a salvat însă deja „pornită”, iar acolo schimbarea nu are efect. Ori o oprești tu din Setări, ori fac o migrare care o oprește o singură dată. Spune-mi ce preferi.
+3. **Rezultatele tale încă lipsă:**
+   - ecranul de blocare (O-07, O-08);
+   - evenimentul 27 (O-10);
+   - durata tăcerii la G-08;
+   - preferința de la P-13, nici ea completată niciodată.
+
+### b) Conținutul etapei 0.11
+
+1. **Installer Velopack per-utilizator,** fără drepturi de administrator, cu dezinstalare.
+
+   Am găsit o problemă de rezolvat înainte: Velopack instalează în `%LOCALAPPDATA%\<id>` și **la dezinstalare șterge tot acel folder** ([Velopack, dezinstalare](https://docs.velopack.io/integrating/uninstalling), [Velopack pe Windows](https://docs.velopack.io/packaging/operating-systems/windows)). Dacă id-ul ar fi „HASI”, ar șterge și `%LOCALAPPDATA%\HASI`: jurnalele, `errors.log` și RHVoice-ul tău de test. Propun un id diferit (de exemplu `HASI.App`), ca datele să rămână separate. Decizia e a ta, la planul 0.11.
+2. **Actualizare cu anunț rostit** („Este disponibilă o versiune nouă…”, M0-31), din sursă configurabilă (`github`, `http` sau `folder`). „Setări → Actualizări” e acum doar un loc rezervat.
+3. **„Pornire automată” să indice executabilul instalat.** Acum indică `hasi.exe` din folderul de build.
+4. **Velopack (MIT)** adăugat în `THIRD-PARTY-NOTICES.md` și în „Despre HASI”, în același commit.
+5. **Publicare de test în CI**, apoi **prima versiune nesemnată** (0.1.0) în GitHub Releases. Fiind o publicare, o fac numai după confirmarea ta.
+6. **README:** secțiunea „Code signing policy”, rolurile echipei și o politică de confidențialitate scurtă. Ea spune că singura legătură la internet e verificarea actualizărilor, care se poate opri.
+
+### c) SignPath: ce ai de făcut tu, concret
+
+Am verificat termenii azi ([signpath.org/terms](https://signpath.org/terms)). Pagina e încă marcată „draft”.
+
+1. **MFA:** pe GitHub o ai deja. Va trebui activată și pe contul SignPath.
+2. **Rolurile:** tu ești autor, recenzent și aprobator. Termenii cer ca echipa care semnează să fie aceeași cu cea care dezvoltă, adică tu, cu contul tău. Confirmă-mi că vrei să apari așa în README.
+3. **Prima versiune publică:** după 0.11 aprobi publicarea versiunii 0.1.0 nesemnate. SignPath acceptă doar proiecte deja publicate în forma care se semnează. Cât timp versiunea e nesemnată, Windows SmartScreen va avertiza la instalare.
+4. **Formularul de aplicare:** completezi formularul de la signpath.org/apply. Nu i-am putut citi câmpurile (se încarcă dinamic), așa că îl facem împreună. Acceptarea e la discreția lor.
+5. **După acceptare:**
+   - îți faci cont SignPath, cu MFA;
+   - instalezi aplicația SignPath pe depozitul GitHub;
+   - îmi dai identificatorii organizației și ai proiectului;
+   - eu adaug semnarea în GitHub Actions, iar tu aprobi manual fiecare semnare.
+
+Ce e deja în regulă: licența GPL-3.0-or-later, CI-ul public, numele și versiunea produsului în metadatele fișierelor (cerință nouă în termeni, pe care o îndeplinim deja). RHVoice.dll poate fi inclus nesemnat.
+
+### d) Altceva din plan
+
+„Gata” pentru Faza 0 înseamnă toate scenariile trecute pe **Windows 11 și pe Windows 10**, cu și fără NVDA. Pentru Windows 10 ai nevoie de un calculator sau de o mașină virtuală. Spune-mi dacă ai unul.
 
 ---
 
-## 3. Ce trebuie să-mi spuneți după test
-
-1. Când apare ecranul Windows de blocare (O-07 și O-08):
-   - se aude vocea HASI peste el?
-   - ce taste funcționează pe ecran?
-   - ce fereastră rămâne în față după „Anulare”?
-
-   După răspunsuri fixez textul final.
-2. Ce arată evenimentul 27 după o oprire din HASI (O-10): 0x0 înseamnă oprire completă, 0x1 înseamnă Pornire rapidă.
-3. Cât a durat tăcerea la `--test-error hang` (G-08).
-4. **Rezultatele pentru 0.7**: câmpul din mesajul trecut a rămas necompletat.
-
-Am observat și o greșeală de-a mea: în documentele mai vechi am scris „24 octombrie”, dar acele modificări sunt din 23 octombrie. Le corectez dacă vreți.
-
-Mă opresc aici și aștept raportul dumneavoastră.
+**Următorul pas e la tine:** rulezi lista de regresie și îmi trimiți rezultatele, plus răspunsurile de la §3: migrarea pentru „Simulare oprire”, id-ul Velopack, rolurile SignPath și Windows 10. Abia apoi pregătesc planul 0.11, pe care ți-l propun înainte de orice cod.
