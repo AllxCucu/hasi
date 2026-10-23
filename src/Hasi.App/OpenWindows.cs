@@ -43,7 +43,7 @@ internal static class OpenWindows
             var counts = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
             foreach (var (window, process) in windows)
             {
-                if (!names.TryGetValue(process, out var name)) names[process] = name = ProgramName(process);
+                if (!names.TryGetValue(process, out var name)) names[process] = name = NameOf(process);
                 // Store apps all live in ApplicationFrameHost; their window title is the app's name.
                 if (name == StoreAppHost) name = Title(window);
                 if (string.IsNullOrWhiteSpace(name)) continue;
@@ -74,8 +74,8 @@ internal static class OpenWindows
         return process != own && process != 0;
     }
 
-    /// <summary>The program's own description ("Microsoft Edge"), else its file name; null for Windows' shell.</summary>
-    private static string? ProgramName(uint id)
+    /// <summary>A sayable name from the program's own description (<see cref="ProgramName"/>); null for Windows' shell.</summary>
+    private static string? NameOf(uint id)
     {
         try
         {
@@ -84,15 +84,17 @@ internal static class OpenWindows
             if (process.ProcessName.Equals(StoreAppHost, StringComparison.OrdinalIgnoreCase)) return StoreAppHost;
             try
             {
-                var file = process.MainModule?.FileName;
-                var description = file is null ? null : FileVersionInfo.GetVersionInfo(file).FileDescription;
-                if (!string.IsNullOrWhiteSpace(description)) return description.Trim();
+                if (process.MainModule?.FileName is { } file)
+                {
+                    var info = FileVersionInfo.GetVersionInfo(file);
+                    return ProgramName.Choose(info.FileDescription, info.ProductName, process.ProcessName);
+                }
             }
             catch (Exception ex) when (ex is Win32Exception or InvalidOperationException or NotSupportedException)
             {
                 // Elevated programs do not let us read their file; the process name is enough.
             }
-            return process.ProcessName;
+            return ProgramName.Choose(null, null, process.ProcessName);
         }
         catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
         {
