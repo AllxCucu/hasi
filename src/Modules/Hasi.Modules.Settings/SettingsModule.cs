@@ -4,12 +4,13 @@ using Hasi.Core.Modules;
 using Hasi.Core.Output;
 using Hasi.Core.Screens;
 using Hasi.Core.Settings;
+using Hasi.Core.Updates;
 
 namespace Hasi.Modules.Settings;
 
 /// <summary>
 /// User preferences (phase 0.6): voice, rate, volume, pitch, key echo, colours, text size and list ends,
-/// saved at once and applied immediately; autostart (0.10). Updates (0.11) follow later.
+/// saved at once and applied immediately; autostart (0.10); updates (0.11).
 /// </summary>
 public sealed class SettingsModule : IModule
 {
@@ -44,7 +45,9 @@ public sealed class SettingsModule : IModule
                 ? new MenuItem(l.Get("settings.autostart"), _ => ScreenResult.Push(Autostart(context, autostart)))
                 : NotYetAvailable(l.Get("settings.autostart"), context),
             new MenuItem(l.Get("settings.diagnostic"), _ => ScreenResult.Push(DiagnosticMenu(context))),
-            Item("settings.updates", null),
+            context.Updates is { } updates && s is not null
+                ? new MenuItem(l.Get("settings.updates"), _ => ScreenResult.Push(Updates(context, updates, s)))
+                : NotYetAvailable(l.Get("settings.updates"), context),
         ];
         return new MenuScreen(l.Get(TitleKey), items, help: l.Get("settings.help"));
 
@@ -55,6 +58,26 @@ public sealed class SettingsModule : IModule
             v => set((v - 50) / 5),
             0, 100, 5,
             v => v == 50 ? atNormal : v.ToString(l.Culture));
+    }
+
+    /// <summary>Check now, automatic check at startup, and the installed version.</summary>
+    private static MenuScreen Updates(IModuleContext context, UpdateFlow updates, ISettingsService settings)
+    {
+        var l = context.Localizer;
+        var auto = l.Get("settings.updates.auto");
+        string[] autoLabels = [l.Get("settings.updates.auto.on"), l.Get("settings.updates.auto.off")];
+        var version = l.Get("settings.updates.version", ("version", updates.CurrentVersion));
+        return new MenuScreen(l.Get("settings.updates"),
+        [
+            new MenuItem(l.Get("settings.updates.check"), _ => updates.CheckNow()),
+            new MenuItem(auto, _ => ScreenResult.Push(new ChoiceScreen(auto, autoLabels, settings.Current.AutoCheckUpdates ? 0 : 1,
+                (index, _) =>
+                {
+                    settings.Update(u => u with { AutoCheckUpdates = index == 0 });
+                    return ScreenResult.Pop(prefix: l.Get("settings.choice.changed", ("title", auto), ("option", autoLabels[index])));
+                }, l.Get("settings.choice.current")))),
+            new MenuItem(version, _ => ScreenResult.Say(version)),
+        ], help: l.Get("settings.updates.help"));
     }
 
     private static ChoiceScreen Autostart(IModuleContext context, IAutostartService autostart)

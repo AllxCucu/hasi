@@ -298,6 +298,32 @@ public sealed class Shell : IShellServices, IScreenContext
         else Apply(ConfirmExit());
     }
 
+    /// <summary>
+    /// Applies a result that arrives later, not as the answer to a key (a check for updates finished, a download
+    /// made progress). Must be called on the shell's thread. With <see cref="UtterancePriority.Queue"/> what it says
+    /// waits for the current speech, so it does not cut the welcome or another message.
+    /// </summary>
+    public void Show(ScreenResult result, UtterancePriority priority = UtterancePriority.Interrupt)
+    {
+        if (_stack.Count == 0) return;
+        var previous = _priority;
+        _priority = priority;
+        try
+        {
+            Apply(result);
+        }
+        finally
+        {
+            _priority = previous;
+        }
+    }
+
+    /// <summary>Priority forced by <see cref="Show"/>, or null for each utterance's own.</summary>
+    private UtterancePriority? _priority;
+
+    private void Say(Utterance utterance) =>
+        _announcer.Say(_priority is { } forced ? utterance with { Priority = forced } : utterance);
+
     private void Apply(ScreenResult result)
     {
         switch (result)
@@ -305,25 +331,25 @@ public sealed class Shell : IShellServices, IScreenContext
             case HandledResult:
                 break;
             case SayResult say:
-                _announcer.Say(say.Utterance);
+                Say(say.Utterance);
                 break;
             case PushResult push:
                 PushScreen(push.Screen);
-                _announcer.Say(push.Screen.Enter(EnterReason.Initial, this));
+                Say(push.Screen.Enter(EnterReason.Initial, this));
                 break;
             case ReplaceResult replace:
                 _stack.RemoveAt(_stack.Count - 1);
                 PushScreen(replace.Screen);
-                _announcer.Say(replace.Screen.Enter(EnterReason.Initial, this));
+                Say(replace.Screen.Enter(EnterReason.Initial, this));
                 break;
             case PopResult pop:
                 ApplyPop(pop);
                 break;
             case ConfirmResult confirm:
-                Apply(ScreenResult.Push(new ConfirmScreen(confirm.Question, confirm.OnYes, Localizer.Get("confirm.title"))));
+                Apply(ScreenResult.Push(new ConfirmScreen(confirm.Question, confirm.OnYes, Localizer.Get("confirm.title"), confirm.Cancelled)));
                 break;
             case UnhandledResult:
-                _announcer.Say(new Utterance(Localizer.Get("shell.keyUnavailable"), Earcon: Earcon.Unavailable));
+                Say(new Utterance(Localizer.Get("shell.keyUnavailable"), Earcon: Earcon.Unavailable));
                 break;
             default:
                 throw new NotSupportedException($"Unknown screen result {result.GetType().Name}.");
@@ -334,7 +360,7 @@ public sealed class Shell : IShellServices, IScreenContext
     {
         if (_stack.Count == 1)
         {
-            _announcer.Say(Localizer.Get("shell.atRoot"));
+            Say(Localizer.Get("shell.atRoot"));
             return;
         }
 
@@ -348,7 +374,7 @@ public sealed class Shell : IShellServices, IScreenContext
         else if (pop.Announce)
         {
             var entry = Current.Enter(EnterReason.Return, this);
-            _announcer.Say(pop.Prefix is null ? entry : pop.Prefix.Then(entry));
+            Say(pop.Prefix is null ? entry : pop.Prefix.Then(entry));
         }
     }
 

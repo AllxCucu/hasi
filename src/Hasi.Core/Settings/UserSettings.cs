@@ -69,6 +69,15 @@ public sealed record UserSettings
     /// <summary>Set when the user turns <see cref="SimulatePower"/> off: the next start warns once that they are real.</summary>
     public bool RealPowerNoticePending { get; init; }
 
+    /// <summary>Look for a new version at every start (Settings → Actualizări).</summary>
+    public bool AutoCheckUpdates { get; init; } = true;
+
+    /// <summary>The newest version HASI already offered at startup; it is not offered again, only a newer one.</summary>
+    public string? UpdateOfferedVersion { get; init; }
+
+    /// <summary>Where updates come from (<see cref="Updates.UpdateSource"/>); null = HASI's GitHub Releases.</summary>
+    public string? UpdateSource { get; init; }
+
     [JsonIgnore]
     public SpeechSettings Speech => new(Rate, Pitch, Volume);
 

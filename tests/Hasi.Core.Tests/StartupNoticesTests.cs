@@ -26,6 +26,23 @@ public class StartupNoticesTests
     }
 
     [Fact]
+    public void The_first_start_after_installing_says_once_that_autostart_is_on()
+    {
+        var notice = Assert.Single(StartupNotices.For(new StartupFacts(AutostartTurnedOn: true), Localizer));
+
+        Assert.Equal("HASI va porni automat când porniți calculatorul. Puteți schimba asta din Setări, Pornire automată.", notice.Text);
+    }
+
+    [Fact]
+    public void After_an_update_the_new_version_is_said_first()
+    {
+        var notices = StartupNotices.For(new StartupFacts(NarratorRunning: true, UpdatedTo: "0.2.0"), Localizer);
+
+        Assert.Equal("HASI a fost actualizat la versiunea 0.2.0.", notices[0].Text);
+        Assert.Equal(2, notices.Count);
+    }
+
+    [Fact]
     public void Every_notice_is_queued_most_important_first()
     {
         var notices = StartupNotices.For(new StartupFacts(true, true, true, true), Localizer);

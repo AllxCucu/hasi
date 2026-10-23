@@ -44,6 +44,9 @@ public interface IModuleContext
 
     /// <summary>Starting HASI when the user signs in, or null when the host cannot.</summary>
     IAutostartService? Autostart { get; }
+
+    /// <summary>Checking for and installing updates, or null when the host has none.</summary>
+    Updates.UpdateFlow? Updates { get; }
 }
 
 /// <summary>Shell features that modules may trigger.</summary>
@@ -57,6 +60,9 @@ public interface IShellServices
 
     /// <summary>The spoken "shut the computer down?" confirmation.</summary>
     ScreenResult ConfirmShutdown();
+
+    /// <summary>Applies a result that arrives later (see <see cref="Shell.Show"/>); on the shell's thread only.</summary>
+    void Show(ScreenResult result, UtterancePriority priority = UtterancePriority.Interrupt);
 }
 
 /// <summary>Host operations the core may request, implemented by the application.</summary>
@@ -90,7 +96,8 @@ public sealed record ModuleContext(
     IVoiceComparison? VoiceComparison = null,
     ISettingsService? Settings = null,
     IDiagnosticsService? Diagnostics = null,
-    IAutostartService? Autostart = null) : IModuleContext;
+    IAutostartService? Autostart = null,
+    Updates.UpdateFlow? Updates = null) : IModuleContext;
 
 public static class MainMenu
 {

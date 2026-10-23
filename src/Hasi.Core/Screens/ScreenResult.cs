@@ -25,8 +25,9 @@ public abstract record ScreenResult
         new PopResult(prefix, announce, then);
 
     /// <summary>Asks a yes/no question; <paramref name="onYes"/> runs only after Enter.</summary>
-    public static ScreenResult Confirm(string question, Func<ScreenResult> onYes) =>
-        new ConfirmResult(question, onYes);
+    /// <param name="cancelled">Said after Escape instead of "Anulat."</param>
+    public static ScreenResult Confirm(string question, Func<ScreenResult> onYes, Utterance? cancelled = null) =>
+        new ConfirmResult(question, onYes, cancelled);
 }
 
 public sealed record HandledResult : ScreenResult;
@@ -41,4 +42,4 @@ public sealed record ReplaceResult(IScreen Screen) : ScreenResult;
 
 public sealed record PopResult(Utterance? Prefix, bool Announce, ScreenResult? Then) : ScreenResult;
 
-public sealed record ConfirmResult(string Question, Func<ScreenResult> OnYes) : ScreenResult;
+public sealed record ConfirmResult(string Question, Func<ScreenResult> OnYes, Utterance? Cancelled = null) : ScreenResult;
