@@ -1,4 +1,4 @@
-using Hasi.Core.Settings;
+﻿using Hasi.Core.Settings;
 
 namespace Hasi.Testing;
 
@@ -14,6 +14,7 @@ public sealed class InMemorySettingsService : ISettingsService
         new("rhvoice-dll:Paul", "Paul, RHVoice direct"),
         new("sapi5:Paul", "Paul, prin SAPI"),
         new("sapi5:Microsoft Andrei", "Microsoft Andrei, prin SAPI"),
+        new("sapi5:Microsoft David", "Microsoft David, prin SAPI", Romanian: false),
     ];
 
     public string CurrentVoiceLabel { get; private set; } = "Paul, RHVoice direct";

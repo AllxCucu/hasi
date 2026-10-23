@@ -66,20 +66,33 @@ public sealed class SettingsModule : IModule
             v => v == 100 ? l.Get("settings.volume.max") : v.ToString(l.Culture));
     }
 
-    private static ChoiceScreen VoiceChoice(IModuleContext context, ISettingsService settings)
+    /// <summary>
+    /// Romanian voices only (plus the current voice, if it is not Romanian), with "Arată toate vocile" at the end;
+    /// that last item replaces the list with every voice found.
+    /// </summary>
+    private static ChoiceScreen VoiceChoice(IModuleContext context, ISettingsService settings, bool showAll = false)
     {
         var l = context.Localizer;
-        var voices = settings.Voices;
-        var current = Math.Max(0, voices.ToList().FindIndex(v => v.Label == settings.CurrentVoiceLabel));
+        var voices = settings.Voices
+            .Where(v => showAll || v.Romanian || v.Label == settings.CurrentVoiceLabel)
+            .ToList();
+        var hidden = settings.Voices.Count - voices.Count;
+        List<string> labels = [.. voices.Select(v => v.Label)];
+        if (hidden > 0) labels.Add(l.Get("settings.voice.showAll"));
+        var current = Math.Max(0, voices.FindIndex(v => v.Label == settings.CurrentVoiceLabel));
         return new ChoiceScreen(
             l.Get("settings.voice"),
-            [.. voices.Select(v => v.Label)],
+            labels,
             current,
-            (index, _) => settings.SelectVoice(voices[index])
-                ? ScreenResult.Pop(prefix: l.Get("settings.voice.changed", ("voice", voices[index].Label)))
-                : ScreenResult.Say(new Utterance(
-                    l.Get("settings.voice.failed", ("voice", voices[index].Label), ("current", settings.CurrentVoiceLabel)),
-                    Earcon: Earcon.Error)),
+            (index, _) =>
+            {
+                if (index == voices.Count) return ScreenResult.Replace(VoiceChoice(context, settings, showAll: true));
+                return settings.SelectVoice(voices[index])
+                    ? ScreenResult.Pop(prefix: l.Get("settings.voice.changed", ("voice", voices[index].Label)))
+                    : ScreenResult.Say(new Utterance(
+                        l.Get("settings.voice.failed", ("voice", voices[index].Label), ("current", settings.CurrentVoiceLabel)),
+                        Earcon: Earcon.Error));
+            },
             l.Get("settings.choice.current"));
     }
 

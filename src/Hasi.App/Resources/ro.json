@@ -91,6 +91,7 @@
   "settings.voice.changed": "Vocea a fost schimbată: {voice}.",
   "settings.voice.failed": "Vocea {voice} nu a pornit. Rămâne vocea {current}.",
   "settings.voice.label": "{name}, {engine}",
+  "settings.voice.showAll": "Arată toate vocile",
   "settings.voice.engine.rhvoice-dll": "RHVoice direct",
   "settings.voice.engine.sapi5": "prin SAPI",
   "settings.voice.engine.onecore": "prin OneCore",

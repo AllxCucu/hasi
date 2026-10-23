@@ -1,4 +1,4 @@
-using Hasi.Core.Input;
+﻿using Hasi.Core.Input;
 using Hasi.Core.Settings;
 using Hasi.Modules.About;
 using Hasi.Modules.Exit;
@@ -68,7 +68,7 @@ public class SettingsScreenTests
         var (h, settings) = InSettings();
         Open(h, 0);
 
-        Assert.Equal("Voce. 3 opțiuni. Selectat: Paul, RHVoice direct, actual, 1 din 3.", h.LastSaid);
+        Assert.Equal("Voce. 4 opțiuni. Selectat: Paul, RHVoice direct, actual, 1 din 4.", h.LastSaid);
         h.Press(Key.Down);
         Assert.Equal(["Vocea a fost schimbată: Paul, prin SAPI. Setări. Selectat: Voce, 1 din 12."], h.Press(Key.Enter));
         Assert.Equal("sapi5:Paul", settings.Current.Voice);
@@ -80,10 +80,28 @@ public class SettingsScreenTests
         var (h, settings) = InSettings();
         settings.BrokenVoices.Add("sapi5:Microsoft Andrei");
         Open(h, 0);
-        h.Press(Key.End);
+        h.Press(Key.Down, Key.Down);
 
         Assert.Equal(["Vocea Microsoft Andrei, prin SAPI nu a pornit. Rămâne vocea Paul, RHVoice direct."], h.Press(Key.Enter));
         Assert.Null(settings.Current.Voice);
+    }
+
+    [Fact]
+    public void Voices_that_are_not_romanian_appear_only_after_show_all()
+    {
+        var (h, settings) = InSettings();
+        Open(h, 0);
+
+        Assert.Equal(["Arată toate vocile, 4 din 4."], h.Press(Key.End));
+        Assert.Equal(["Voce. 4 opțiuni. Selectat: Paul, RHVoice direct, actual, 1 din 4."], h.Press(Key.Enter));
+        Assert.Equal(["Microsoft David, prin SAPI, 4 din 4."], h.Press(Key.End));
+        h.Press(Key.Enter);
+        Assert.Equal("sapi5:Microsoft David", settings.Current.Voice);
+
+        // The chosen voice stays visible in the short list even though it is not Romanian;
+        // nothing else is hidden here, so "Arată toate vocile" is not offered.
+        Open(h, 0);
+        Assert.Equal("Voce. 4 opțiuni. Selectat: Microsoft David, prin SAPI, actual, 4 din 4.", h.LastSaid);
     }
 
     [Fact]

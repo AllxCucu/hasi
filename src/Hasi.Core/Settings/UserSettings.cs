@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using Hasi.Core.Speech;
 
@@ -164,7 +164,8 @@ public sealed record SettingsOverrides(int? Rate = null, int? Pitch = null, int?
 /// <summary>A voice the user can choose in Settings.</summary>
 /// <param name="Key">"engine:name", stored in <see cref="UserSettings.Voice"/>.</param>
 /// <param name="Label">What is said, for example "Paul, RHVoice direct".</param>
-public sealed record VoiceOption(string Key, string Label);
+/// <param name="Romanian">Romanian voices are listed by default; the others only after "Arată toate vocile".</param>
+public sealed record VoiceOption(string Key, string Label, bool Romanian = true);
 
 /// <summary>Settings as the modules see them: read, change (saved and applied at once), and the voice list.</summary>
 public interface ISettingsService

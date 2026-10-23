@@ -71,7 +71,8 @@ internal sealed class SpeechSetup
     public RhVoiceInstallation? RhVoice { get; private set; }
 
     /// <summary>Every voice found, as offered in Settings → Voce.</summary>
-    public IReadOnlyList<VoiceOption> VoiceOptions => [.. Voices.Select(v => new VoiceOption(Key(v), Label(v)))];
+    public IReadOnlyList<VoiceOption> VoiceOptions =>
+        [.. Voices.Select(v => new VoiceOption(Key(v), Label(v), v.Culture.StartsWith("ro", StringComparison.OrdinalIgnoreCase)))];
 
     private List<VoiceCandidate> Voices => _voices ??= ListVoices();
 
