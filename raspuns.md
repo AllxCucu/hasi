@@ -1,41 +1,50 @@
-﻿# HASI – Planul 0.11 (propunere)
+﻿# HASI – 0.11, pasul 1: RHVoice.dll construit în CI
 
-Planul e în **`docs/plan-0.11.md`**. E o propunere: nu am scris cod și nu am atins nimic din program. Aștept rezultatele regresiei înainte de orice aprobare.
+Pasul 1 e gata. M-am oprit aici, la oprirea prevăzută, și aștept ascultarea ta comparativă. Programul HASI nu s-a schimbat.
 
-## Pe scurt
+## Ce s-a făcut
 
-1. **RHVoice.dll construit în CI (primul pas).**
-   - Aducem RHVoice la commitul exact al versiunii 1.18.4 și construim cu SCons, cum face și CI-ul lor de Windows.
-   - Inițializăm doar submodulele necesare: depozitul are peste 100 (toate vocile), iar noi avem nevoie de Paul și de datele românești, care sunt și ele submodule acolo.
-   - Testăm automat că DLL-ul construit vorbește.
-   - Apoi asculți tu: acum folosești 1.18.2, iar noi construim 1.18.4. **Oprire.**
-   - Dacă SCons nu poate construi doar biblioteca x64, mă opresc și îți dau variantele, cum ai cerut.
-2. **Pachetul Velopack.**
-   - Id `HASI.App`, instalare per-utilizator, fără administrator.
-   - .NET inclus în pachet, deci fără nicio fereastră UAC.
-   - La dezinstalare se șterg pornirea automată, `%LOCALAPPDATA%\HASI` și `%APPDATA%\HASI`.
-   - Pornirea automată indică `hasi.exe` de pornire, cu cale stabilă la actualizări.
-   - „Simulare oprire” devine oprită implicit pentru utilizatorii noi. La tine rămâne pornită: am verificat, în `settings.json` ai `"SimulatePower": true`.
-3. **Actualizări din GitHub Releases, cu anunț rostit.**
-   - La pornire, după bun venit, o confirmare: Enter actualizează, Escape amână.
-   - Progresul se spune, iar după repornire auzi „HASI a fost actualizat la versiunea …”.
-   - Fără internet: tăcere la verificarea automată, iar la „Caută acum” mesajul „Nu există conexiune la internet.”
-   - Poți testa și dintr-un folder local, fără să publicăm nimic. **Oprire.**
-4. **CI și prima versiune.**
-   - La fiecare push, installer-ul rămâne artifact CI, nepublicat.
-   - Versiunea 0.1.0 se publică doar cu aprobarea ta explicită, nesemnată.
-   - README: politica de semnare, rolurile tale și politica de confidențialitate.
-   - Apoi completăm împreună formularul SignPath.
+- **Workflow-ul nou** `.github/workflows/rhvoice.yml` construiește RHVoice.dll x64 din sursa oficială RHVoice, la commitul exact al tag-ului 1.18.4 (`fa9dd196…`):
+  - folosește SCons, cum ai aprobat;
+  - aduce doar submodulele necesare: Boost, datele românești și Paul, din cele peste 100 ale depozitului;
+  - construiește **doar biblioteca x64**, fără nimic pentru x86, în circa 70 de secunde;
+  - [rularea reușită](https://github.com/AllxCucu/hasi/actions/runs/40018458844).
+- **Ce rezultă:** un artifact cu DLL-ul, Paul, datele românești, textele de licență și un `BUILD-INFO.txt` (commitul, SHA-256 al DLL-ului, versiunea). Artifactul nu se publică nicăieri.
+- **Utilitarul de verificare** `tools/RhVoiceCheck` nu face parte din program. Verifică automat, în CI, că DLL-ul e x64, că are vocea Paul și că rostește cele 5 fraze din „Comparare voci”, pe care le salvează ca WAV.
 
-Am trecut în documentație și deciziile tale: P-13 e decisă definitiv („unu din patru”), iar celelalte șapte sunt în tabelul de la începutul planului.
+## Ce am găsit
 
-## Ce trebuie să-mi spui
+1. **Sunetul e identic bit cu bit.** Am comparat cele 5 fraze rostite de 1.18.2 (al tău) cu cele din build-ul din CI: aceleași eșantioane, la toate cinci.
+2. **De ce e la fel:**
+   - 1.18.2 e ultima versiune RHVoice publicată pentru Windows (add-on-ul NVDA pe care îl folosești); 1.18.3 și 1.18.4 au fost doar pentru Android;
+   - între 1.18.2 și 1.18.4 codul bibliotecii nu s-a schimbat deloc;
+   - Paul și româna au intrat în depozitul RHVoice după 1.18.2, iar la 1.18.4 fișierele lor sunt identice cu ce ai instalat de mână.
+3. **Versiunea afișată e „1.19.2”.** Scriptul RHVoice declară „1.19.2” la toate tag-urile 1.18.x, așa că build-ul nostru apare în jurnal ca 1.19.2. E doar eticheta: sursa e 1.18.4.
+4. **Două piedici în SCons, rezolvate:**
+   - SCons citește și scripturile installer-ului RHVoice, chiar dacă cerem doar DLL-ul, și se oprea cu o eroare. Opțiunea `sapi_dev_core=true` o evită: schimbă doar installer-ele lor SAPI, nu biblioteca.
+   - Conversia capetelor de rând (CRLF) e oprită în CI, ca fișierele de date să rămână identice cu ale RHVoice.
+5. **Corectură de licență, important.** Câteva fișiere din bibliotecă sunt sub **LGPL 3.0 sau ulterioară**, iar auditul meu din ADR 0004 nu le prinsese. DLL-ul se poate distribui în întregime sub GPL-3.0-or-later, deci rămâne compatibil cu HASI. Textul din „Despre HASI” și din `THIRD-PARTY-NOTICES.md` trebuie însă corectat, odată cu includerea DLL-ului în installer (pasul 2). Nu l-am schimbat acum, pentru că pasul 1 nu atinge programul.
+6. **Proba de pornire** (fără taste, 8 secunde), cu HASI pornit pe build-ul din CI: HASI îl încarcă, spune bun venit cu RHVoice direct, nicio eroare.
 
-1. **Windows 10:** definiția lui „Gata” cere și Windows 10, iar tu nu ai. Variantele:
-   - a) doar Windows 11, o schimbare de plan pe care o decizi tu;
-   - b) caut o variantă legală și gratuită pentru o mașină virtuală;
-   - c) amânăm testul pe Windows 10.
-2. **Pornirea automată după instalare:** pornită implicit sau oprită?
-3. **Opririle din 0.11:** propun trei: după pasul 1, după pașii 2–3 și înainte de publicarea 0.1.0. Ți se pare bine?
+## Ascultarea comparativă (W-01…W-04)
 
-Aștept rezultatele regresiei și răspunsurile de mai sus.
+Ți-am pregătit totul pe calculator; folderul tău `rhvoice` a rămas neatins:
+- build-ul din CI: `%LOCALAPPDATA%\HASI\rhvoice-ci-1.18.4`;
+- frazele A/B: `%LOCALAPPDATA%\HASI\comparatie-rhvoice`.
+
+Cele două variante de pornire:
+- **A (1.18.2, ca până acum):** `dotnet run --project src\Hasi.App -- --diagnostic`
+- **B (din CI):** `dotnet run --project src\Hasi.App -- --diagnostic --rhvoice-path "%LOCALAPPDATA%\HASI\rhvoice-ci-1.18.4"`
+
+| ID | Ce faci | Ce trebuie să auzi |
+|---|---|---|
+| W-01 | În `comparatie-rhvoice` asculți pe rând `fraza-1-A-actual-1.18.2.wav` și `fraza-1-B-din-CI.wav`, apoi frazele 2…5 | fiecare pereche sună la fel: aceeași voce, viteză, intonație, aceleași pauze |
+| W-02 | Pornești B și cauți în jurnal rândul `RHVOICE version` | `RHVOICE version 1.19.2, voices Paul` și `dll=…rhvoice-ci-1.18.4\lib\x64\RHVoice.dll` |
+| W-03 | Cu B: pașii 1–23 din `regresie-faza-0.md` | totul ca în A: bun venit fără întârziere, oprire imediată a vorbirii, nicio pocnitură |
+| W-04 | Cu B: Setări → Diagnostic → Comparare voci, Enter pe fiecare frază | varianta doi, „Paul prin RHVoice direct”, sună ca până acum |
+
+Scenariile sunt și în `docs/manual-tests/faza-0.md`. Detaliile tehnice sunt în ADR 0004, ultima secțiune. Planul 0.11 are pasul 1 marcat „făcut” și deciziile tale noi (8–12) trecute în tabel.
+
+## Ce urmează
+
+Aștept rezultatele W-01…W-04 și ale regresiei. Pașii 2–4 nu încep până nu îi aprobi.

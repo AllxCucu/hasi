@@ -44,7 +44,16 @@
 
 ## Pașii propuși
 
-### Pasul 1 – RHVoice.dll construit în CI (primul, cum ai cerut)
+### Pasul 1 – RHVoice.dll construit în CI (primul, cum ai cerut) – **FĂCUT, așteaptă ascultarea ta (W-01…W-04)**
+
+> Rezultat (23 octombrie 2026), detalii în ADR 0004:
+> - doar biblioteca x64 se construiește cu SCons (`sapi_dev_core=true`), în circa 70 de secunde;
+> - sunetul e identic bit cu bit cu 1.18.2;
+> - Paul și datele românești vin din același commit și sunt identice cu ale tale;
+> - DLL-ul se declară „1.19.2”;
+> - unele fișiere sunt sub LGPL-3.0-or-later, deci la pasul 2 se corectează textul de licență din „Despre HASI”, din `THIRD-PARTY-NOTICES.md` și din comentariul din `RhVoiceLibrary.cs`.
+>
+> Ce s-a schimbat față de planul de mai jos: SCons, nu CMake; datele vin din submodulele RHVoice, nu dintr-o versiune separată.
 
 1. Un job separat în GitHub Actions, pe `windows-latest`, aduce RHVoice la **commitul exact al tag-ului 1.18.4**.
    - Propun ca RHVoice să **nu** fie submodul în depozitul nostru, cum scria în ADR 0004. CI-ul îl aduce după hash, cu `actions/checkout`, iar submodulele se inițializează **selectiv**: doar ce cere biblioteca (bibliotecile externe), plus Paul și datele românești. Altfel s-ar descărca peste 100 de voci.
@@ -71,16 +80,17 @@
 1. Pachetul NuGet `Velopack` și unealta `vpk`, ambele cu versiune fixată (licență MIT).
    - Apar în `THIRD-PARTY-NOTICES.md` și în „Despre HASI”, în același commit.
    - Fac ADR 0007: installer și actualizări.
-2. Un `Main` propriu, cu `VelopackApp.Build()` la început, înaintea regulii de o singură instanță:
+2. Licența RHVoice corectată (ADR 0004, ultima secțiune) în „Despre HASI”, `THIRD-PARTY-NOTICES.md` și `RhVoiceLibrary.cs`, în același commit cu includerea DLL-ului în pachet.
+3. Un `Main` propriu, cu `VelopackApp.Build()` la început, înaintea regulii de o singură instanță:
    - **la dezinstalare** (hook rapid, fără interfață): șterge valoarea `HASI` din cheia `Run`, apoi folderele `%LOCALAPPDATA%\HASI` și `%APPDATA%\HASI` (decizia ta 2);
    - **după o actualizare** (`OnRestarted`): HASI spune versiunea nouă, la pasul 3.
-3. Publicarea, cu `vpk pack --packId HASI.App --packTitle HASI --mainExe hasi.exe`:
+4. Publicarea, cu `vpk pack --packId HASI.App --packTitle HASI --mainExe hasi.exe`:
    - **self-contained** `win-x64`: .NET intră în pachet, deci nu se instalează niciun runtime și nu apare nicio fereastră de administrator (UAC);
    - RHVoice de la pasul 1 intră în `rhvoice\`, lângă program. HASI caută deja acolo, primul.
    - Măsor dimensiunea installer-ului și ți-o spun.
-4. **Pornire automată:** când HASI rulează instalat, cheia `Run` indică `hasi.exe` de pornire (`%LOCALAPPDATA%\HASI.App\hasi.exe`), nu folderul `current`. Se activează la prima pornire după instalare (`OnFirstRun`), iar HASI spune o singură dată mesajul de la decizia 9.
-5. **„Simulare oprire” devine oprită implicit** în `UserSettings`. ADR 0006 se actualizează. Testele care presupun „pornită implicit” se inversează, iar transcrierile 05 și 08 se schimbă vizibil în diff. La tine rămâne pornită (decizia 1).
-6. **Ce aude un utilizator la instalare:**
+5. **Pornire automată:** când HASI rulează instalat, cheia `Run` indică `hasi.exe` de pornire (`%LOCALAPPDATA%\HASI.App\hasi.exe`), nu folderul `current`. Se activează la prima pornire după instalare (`OnFirstRun`), iar HASI spune o singură dată mesajul de la decizia 9.
+6. **„Simulare oprire” devine oprită implicit** în `UserSettings`. ADR 0006 se actualizează. Testele care presupun „pornită implicit” se inversează, iar transcrierile 05 și 08 se schimbă vizibil în diff. La tine rămâne pornită (decizia 1).
+7. **Ce aude un utilizator la instalare:**
    - `Setup.exe` are o fereastră de progres, fără voce;
    - la final pornește HASI, care spune bun venit;
    - cât timp versiunea e nesemnată, Windows SmartScreen avertizează înainte. Îl scriu în ghidul de instalare, cu tastele pentru NVDA.
@@ -131,13 +141,13 @@
 
 ## Riscuri și lucruri de verificat la implementare
 
-1. Dacă SCons poate construi doar biblioteca x64 (pasul 1.2). Dacă nu, mă opresc.
-2. Ce submodule RHVoice cere biblioteca. Dacă inițializarea selectivă nu merge, durata CI crește.
+1. Dacă SCons poate construi doar biblioteca x64 (pasul 1.2). Dacă nu, mă opresc. **Rezolvat:** se poate.
+2. Ce submodule RHVoice cere biblioteca. Dacă inițializarea selectivă nu merge, durata CI crește. **Rezolvat:** Boost, Romanian, Paul.
 3. Ce scurtături creează Velopack implicit (Desktop, meniul Start). Documentația citită nu spune.
 4. Antivirusul poate da alarme false pe un installer nesemnat. Se rezolvă prin SignPath, mai târziu.
 5. Dacă un pachet self-contained cu .NET 10 merge cu versiunea Velopack fixată. Verific înainte de pasul 2.
 
-## Întrebări pentru tine (înainte de aprobare)
+## Întrebări pentru tine (răspunse pe 23 octombrie 2026: deciziile 8–10 de mai sus)
 
 1. **Windows 10.** „Gata” pentru Faza 0 cere Windows 11 **și** Windows 10 (`architecture.md` §4), dar nu ai Windows 10. Variante:
    - a) definiția devine „doar Windows 11”, o schimbare de plan pe care o decizi tu;

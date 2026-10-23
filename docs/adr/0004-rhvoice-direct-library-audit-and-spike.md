@@ -151,8 +151,7 @@ unplugging headphones, resume from sleep.
 ### CI build of RHVoice.dll – plan only (not implemented)
 
 1. Add RHVoice as a git submodule pinned to a release tag (e.g. 1.18.4) and its commit hash.
-2. (Note 2026-10-23: upstream's own Windows CI builds with SCons on `windows-latest` — `pip install lxml scons`,
-   then `scons`; the repository also has a `CMakeLists.txt`. Prefer upstream's SCons path.)
+2. (Implemented with SCons instead of CMake, see the last follow-up.)
    A GitHub Actions job on `windows-latest` (MSVC available) builds only the library (`RHVoice_core`,
    `libhts_engine`, `RHVoice`) for x64 with CMake, Release, and uploads `RHVoice.dll` as an artifact.
 3. Paul's data comes from the pinned `paul-ron` release, checked by SHA-256.
@@ -195,3 +194,38 @@ than 150 ms; if R-14 shows a cut syllable, the silence can be made longer for Bl
 synthesized and discarded), and the synthesis thread waits for it before the first real message. Measured on
 the owner's PC: preload 275 ms, done while the window is being built; the welcome message's first sound
 went from 280–400 ms to **16 ms**.
+
+## Follow-up (2026-10-23): CI build implemented (phase 0.11, step 1)
+
+`.github/workflows/rhvoice.yml` builds `RHVoice.dll` for x64 from upstream commit
+`fa9dd196fd2dac3b0bf089a2d80fc8477c2380e3` (tag 1.18.4). Findings, all checked:
+
+- **Pin.** 1.18.2 is the last upstream release with Windows binaries (`RHVoice-1.18.201.nvda-addon`, the DLL the
+  owner uses); 1.18.3 and 1.18.4 are Android releases. Between 1.18.2 and 1.18.4 nothing changed in `src/core`,
+  `src/lib` or `src/hts_engine`. Romanian and Paul joined upstream after 1.18.2 (`New language: Romanian`), as
+  submodules; at 1.18.4 their files are byte for byte the ones the owner installed by hand. So the voice and the
+  language data come from the same commit, with no separate download.
+- **Build.** Upstream's own Windows CI uses SCons, and so do we. The repository also has a `CMakeLists.txt`, but
+  we follow the path upstream proves. SCons reads upstream's installer scripts even for one target. With WiX on the runner they
+  stop unless `sapi_dev_core=true`, which only changes upstream's SAPI installers. The target
+  `build/windows/x86_64/lib/RHVoice.dll` builds **only** the x64 library (no x86 objects): about 70 s.
+  Only the needed submodules are fetched (Boost, Romanian, Paul), not the other 100 or so. `core.autocrlf` is off, so
+  the data files keep upstream's bytes.
+- **Check.** `tools/RhVoiceCheck` loads the built DLL, requires x64 and the voice Paul, synthesizes the five
+  "Comparare voci" phrases and writes them as WAV. Compared with the owner's 1.18.2: **every phrase is
+  bit-identical** (same samples). HASI started with `--rhvoice-path` to the CI build speaks normally.
+- **Version string.** At every 1.18.x tag the SCons script reports version `1.19.2` (`get_version`), so our build
+  says "1.19.2" in the log; the official 1.18.2 add-on says "1.18.2". `BUILD-INFO.txt` records the tag, the
+  commit, the reported version and the SHA-256 of the DLL.
+- **Licence, correction to the audit above.** Some library files are **LGPL-3.0-or-later**:
+  - `src/include/core/bpf.h`, used by `src/core/bpf.cpp`;
+  - `src/hts_engine/utils.h`, used by `HTS_misc.c`.
+
+  Together with the GPL-2.0-or-later and LGPL-2.1-or-later files, the DLL as a whole can be distributed under
+  **GPL-3.0-or-later**, still compatible with HASI. When HASI starts shipping the DLL (phase 0.11, step 2), three
+  places must say so, in the same commit:
+  - "Despre HASI";
+  - `THIRD-PARTY-NOTICES.md`;
+  - the comment in `RhVoiceLibrary.cs`.
+
+  The artifact ships GPL-2.0, GPL-3.0, LGPL-2.1, LGPL-3.0 and CC BY-SA 4.0 texts.

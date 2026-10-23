@@ -231,3 +231,19 @@ Pornire: `dotnet run --project src\Hasi.App -- --diagnostic`. Pentru M0-30, HASI
 | I-04 | Setări → Pornire automată → Nu | „Pornire automată: Nu. …”; la următoarea autentificare HASI nu mai pornește singur |
 | I-05 | Pornești HASI cu `-- --test-error crash` (după G-07) | repornirea după eroare merge și cu o singură instanță: HASI cel nou pornește (nu se oprește crezând că rulează deja) |
 | I-06 | (dacă alt program folosește deja Control + Alt + H) | la pornire: „Tasta Control Alt H este folosită de alt program, așa că nu vă poate aduce înapoi în HASI.”; mesajul de pierdere a focusului spune atunci Alt + Tab, ca înainte |
+
+## Etapa 0.11, pasul 1 – RHVoice.dll construit în CI (W-01…W-04)
+
+Build-ul din CI e copiat în `%LOCALAPPDATA%\HASI\rhvoice-ci-1.18.4`. Cel de acum, 1.18.2, rămâne neatins în
+`%LOCALAPPDATA%\HASI\rhvoice`. Sunetul celor cinci fraze din „Comparare voci” e identic bit cu bit între cele două
+(verificat automat); ascultarea confirmă că nimic altceva nu s-a schimbat.
+
+- **A (1.18.2, ca până acum):** `dotnet run --project src\Hasi.App -- --diagnostic`
+- **B (din CI):** `dotnet run --project src\Hasi.App -- --diagnostic --rhvoice-path "%LOCALAPPDATA%\HASI\rhvoice-ci-1.18.4"`
+
+| ID | Ce faci | Ce trebuie să auzi |
+|---|---|---|
+| W-01 | În folderul `%LOCALAPPDATA%\HASI\comparatie-rhvoice` asculți pe rând `fraza-1-A-actual-1.18.2.wav` și `fraza-1-B-din-CI.wav`, apoi frazele 2…5 | fiecare pereche sună la fel: aceeași voce, viteză, intonație, aceleași pauze |
+| W-02 | Pornești B; în jurnalul de diagnostic cauți rândul `RHVOICE version` | `RHVOICE version 1.19.2, voices Paul` (build-ul nostru se declară 1.19.2, ca scriptul RHVoice; A spune 1.18.2) și `dll=…rhvoice-ci-1.18.4\lib\x64\RHVoice.dll` |
+| W-03 | Cu B: pașii 1–23 din `regresie-faza-0.md` | totul ca în A: bun venit fără întârziere, oprire imediată a vorbirii, nicio pocnitură, Test pronunție la fel |
+| W-04 | Cu B: Setări → Diagnostic → Comparare voci, Enter pe fiecare frază | „Varianta unu, Paul prin SAPI…”, apoi „Varianta doi, Paul prin RHVoice direct…”; varianta doi sună ca până acum |
