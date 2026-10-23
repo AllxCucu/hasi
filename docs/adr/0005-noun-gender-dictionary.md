@@ -1,6 +1,6 @@
-# ADR 0005 – Noun genders from an open morphological dictionary
+﻿# ADR 0005 – Noun genders from an open morphological dictionary
 
-- Status: **Proposed** – waiting for the project owner's approval before any data is used
+- Status: **Accepted** (2026-10-23) – MULTEXT-East 4.0 approved, tester's file first, all fallback steps kept; dexonline not contacted (owner's decision)
 - Date: 2026-10-23
 
 ## Context
@@ -45,4 +45,12 @@ material adapted from CC BY-SA 4.0 may be distributed under GPLv3, with attribut
 
 ## Decision
 
-Pending the owner's approval of the MULTEXT-East data (and, optionally, of asking dexonline for permission).
+Approved by the owner on 2026-10-23, implemented the same day:
+- `tools/GenderTable` builds `src/Hasi.Text.Ro/Data/substantive.txt` (109,550 forms, 1.7 MB; 374 forms with
+  ambiguous gender and 188 forms that are also function words left out), with the CC BY-SA 4.0 header.
+- Look-up order: the tester's `Data/genuri.txt` (m/f/n), the built-in hand-checked list, the dictionary,
+  reliable plural endings, then the guessed gender from the singular ending (steps 3-5 kept, as chosen by the
+  owner, accepting that an adjective after a number may be taken for a noun: "Pagina 2 goală").
+- Guessed genders that change the words (1, 2, 12, 21, 22 …) are logged as `LEXICON? <word>` in diagnostic mode.
+- Attribution in "Despre HASI" and THIRD-PARTY-NOTICES.
+- dexonline: not contacted, on the owner's instruction.

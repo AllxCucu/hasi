@@ -1,0 +1,7 @@
+# Corecturile tale pentru genul substantivelor numărate. Au prioritate față de dicționar.
+# Format, câte unul pe rând:   formă => m | f | n
+#   m = masculin („un leu”, „doi lei”)
+#   f = feminin („o oră”, „două ore”)
+#   n = neutru („un dosar”, „două dosare”)
+# Scrie forma exact cum apare după număr, de exemplu „autobuze => n”.
+# Rândurile care încep cu # sunt comentarii. Editează fișierul din src\Hasi.Text.Ro\Data\ și repornește HASI.

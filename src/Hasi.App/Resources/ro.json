@@ -94,6 +94,7 @@
   "about.license": "HASI este program liber, sub Licența Publică Generală GNU, versiunea 3 sau ulterioară. Este oferit fără nicio garanție",
   "about.rhvoice": "Sinteza vocală RHVoice, de Olga Yakovleva și colaboratorii, sub licența GNU LGPL, versiunea 2.1 sau ulterioară",
   "about.paul": "Vocea românească Paul, de Stefan Moisei, Paul Bogorin și Zvonimir Stanecic, cu egalizare de Tomasz Bilecki, sub licența Creative Commons Atribuire, Distribuire în condiții identice, versiunea 4.0",
+  "about.multext": "Genul substantivelor, din lexiconul românesc MULTEXT-East, versiunea 4, de Tomaž Erjavec, Dan Tufiș și colaboratorii, Institutul Jožef Stefan, sub licența Creative Commons Atribuire, Distribuire în condiții identice, versiunea 4.0",
   "about.systemSpeech": "Componenta System.Speech, de la .NET Foundation, sub licența MIT",
 
   "exit.title": "Ieșire",

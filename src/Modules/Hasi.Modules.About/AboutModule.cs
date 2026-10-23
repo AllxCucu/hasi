@@ -23,6 +23,7 @@ public sealed class AboutModule : IModule
             new(l.Get("about.license")),
             new(l.Get("about.rhvoice")),
             new(l.Get("about.paul")),
+            new(l.Get("about.multext")),
             new(l.Get("about.systemSpeech")),
         ];
         return new MenuScreen(l.Get(TitleKey), lines, help: l.Get("about.help"), countKey: MenuScreen.LinesCountKey);

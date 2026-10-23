@@ -13,16 +13,25 @@ namespace Hasi.Text.Ro;
 public sealed partial class RomanianNormalizer : ITextNormalizer
 {
     private readonly Func<string, string>[] _stages;
+    private readonly NounGenderLexicon _nouns;
+    private readonly Action<string>? _onGuessedNoun;
 
-    /// <summary>Without acronyms; acronyms are then left to the voice.</summary>
+    /// <summary>Without acronyms and noun dictionary: built-in lists only.</summary>
     public RomanianNormalizer()
         : this(AcronymLexicon.Empty)
     {
     }
 
-    public RomanianNormalizer(AcronymLexicon acronyms)
+    /// <param name="nouns">Noun genders; the built-in lists when null.</param>
+    /// <param name="onGuessedNoun">
+    /// Called with a word whose gender had to be guessed from its ending where it changes what is said
+    /// (1, 2, 12, 21, 22 …), so the tester can report it (diagnostic log: <c>LEXICON?</c>).
+    /// </param>
+    public RomanianNormalizer(AcronymLexicon acronyms, NounGenderLexicon? nouns = null, Action<string>? onGuessedNoun = null)
     {
         ArgumentNullException.ThrowIfNull(acronyms);
+        _nouns = nouns ?? NounGenderLexicon.BuiltIn;
+        _onGuessedNoun = onGuessedNoun;
         _stages =
         [
             FixDiacritics,
@@ -313,7 +322,7 @@ public sealed partial class RomanianNormalizer : ITextNormalizer
     [GeneratedRegex(@"^\s*(\p{L}[\p{L}-]*)", RegexOptions.CultureInvariant)]
     private static partial Regex NextWordPattern();
 
-    private static string ExpandIntegers(string text) => IntegerPattern().Replace(text, m =>
+    private string ExpandIntegers(string text) => IntegerPattern().Replace(text, m =>
     {
         var digits = m.Groups[2].Value;
         var negative = m.Groups[1].Success && (m.Index == 0 || char.IsWhiteSpace(text[m.Index - 1]));
@@ -328,25 +337,31 @@ public sealed partial class RomanianNormalizer : ITextNormalizer
 
         var n = ParseInteger(digits);
         var after = text[(m.Index + m.Length)..];
-        var (gender, hasDe) = CountedNoun(after);
-        if (gender is null) return sign + RomanianNumbers.Cardinal(n);
-        var words = RomanianNumbers.Cardinal(n, gender.Value, beforeNoun: true);
+        var (word, noun, hasDe) = CountedNoun(after);
+        if (!noun.IsNoun) return sign + RomanianNumbers.Cardinal(n);
+        if (noun.Guessed && GenderChangesWords(n)) _onGuessedNoun?.Invoke(word);
+        var words = RomanianNumbers.Cardinal(n, noun.Gender, beforeNoun: true);
         return sign + words + (RomanianNumbers.NeedsDe(n) && !hasDe ? " de" : "");
     });
 
-    /// <summary>Gender of the noun after a number ("2 ore", "20 de lei"), or null if none.</summary>
-    private static (Gender? Gender, bool HasDe) CountedNoun(string after)
+    /// <summary>The noun after a number ("2 ore", "20 de lei").</summary>
+    private (string Word, NounLookup Noun, bool HasDe) CountedNoun(string after)
     {
         var first = NextWordPattern().Match(after);
-        if (!first.Success) return (null, false);
+        if (!first.Success) return ("", NounLookup.NotANoun, false);
         var word = first.Groups[1].Value;
         if (word.Equals("de", StringComparison.OrdinalIgnoreCase))
         {
             var second = NextWordPattern().Match(after[first.Length..]);
-            return second.Success ? (Lexicon.NounGender(second.Groups[1].Value), true) : (null, true);
+            return second.Success
+                ? (second.Groups[1].Value, _nouns.Find(second.Groups[1].Value), true)
+                : ("", NounLookup.NotANoun, true);
         }
-        return (Lexicon.NounGender(word), false);
+        return (word, _nouns.Find(word), false);
     }
+
+    /// <summary>Only 1, 2 and numbers ending in them (except 11) have masculine and feminine forms.</summary>
+    private static bool GenderChangesWords(long n) => (n % 10 == 1 && n % 100 != 11) || n % 10 == 2;
 
     // ---- Symbols ----------------------------------------------------------------------------
 

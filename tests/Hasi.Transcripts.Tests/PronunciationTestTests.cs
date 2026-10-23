@@ -13,7 +13,7 @@ public class PronunciationTestTests
 {
     private static ShellHarness OpenPronunciationTest()
     {
-        var h = new ShellHarness(normalizer: new RomanianNormalizer(AcronymLexicon.Load(AcronymLexicon.DefaultPath)))
+        var h = new ShellHarness(normalizer: new RomanianNormalizer(AcronymLexicon.Load(AcronymLexicon.DefaultPath), NounGenderLexicon.LoadDefault()))
             .StartWithModules(new SettingsModule(), new KeyTutorModule(), new AboutModule(), new ExitModule());
         h.Press(Key.Enter, Key.End, Key.Up, Key.Enter, Key.Enter);
         return h;

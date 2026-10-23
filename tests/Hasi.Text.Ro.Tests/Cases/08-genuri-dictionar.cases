@@ -1,0 +1,20 @@
+# Genul substantivelor din dicționarul MULTEXT-East (Data/substantive.txt), pentru cuvinte care nu sunt
+# în lista scrisă de mână. Neutrul: masculin la singular, feminin la plural.
+
+2 autobuze => două autobuze
+2 scaune => două scaune
+22 de scaune => douăzeci și două de scaune
+2 câini => doi câini
+1 câine => un câine
+1 pâine => o pâine
+2 mere => două mere
+21 de flori => douăzeci și una de flori
+12 telefoane => douăsprezece telefoane
+2 medicamente => două medicamente
+32 ziare => treizeci și două de ziare
+
+# Cuvinte necunoscute, cu genul ghicit din terminație (ADR 0005, pașii 3–5, alegerea testerului din 23.10.2026).
+# Riscul acceptat: un adjectiv după număr e luat drept substantiv.
+2 hasiuri => două hasiuri
+Pagina 2 goală => Pagina două goală
+25 xyzw => douăzeci și cinci de xyzw

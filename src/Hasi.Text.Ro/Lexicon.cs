@@ -39,24 +39,43 @@ internal static class Lexicon
         "document", "documente", "post", "posturi",
     };
 
-    /// <summary>Words that follow numbers but are never the counted noun ("1 din 4", "2 este").</summary>
+    /// <summary>
+    /// Words that follow numbers but are never the counted noun ("1 din 4", "2 este"): prepositions,
+    /// conjunctions, pronouns, common verbs and adverbs. Needed because unknown lower-case words are
+    /// otherwise treated as nouns (ADR 0005, fallback steps 3-5).
+    /// </summary>
     private static readonly HashSet<string> NotNouns = new(StringComparer.OrdinalIgnoreCase)
     {
-        "din", "și", "sau", "la", "pe", "în", "cu", "ca", "că", "dar", "nu", "iar", "ori", "până", "după",
-        "pentru", "fără", "între", "spre", "către", "decât", "este", "sunt", "era", "a", "al", "ale", "lui",
-        "mai", "foarte", "ce", "care", "plus", "minus", "virgulă", "punct", "ora", "orele",
+        // prepositions and conjunctions
+        "din", "dintre", "de", "la", "pe", "în", "cu", "fără", "pentru", "prin", "spre", "către", "despre",
+        "până", "după", "între", "sub", "peste", "lângă", "și", "sau", "ori", "dar", "iar", "ci", "ca", "că",
+        "decât", "dacă", "deci", "când", "unde", "cum", "nici", "a", "al", "ale", "ai", "lui",
+        // pronouns and determiners
+        "eu", "tu", "el", "ea", "noi", "voi", "ei", "ele", "mă", "te", "se", "îl", "o", "îi", "le", "ne", "vă",
+        "un", "una", "ce", "care", "cine", "acest", "această", "acești", "aceste", "fiecare", "tot", "toți",
+        "toate", "alt", "altă", "alți", "alte",
+        // verbs and adverbs that often follow a number
+        "este", "e", "sunt", "era", "erau", "au", "am", "are", "avem", "aveți", "fost", "va", "vor", "vom",
+        "poate", "pot", "trebuie", "mai", "foarte", "doar", "numai", "aici", "acolo", "acum", "atunci", "ori",
+        "nu", "da", "bine", "plus", "minus", "virgulă", "punct", "ora", "orele",
     };
 
-    /// <summary>Gender of the counted noun, or null when the next word is not a counted noun.</summary>
-    public static Gender? NounGender(string word)
+    /// <summary>True for words that can never be the counted noun after a number.</summary>
+    public static bool IsNeverACountedNoun(string word) =>
+        NotNouns.Contains(word) || Months.Contains(word, StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Gender from the built-in, hand-checked lists, or null.</summary>
+    public static Gender? KnownGender(string word)
     {
-        if (word.Length == 0 || NotNouns.Contains(word)) return null;
         if (Masculine.Contains(word)) return Gender.Masculine;
         if (Feminine.Contains(word)) return Gender.Feminine;
         if (Neuter.Contains(word)) return Gender.Neuter;
-        if (Months.Contains(word, StringComparer.OrdinalIgnoreCase)) return null;
+        return null;
+    }
 
-        // Unknown words: typical plural endings.
+    /// <summary>Gender from plural endings that are reliable in Romanian, or null.</summary>
+    public static Gender? PluralEndingGender(string word)
+    {
         if (word.EndsWith("uri", StringComparison.OrdinalIgnoreCase)) return Gender.Neuter;
         if (word.EndsWith("ări", StringComparison.OrdinalIgnoreCase)
             || word.EndsWith("ții", StringComparison.OrdinalIgnoreCase)

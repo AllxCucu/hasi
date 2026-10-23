@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Data\acronime.txt" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Data\*.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

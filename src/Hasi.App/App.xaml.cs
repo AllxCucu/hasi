@@ -83,7 +83,10 @@ public partial class App : Application, ISystemActions
                 _announcer.Say(_announcer.Last is { } last ? notice.Then(last) : notice);
             });
         };
-        var normalizer = new RomanianNormalizer(AcronymLexicon.Load(AcronymLexicon.DefaultPath));
+        var normalizer = new RomanianNormalizer(
+            AcronymLexicon.Load(AcronymLexicon.DefaultPath),
+            NounGenderLexicon.LoadDefault(),
+            word => _log.Write("LEXICON?", word));
         _announcer = new Announcer(hub, normalizer, _log);
         _shell = new Shell(_announcer, localizer, new ShellOptions(), this, _log);
 

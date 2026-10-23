@@ -8,7 +8,7 @@ public class CaseFileTests
 {
     private const string Separator = " => ";
     private static readonly string Folder = Path.Combine(AppContext.BaseDirectory, "Cases");
-    private static readonly RomanianNormalizer Normalizer = new(AcronymLexicon.Load(AcronymLexicon.DefaultPath));
+    private static readonly RomanianNormalizer Normalizer = new(AcronymLexicon.Load(AcronymLexicon.DefaultPath), NounGenderLexicon.LoadDefault());
 
     public static TheoryData<string> Files() =>
         new(Directory.GetFiles(Folder, "*.cases").Select(Path.GetFileName).Order()!);

@@ -10,6 +10,16 @@ Every entry here must also appear in the spoken "Despre HASI" screen.
 - License: MIT
 - Source: https://github.com/dotnet/runtime
 
+### MULTEXT-East free lexicons 4.0 – Romanian lexicon (noun genders)
+- Erjavec, T., Bruda, Ş., Derzhanski, I., Dimitrova, L., Garabík, R., Holozan, P., Ide, N., Kaalep, H.-J.,
+  Kotsyba, N., Oravecz, C., Petkevič, V., Priest-Dorman, G., Shevchenko, I., Simov, K., Sinapova, L.,
+  Steenwijk, H., Tihanyi, L., Tufiş, D., Véronis, J. (2010). Jožef Stefan Institute.
+  http://hdl.handle.net/11356/1041
+- License: Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
+- Shipped as `Data/substantive.txt`, adapted by `tools/GenderTable`: common nouns only, form → agreement
+  gender, cedilla letters converted to comma-below, ambiguous forms and function words removed.
+  The adapted table is distributed under CC BY-SA 4.0.
+
 ## Used by HASI but not shipped (installed separately by the user)
 
 ### RHVoice
