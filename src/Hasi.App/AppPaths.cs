@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 
 namespace Hasi.App;
@@ -10,6 +10,10 @@ internal static class AppPaths
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "HASI");
 
     public static string DiagnosticFolder => Path.Combine(LocalData, "diagnostic");
+
+    /// <summary>Roaming, so the settings follow the user to another computer of the same domain.</summary>
+    public static string SettingsFile { get; } =
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "HASI", "settings.json");
 
     public static string ErrorLog => Path.Combine(LocalData, "logs", "errors.log");
 

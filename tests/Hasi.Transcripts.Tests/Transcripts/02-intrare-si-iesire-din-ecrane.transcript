@@ -9,13 +9,29 @@
 > Down
 < Viteză, 2 din 12.
 
-# O setare încă neimplementată
+# Viteza (etapa 0.6): Enter deschide valoarea, Escape se întoarce
 > Enter
-< Viteză. Această funcție va fi disponibilă într-o versiune următoare. Apăsați Escape pentru a vă întoarce.
+< Viteză. 50, viteza normală. Săgețile stânga și dreapta schimbă valoarea. Enter sau Escape vă întoarce.
+> Escape
+< Setări. Selectat: Viteză, 2 din 12.
+
+# O setare încă neimplementată (pornirea automată vine în etapa 0.10)
+> End
+< Actualizări, 12 din 12.
+> Up
+< Diagnostic, 11 din 12.
+> Up
+< Cititor de ecran, 10 din 12.
+> Up
+< Pornire automată, 9 din 12.
+> Enter
+< Pornire automată. Această funcție va fi disponibilă într-o versiune următoare. Apăsați Escape pentru a vă întoarce.
 > Enter
 < Această funcție va fi disponibilă într-o versiune următoare. Apăsați Escape pentru a vă întoarce.
 > Escape
-< Setări. Selectat: Viteză, 2 din 12.
+< Setări. Selectat: Pornire automată, 9 din 12.
+> Home
+< Voce, 1 din 12.
 
 # M0-06 Escape din Setări
 > Escape

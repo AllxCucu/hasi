@@ -10,6 +10,7 @@ using Hasi.Core.Localization;
 using Hasi.Core.Modules;
 using Hasi.Core.Output;
 using Hasi.Core.Screens;
+using Hasi.Core.Settings;
 using Hasi.Core.Speech;
 using Hasi.Modules.About;
 using Hasi.Modules.Exit;
@@ -56,7 +57,10 @@ public partial class App : Application, ISystemActions
             AcronymLexicon.Load(AcronymLexicon.DefaultPath),
             NounGenderLexicon.LoadDefault(),
             word => _log.Write("LEXICON?", word));
-        var speech = new SpeechSetup(options, _log);
+        var savedSettings = SettingsFile.Load(AppPaths.SettingsFile, out var settingsProblem);
+        if (settingsProblem is not null) _log.Write("ERROR", $"settings file: {settingsProblem}");
+        var effectiveSettings = AppSettingsService.Effective(savedSettings, options);
+        var speech = new SpeechSetup(options, effectiveSettings, _log, localizer);
         var (engine, voiceNotice) = speech.CreateMainEngine(localizer);
         _engine = engine;
         _log.Write("ENGINE", $"{engine.Id} voice=\"{engine.CurrentVoiceName}\"");
@@ -91,11 +95,14 @@ public partial class App : Application, ISystemActions
             });
         };
         _announcer = new Announcer(hub, normalizer, _log);
-        _shell = new Shell(_announcer, localizer, new ShellOptions(), this, _log);
+        var shellOptions = new ShellOptions();
+        _shell = new Shell(_announcer, localizer, shellOptions, this, _log);
+        var settings = new AppSettingsService(AppPaths.SettingsFile, savedSettings, options, speech, engine, shellOptions, _window, _log);
+        settings.SaveFailed += (_, _) => _announcer.Say(new Utterance(localizer.Get("settings.saveProblem"), UtterancePriority.Queue, Earcon.Error));
 
         // Main menu order. Keep in sync with tests/Hasi.Transcripts.Tests/TranscriptTests.cs.
         IModule[] modules = [new SettingsModule(), new KeyTutorModule(), new AboutModule(), new ExitModule()];
-        var context = new ModuleContext(localizer, _shell, new ApplicationInfo(version), normalizer, comparison);
+        var context = new ModuleContext(localizer, _shell, new ApplicationInfo(version), normalizer, comparison, settings);
 
         _shell.ScreenChanged += (_, _) => _window.ShowTitle(_shell.Current.Title);
         _window.ProducesText = chord => TextRouting.ProducesText(chord, _keyMap, _shell.IsTextEntryActive, ShellWindow.NumLockOn);
@@ -132,6 +139,10 @@ public partial class App : Application, ISystemActions
         {
             var earcon = engine.CurrentVoiceName is null ? Earcon.Error : Earcon.None;
             _announcer.Say(new Utterance(voiceNotice, UtterancePriority.Queue, earcon));
+        }
+        if (settingsProblem is not null)
+        {
+            _announcer.Say(new Utterance(localizer.Get("settings.loadProblem"), UtterancePriority.Queue, Earcon.Error));
         }
 
         // Windows may refuse to give the new window the keyboard (for example when started from a

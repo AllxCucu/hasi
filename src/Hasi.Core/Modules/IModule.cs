@@ -1,6 +1,7 @@
 ﻿using Hasi.Core.Localization;
 using Hasi.Core.Output;
 using Hasi.Core.Screens;
+using Hasi.Core.Settings;
 using Hasi.Core.Speech;
 
 namespace Hasi.Core.Modules;
@@ -32,6 +33,9 @@ public interface IModuleContext
 
     /// <summary>Voice comparison for the Diagnostic menu, or null when the voices to compare are not available.</summary>
     IVoiceComparison? VoiceComparison { get; }
+
+    /// <summary>The user's settings (read, change, save), or null when the host has none.</summary>
+    ISettingsService? Settings { get; }
 }
 
 /// <summary>Shell features that modules may trigger.</summary>
@@ -55,7 +59,8 @@ public sealed record ModuleContext(
     IShellServices Shell,
     ApplicationInfo Application,
     ITextNormalizer Normalizer,
-    IVoiceComparison? VoiceComparison = null) : IModuleContext;
+    IVoiceComparison? VoiceComparison = null,
+    ISettingsService? Settings = null) : IModuleContext;
 
 public static class MainMenu
 {

@@ -12,7 +12,7 @@ namespace Hasi.Speech.RhVoice;
 /// as <see cref="Stop"/> is called, and what is already playing fades out in a few milliseconds.
 /// Synthesis runs at most a few seconds ahead of playback, so long readings do not fill memory.
 /// </summary>
-public sealed class RhVoiceDllEngine : ISpeechEngine, ISpeechMetrics
+public sealed class RhVoiceDllEngine : ISpeechEngine, ISpeechMetrics, ISpeechSettingsTarget
 {
     public const string EngineId = "rhvoice-dll";
 
@@ -61,6 +61,8 @@ public sealed class RhVoiceDllEngine : ISpeechEngine, ISpeechMetrics
             _sink.Gain = value.Gain;
         }
     }
+
+    public void Apply(SpeechSettings settings) => Settings = settings;
 
     public event EventHandler<Exception>? Failed;
 

@@ -1,4 +1,4 @@
-namespace Hasi.Core.Speech;
+﻿namespace Hasi.Core.Speech;
 
 /// <summary>
 /// HASI's own speech settings, the same for every engine: rate and pitch from -10 to 10 (0 = the voice's
@@ -35,4 +35,10 @@ public sealed record SpeechMetric(string Engine, string Kind, double Millisecond
 public interface ISpeechMetrics
 {
     event EventHandler<SpeechMetric>? MetricReported;
+}
+
+/// <summary>Engines whose rate, pitch and volume can be changed while HASI runs.</summary>
+public interface ISpeechSettingsTarget
+{
+    void Apply(SpeechSettings settings);
 }

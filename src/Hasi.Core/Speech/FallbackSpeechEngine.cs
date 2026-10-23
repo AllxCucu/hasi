@@ -1,7 +1,8 @@
-namespace Hasi.Core.Speech;
+﻿namespace Hasi.Core.Speech;
 
 /// <summary>A voice HASI may use, best first; <see cref="Start"/> returns null if it cannot start.</summary>
-public sealed record SpeechCandidate(string VoiceName, Func<ISpeechEngine?> Start);
+/// <param name="Key">Stable identity ("engine:name"), stored in the settings; <paramref name="VoiceName"/> is what is said.</param>
+public sealed record SpeechCandidate(string VoiceName, Func<ISpeechEngine?> Start, string? Key = null);
 
 /// <summary>Raised when the fallback chain moves to the next voice.</summary>
 public sealed record VoiceSwitchedEventArgs(string FailedVoice, string NewVoice, Exception Reason);
@@ -11,14 +12,38 @@ public sealed record VoiceSwitchedEventArgs(string FailedVoice, string NewVoice,
 /// moves to the next one and says so. Only when every voice has failed does HASI fall silent
 /// (the screen still shows every message, and the error tone is played).
 /// </summary>
-public sealed class FallbackSpeechEngine : ISpeechEngine
+public sealed class FallbackSpeechEngine : ISpeechEngine, ISpeechSettingsTarget
 {
-    private readonly Queue<SpeechCandidate> _remaining;
+    private Queue<SpeechCandidate> _remaining;
     private ISpeechEngine _current = new NullSpeechEngine();
+    private SpeechSettings? _settings;
 
     private FallbackSpeechEngine(IEnumerable<SpeechCandidate> candidates)
     {
         _remaining = new Queue<SpeechCandidate>(candidates);
+    }
+
+    /// <summary>The key of the voice speaking now (see <see cref="SpeechCandidate.Key"/>).</summary>
+    public string? CurrentKey { get; private set; }
+
+    /// <summary>
+    /// Starts over with another list of candidates (for example after the user chose another voice).
+    /// Returns false, and keeps speaking with nothing, only if none of them starts.
+    /// </summary>
+    public bool Restart(IEnumerable<SpeechCandidate> candidates, Action<string, Exception>? onStartFailure = null)
+    {
+        _current.Failed -= OnCurrentFailed;
+        _current.Stop();
+        _current.Dispose();
+        _remaining = new Queue<SpeechCandidate>(candidates);
+        return Advance(onStartFailure);
+    }
+
+    /// <summary>Applies rate, pitch and volume to the current voice and to every voice started later.</summary>
+    public void Apply(SpeechSettings settings)
+    {
+        _settings = settings;
+        (_current as ISpeechSettingsTarget)?.Apply(settings);
     }
 
     /// <summary>Starts the best candidate that works. <see cref="CurrentVoiceName"/> is null if none does.</summary>
@@ -88,11 +113,14 @@ public sealed class FallbackSpeechEngine : ISpeechEngine
 
             _current = engine;
             CurrentVoiceName = candidate.VoiceName;
+            CurrentKey = candidate.Key;
+            if (_settings is { } settings) (engine as ISpeechSettingsTarget)?.Apply(settings);
             _current.Failed += OnCurrentFailed;
             return true;
         }
         _current = new NullSpeechEngine();
         CurrentVoiceName = null;
+        CurrentKey = null;
         return false;
     }
 }

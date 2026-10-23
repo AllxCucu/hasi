@@ -11,7 +11,7 @@ namespace Hasi.Speech;
 /// a time; each message gets its own MediaPlayer, so a late event from an old message can never end
 /// a newer one. Use from the UI thread.
 /// </summary>
-public sealed class OneCoreEngine : ISpeechEngine
+public sealed class OneCoreEngine : ISpeechEngine, ISpeechSettingsTarget
 {
     private readonly SpeechSynthesizer _synthesizer = new();
     private readonly Queue<string> _queue = new();
@@ -134,4 +134,6 @@ public sealed class OneCoreEngine : ISpeechEngine
 
         public void Dispose() => _player.Dispose();
     }
+
+    public void Apply(SpeechSettings settings) => Settings = settings;
 }

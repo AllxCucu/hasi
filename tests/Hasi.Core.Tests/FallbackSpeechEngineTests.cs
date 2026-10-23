@@ -85,6 +85,59 @@ public class FallbackSpeechEngineTests
         Assert.Equal("none", chain.Id);
     }
 
+    private sealed class TunableEngine(string id) : ISpeechEngine, ISpeechSettingsTarget
+    {
+        public SpeechSettings? Applied { get; private set; }
+
+        public string Id { get; } = id;
+
+        public string? CurrentVoiceName => Id;
+
+        public bool IsSpeaking => false;
+
+        public event EventHandler<Exception>? Failed
+        {
+            add { }
+            remove { }
+        }
+
+        public void Speak(string text) { }
+
+        public void Stop() { }
+
+        public Task WaitUntilIdleAsync(TimeSpan timeout) => Task.CompletedTask;
+
+        public void Apply(SpeechSettings settings) => Applied = settings;
+
+        public void Dispose() { }
+    }
+
+    [Fact]
+    public void Settings_reach_the_current_voice_and_every_voice_started_later()
+    {
+        var first = new TunableEngine("a");
+        var second = new TunableEngine("b");
+        using var chain = FallbackSpeechEngine.Start([new SpeechCandidate("A", () => first, "x:a")]);
+        var slow = new SpeechSettings(Rate: -4);
+
+        chain.Apply(slow);
+        chain.Restart([new SpeechCandidate("B", () => second, "x:b")]);
+
+        Assert.Equal(slow, first.Applied);
+        Assert.Equal(slow, second.Applied);
+        Assert.Equal("x:b", chain.CurrentKey);
+    }
+
+    [Fact]
+    public void Restart_with_voices_that_do_not_start_reports_it()
+    {
+        var first = new TunableEngine("a");
+        using var chain = FallbackSpeechEngine.Start([new SpeechCandidate("A", () => first, "x:a")]);
+
+        Assert.False(chain.Restart([new SpeechCandidate("B", () => null, "x:b")]));
+        Assert.Null(chain.CurrentKey);
+    }
+
     [Fact]
     public void No_candidates_means_no_voice()
     {

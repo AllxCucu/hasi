@@ -52,7 +52,14 @@ public sealed class TextInputScreen(
         if (input.Character is { } c && !char.IsControl(c))
         {
             _text.Append(c);
-            return Say(CharacterName(c, context));
+            return context.Options.KeyEcho switch
+            {
+                Settings.KeyEcho.None => Say(""),
+                // Word echo: letters are silent; a space or punctuation says the word just finished.
+                Settings.KeyEcho.Word when char.IsLetterOrDigit(c) => Say(""),
+                Settings.KeyEcho.Word => Say(LastWord() is { Length: > 0 } word ? word : CharacterName(c, context)),
+                _ => Say(CharacterName(c, context)),
+            };
         }
 
         return input.Command switch
@@ -77,6 +84,15 @@ public sealed class TextInputScreen(
         var deleted = _text[^1];
         _text.Length--;
         return Say(context.Localizer.Get("textInput.deleted", ("char", CharacterName(deleted, context))));
+    }
+
+    /// <summary>The word that ends just before the separator typed last.</summary>
+    private string LastWord()
+    {
+        var end = _text.Length - 1; // the separator
+        var start = end;
+        while (start > 0 && char.IsLetterOrDigit(_text[start - 1])) start--;
+        return _text.ToString(start, end - start);
     }
 
     /// <summary>Speaks <paramref name="text"/> while the screen shows what has been typed so far.</summary>

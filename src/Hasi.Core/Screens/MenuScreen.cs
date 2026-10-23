@@ -1,4 +1,4 @@
-using Hasi.Core.Input;
+﻿using Hasi.Core.Input;
 using Hasi.Core.Output;
 
 namespace Hasi.Core.Screens;
@@ -8,11 +8,13 @@ namespace Hasi.Core.Screens;
 public sealed record MenuItem(string Label, Func<IScreenContext, ScreenResult>? Activate = null);
 
 /// <summary>A vertical list of items: the basic building block of HASI.</summary>
+/// <param name="initialIndex">The item selected when the screen opens (clamped to the list).</param>
 public class MenuScreen(
     string title,
     IReadOnlyList<MenuItem> items,
     string? help = null,
-    string countKey = MenuScreen.OptionsCountKey) : IScreen
+    string countKey = MenuScreen.OptionsCountKey,
+    int initialIndex = 0) : IScreen
 {
     public const string OptionsCountKey = "menu.count.options";
     public const string LinesCountKey = "menu.count.lines";
@@ -21,7 +23,7 @@ public class MenuScreen(
 
     public IReadOnlyList<MenuItem> Items { get; } = items;
 
-    public int SelectedIndex { get; private set; }
+    public int SelectedIndex { get; private set; } = items.Count == 0 ? 0 : Math.Clamp(initialIndex, 0, items.Count - 1);
 
     public MenuItem? Selected => Items.Count == 0 ? null : Items[SelectedIndex];
 

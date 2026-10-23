@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Media;
+using Hasi.Core.Settings;
 using Hasi.Core.Input;
 
 namespace Hasi.App;
@@ -31,6 +33,30 @@ public partial class ShellWindow : Window
     public bool HasKeyboard => GetForegroundWindow() == new WindowInteropHelper(this).Handle;
 
     public void ShowTitle(string title) => ScreenTitle.Text = title;
+
+    /// <summary>High-contrast colours and text size from Settings; applied immediately.</summary>
+    public void ApplyAppearance(ColorScheme colors, TextSize size)
+    {
+        var (text, background) = colors switch
+        {
+            ColorScheme.WhiteOnBlack => (Colors.White, Colors.Black),
+            ColorScheme.BlackOnWhite => (Colors.Black, Colors.White),
+            ColorScheme.BlackOnYellow => (Colors.Black, Colors.Yellow),
+            _ => (Colors.Yellow, Colors.Black),
+        };
+        Background = new SolidColorBrush(background);
+        Message.Foreground = new SolidColorBrush(text);
+        ScreenTitle.Foreground = new SolidColorBrush(text);
+        Message.FontSize = size switch
+        {
+            TextSize.Small => 32,
+            TextSize.Medium => 48,
+            TextSize.ExtraLarge => 88,
+            TextSize.Huge => 120,
+            _ => 64,
+        };
+        ScreenTitle.FontSize = Message.FontSize * 0.625;
+    }
 
     public void ShowMessage(string message) => Message.Text = message;
 

@@ -8,7 +8,7 @@ namespace Hasi.Speech;
 /// SAPI5 voices through System.Speech. RHVoice "Paul" appears here once its SAPI installer has run
 /// (see ADR 0002). Must be created and used on one thread; its events arrive on that thread.
 /// </summary>
-public sealed class Sapi5Engine : ISpeechEngine, ISpeechMetrics
+public sealed class Sapi5Engine : ISpeechEngine, ISpeechMetrics, ISpeechSettingsTarget
 {
     public const string EngineId = "sapi5";
 
@@ -98,4 +98,6 @@ public sealed class Sapi5Engine : ISpeechEngine, ISpeechMetrics
 
     private void Report(string kind, double milliseconds, string? detail = null) =>
         MetricReported?.Invoke(this, new SpeechMetric(EngineId, kind, milliseconds, detail));
+
+    public void Apply(SpeechSettings settings) => Settings = settings;
 }

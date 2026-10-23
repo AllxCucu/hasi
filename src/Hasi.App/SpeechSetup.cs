@@ -3,6 +3,7 @@ using System.IO;
 using Hasi.Core.Diagnostics;
 using Hasi.Core.Localization;
 using Hasi.Core.Output;
+using Hasi.Core.Settings;
 using Hasi.Core.Speech;
 using Hasi.Speech;
 using Hasi.Speech.Audio;
@@ -11,8 +12,8 @@ using Hasi.Speech.RhVoice;
 namespace Hasi.App;
 
 /// <summary>
-/// Builds the voices: SAPI5 (default), OneCore, and RHVoice.dll directly when <c>--rhvoice-path</c> is given
-/// (ADR 0004 experiment). Logs every engine's timings and the process load for the comparison.
+/// Builds the voices: RHVoice.dll directly (default, ADR 0004), SAPI5 and OneCore as fallbacks.
+/// Logs every engine's timings and the process load.
 /// </summary>
 internal sealed class SpeechSetup
 {
@@ -21,15 +22,20 @@ internal sealed class SpeechSetup
 
     private readonly StartupOptions _options;
     private readonly IDiagnosticLog _log;
-    private readonly SpeechSettings _settings;
+    private readonly ILocalizer _localizer;
     private readonly PerformanceSampler _performance = new();
+    private List<VoiceCandidate>? _voices;
     private int _rhVoiceInstances;
 
-    public SpeechSetup(StartupOptions options, IDiagnosticLog log)
+    /// <param name="settings">The effective settings (saved settings with the command-line overrides applied).</param>
+    public SpeechSetup(StartupOptions options, UserSettings settings, IDiagnosticLog log, ILocalizer localizer)
     {
         _options = options;
         _log = log;
-        _settings = new SpeechSettings(options.Rate ?? 0, options.Pitch ?? 0, options.Volume ?? 100);
+        _localizer = localizer;
+        Settings = settings.Speech;
+        AudioIdleTimeout = TimeSpan.FromSeconds(Math.Max(0, settings.AudioIdleSeconds));
+        SavedVoiceKey = settings.Voice;
         // RHVoice.dll is the default engine (ADR 0004). --rhvoice-path overrides the default locations.
         string[] folders = options.RhVoicePath is { } path ? [path] : DefaultRhVoiceFolders;
         foreach (var folder in folders)
@@ -50,39 +56,64 @@ internal sealed class SpeechSetup
     public static string[] DefaultRhVoiceFolders =>
         [Path.Combine(AppContext.BaseDirectory, "rhvoice"), Path.Combine(AppPaths.LocalData, "rhvoice")];
 
-    /// <summary>How long the audio stream stays open without speech (--audio-idle-seconds; 0 = always open).</summary>
-    private TimeSpan AudioIdleTimeout => _options.AudioIdleSeconds is { } seconds
-        ? TimeSpan.FromSeconds(Math.Max(0, seconds))
-        : SpeechAudioOutput.DefaultIdleTimeout;
+    /// <summary>How long the audio stream stays open without speech (settings or --audio-idle-seconds; 0 = always open).</summary>
+    private TimeSpan AudioIdleTimeout { get; }
+
+    /// <summary>Rate, pitch and volume used for every voice started from now on.</summary>
+    public SpeechSettings Settings { get; set; }
+
+    /// <summary>The voice chosen in Settings ("engine:name"), used when the command line does not choose one.</summary>
+    public string? SavedVoiceKey { get; set; }
 
     /// <summary>The engine tried first: --engine, else RHVoice.dll.</summary>
     private string PreferredEngine => _options.Engine ?? RhVoiceDllEngine.EngineId;
 
     public RhVoiceInstallation? RhVoice { get; private set; }
 
+    /// <summary>Every voice found, as offered in Settings → Voce.</summary>
+    public IReadOnlyList<VoiceOption> VoiceOptions => [.. Voices.Select(v => new VoiceOption(Key(v), Label(v)))];
+
+    private List<VoiceCandidate> Voices => _voices ??= ListVoices();
+
+    private static string Key(VoiceCandidate voice) => $"{voice.Engine}:{voice.Name}";
+
+    private string Label(VoiceCandidate voice) => _localizer.Get("settings.voice.label",
+        ("name", voice.Name), ("engine", _localizer.Get($"settings.voice.engine.{voice.Engine}")));
+
     /// <summary>
-    /// Paul through RHVoice.dll (default, ADR 0004); then Paul through SAPI5; then a Romanian voice from
-    /// SAPI5 or OneCore (Microsoft Andrei); then any voice. <c>--engine</c> moves that engine's voices to
-    /// the front; the others stay in the fallback chain. A fallback at startup is said aloud.
+    /// The fallback chain, best first. The command line (--voice, --engine) wins for this session; otherwise
+    /// the voice chosen in Settings; otherwise Paul through RHVoice.dll (ADR 0004), then Paul through SAPI5,
+    /// then a Romanian voice (Microsoft Andrei), then any voice.
     /// </summary>
-    public (FallbackSpeechEngine Engine, string? Notice) CreateMainEngine(ILocalizer localizer)
+    public IEnumerable<SpeechCandidate> Candidates(string? chosenKey = null)
     {
-        var voices = ListVoices();
+        var commandLineChoice = _options.Voice is not null || _options.Engine is not null;
+        var key = commandLineChoice ? null : chosenKey ?? SavedVoiceKey;
         var preferred = _options.Voice ?? VoiceChooser.DefaultPreferredVoice;
-        var ranked = VoiceChooser.Rank(voices, preferred)
-            .OrderBy(v => v.Engine.Equals(PreferredEngine, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
-            .Select((voice, index) => new SpeechCandidate(voice.Name, () =>
+        return VoiceChooser.Rank(Voices, preferred)
+            .OrderBy(v => key is not null && Key(v) == key ? 0 : 1)
+            .ThenBy(v => v.Engine.Equals(PreferredEngine, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+            .Select((voice, index) => new SpeechCandidate(Label(voice), () =>
             {
                 var engine = StartVoice(voice);
                 // --test-voice-failure: the best voice breaks after three messages, to hear the fallback.
                 return engine is not null && index == 0 && _options.TestVoiceFailure ? new FailingAfterEngine(engine, 3) : engine;
-            }));
+            }, Key(voice)))
+            .ToList();
+    }
 
-        var chain = FallbackSpeechEngine.Start(ranked, (voice, ex) =>
-        {
-            ErrorLog.Write(ex);
-            _log.Write("ERROR", $"voice \"{voice}\" did not start: {ex.Message}");
-        });
+    public void LogStartFailure(string voice, Exception ex)
+    {
+        ErrorLog.Write(ex);
+        _log.Write("ERROR", $"voice \"{voice}\" did not start: {ex.Message}");
+    }
+
+    /// <summary>The main voice chain; a fallback at startup is said aloud.</summary>
+    public (FallbackSpeechEngine Engine, string? Notice) CreateMainEngine(ILocalizer localizer)
+    {
+        var preferred = _options.Voice ?? VoiceChooser.DefaultPreferredVoice;
+        var chain = FallbackSpeechEngine.Start(Candidates(), LogStartFailure);
+        chain.Apply(Settings);
         if (chain.CurrentVoiceName is not { } current)
         {
             _log.Write("ERROR", "no working voice; text is shown on screen only");
@@ -94,7 +125,7 @@ internal sealed class SpeechSetup
             // The tester asked for an engine that did not start: say so, otherwise the comparison is wrong.
             notice = localizer.Get("speech.engineUnavailable", ("voice", current));
         }
-        else if (_options.Voice is null && _options.Engine is null && !current.Contains(preferred, StringComparison.OrdinalIgnoreCase))
+        else if (_options.Voice is null && _options.Engine is null && SavedVoiceKey is null && !current.Contains(preferred, StringComparison.OrdinalIgnoreCase))
         {
             notice = localizer.Get("speech.voiceFallback", ("voice", current));
         }
@@ -140,7 +171,7 @@ internal sealed class SpeechSetup
         return lister.Voices;
     }) ?? [];
 
-    private static VoiceCandidate RhVoiceCandidate() => new($"{RhVoiceProfile} (RHVoice direct)", "ro-RO", RhVoiceDllEngine.EngineId);
+    private static VoiceCandidate RhVoiceCandidate() => new(RhVoiceProfile, "ro-RO", RhVoiceDllEngine.EngineId);
 
     /// <summary>Each voice gets its own engine, so a failing one can be thrown away without affecting the next.</summary>
     private ISpeechEngine? StartVoice(VoiceCandidate voice)
@@ -151,13 +182,13 @@ internal sealed class SpeechSetup
             case Sapi5Engine.EngineId:
                 var sapi = new Sapi5Engine();
                 sapi.SelectVoice(voice.Name);
-                sapi.Settings = _settings;
+                sapi.Settings = Settings;
                 engine = sapi;
                 break;
             case "onecore":
                 var oneCore = new OneCoreEngine();
                 oneCore.SelectVoice(voice.Name);
-                oneCore.Settings = _settings;
+                oneCore.Settings = Settings;
                 engine = oneCore;
                 break;
             case RhVoiceDllEngine.EngineId when RhVoice is not null:
@@ -193,7 +224,7 @@ internal sealed class SpeechSetup
         var instance = $"{RhVoiceDllEngine.EngineId}#{++_rhVoiceInstances}";
         output.StateChanged += state => _log.Write("AUDIO", $"engine={instance} {state}");
         _log.Write("RHVOICE", $"{instance} created ({(_rhVoiceInstances == 1 ? "main voice" : "voice comparison")})");
-        var engine = new RhVoiceDllEngine(library, output, RhVoiceProfile) { Settings = _settings };
+        var engine = new RhVoiceDllEngine(library, output, RhVoiceProfile) { Settings = Settings };
         engine.Preload();
         engine.WordStarted += (_, word) => _log.Write("WORD", $"engine={RhVoiceDllEngine.EngineId} {word.Position}+{word.Length} \"{word.Word}\"");
         return engine;

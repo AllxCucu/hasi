@@ -1,4 +1,4 @@
-# M0-08 ... M0-10: ajutor (F1 / Control H), repetare (F2 / Control R), unde sunt (F3 / Control U).
+﻿# M0-08 ... M0-10: ajutor (F1 / Control H), repetare (F2 / Control R), unde sunt (F3 / Control U).
 
 > start
 < Bun venit în HASI. Meniu principal. 4 opțiuni. Selectat: Setări, 1 din 4.
@@ -7,9 +7,9 @@
 
 # M0-08 Ajutor în Setări
 > F1
-< Ajutor pentru Setări. Folosiți săgețile sus și jos pentru a alege o opțiune. Apăsați Enter pentru a o deschide și Escape pentru a vă întoarce. F2 sau Control R repetă ultimul mesaj. F3 sau Control U vă spune unde vă aflați. Tasta Control oprește vorbirea. Aici veți putea schimba vocea, viteza vorbirii, culorile și alte preferințe.
+< Ajutor pentru Setări. Folosiți săgețile sus și jos pentru a alege o opțiune. Apăsați Enter pentru a o deschide și Escape pentru a vă întoarce. F2 sau Control R repetă ultimul mesaj. F3 sau Control U vă spune unde vă aflați. Tasta Control oprește vorbirea. Aici schimbați vocea, viteza vorbirii, culorile și alte preferințe. Fiecare schimbare se salvează imediat.
 > Ctrl+H
-< Ajutor pentru Setări. Folosiți săgețile sus și jos pentru a alege o opțiune. Apăsați Enter pentru a o deschide și Escape pentru a vă întoarce. F2 sau Control R repetă ultimul mesaj. F3 sau Control U vă spune unde vă aflați. Tasta Control oprește vorbirea. Aici veți putea schimba vocea, viteza vorbirii, culorile și alte preferințe.
+< Ajutor pentru Setări. Folosiți săgețile sus și jos pentru a alege o opțiune. Apăsați Enter pentru a o deschide și Escape pentru a vă întoarce. F2 sau Control R repetă ultimul mesaj. F3 sau Control U vă spune unde vă aflați. Tasta Control oprește vorbirea. Aici schimbați vocea, viteza vorbirii, culorile și alte preferințe. Fiecare schimbare se salvează imediat.
 
 # M0-09 Repetă ultimul mesaj
 > Down
@@ -23,13 +23,13 @@
 > F3
 < Sunteți în: Meniu principal, Setări.
 > Enter
-< Viteză. Această funcție va fi disponibilă într-o versiune următoare. Apăsați Escape pentru a vă întoarce.
+< Viteză. 50, viteza normală. Săgețile stânga și dreapta schimbă valoarea. Enter sau Escape vă întoarce.
 > Ctrl+U
 < Sunteți în: Meniu principal, Setări, Viteză.
 
-# Ajutor pe un ecran cu mesaj
+# Ajutor pe ecranul unei valori
 > F1
-< Ajutor pentru Viteză. Apăsați Enter pentru a asculta din nou mesajul și Escape pentru a vă întoarce.
+< Ajutor pentru Viteză. Săgeata dreapta sau sus mărește valoarea, săgeata stânga sau jos o micșorează. Home duce la minim, End la maxim. Schimbarea se aude imediat și se salvează. Enter sau Escape vă întoarce.
 
 # Ajutorul nu mută selecția
 > Escape

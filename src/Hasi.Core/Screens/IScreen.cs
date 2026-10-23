@@ -1,4 +1,4 @@
-using Hasi.Core.Input;
+﻿using Hasi.Core.Input;
 using Hasi.Core.Localization;
 using Hasi.Core.Output;
 
@@ -21,6 +21,9 @@ public sealed class ShellOptions
 {
     /// <summary>Jump from the last item to the first (and back). Off by default: beginners get lost.</summary>
     public bool WrapLists { get; set; }
+
+    /// <summary>What is spoken while typing in text fields.</summary>
+    public Settings.KeyEcho KeyEcho { get; set; } = Settings.KeyEcho.Character;
 }
 
 public interface IScreenContext

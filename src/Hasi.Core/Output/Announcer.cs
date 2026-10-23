@@ -1,4 +1,4 @@
-using Hasi.Core.Diagnostics;
+﻿using Hasi.Core.Diagnostics;
 
 namespace Hasi.Core.Output;
 
@@ -13,7 +13,8 @@ public sealed class Announcer(OutputHub hub, ITextNormalizer normalizer, IDiagno
     public void Say(Utterance utterance)
     {
         Present(utterance);
-        Last = utterance;
+        // A silent update (only the screen changes, e.g. typing with key echo off) is not a message to repeat.
+        if (!string.IsNullOrWhiteSpace(utterance.Text)) Last = utterance;
     }
 
     /// <summary>Says the last message again, interrupting whatever is being said.</summary>

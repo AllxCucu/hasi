@@ -1,4 +1,4 @@
-using Hasi.Core.Speech;
+﻿using Hasi.Core.Speech;
 
 namespace Hasi.App;
 
@@ -6,7 +6,7 @@ namespace Hasi.App;
 /// Test aid for <c>--test-voice-failure</c>: behaves like the wrapped voice, then reports a failure after a
 /// few messages, so the tester can hear the fallback chain switch voices. Never used otherwise.
 /// </summary>
-internal sealed class FailingAfterEngine(ISpeechEngine inner, int messagesBeforeFailure) : ISpeechEngine
+internal sealed class FailingAfterEngine(ISpeechEngine inner, int messagesBeforeFailure) : ISpeechEngine, ISpeechSettingsTarget
 {
     private int _spoken;
 
@@ -29,6 +29,8 @@ internal sealed class FailingAfterEngine(ISpeechEngine inner, int messagesBefore
     }
 
     public void Stop() => inner.Stop();
+
+    public void Apply(SpeechSettings settings) => (inner as ISpeechSettingsTarget)?.Apply(settings);
 
     public Task WaitUntilIdleAsync(TimeSpan timeout) => inner.WaitUntilIdleAsync(timeout);
 
