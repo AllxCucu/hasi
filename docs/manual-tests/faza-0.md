@@ -61,7 +61,7 @@ Textele se scriu de la tastatură; Enter le rostește. Fiecare rând de mai jos 
 
 Opțional: dacă ai aspectul de tastatură „Română (moștenit)”, care scrie ş/ţ cu sedilă, scrie `ţară` și apasă Enter: pe ecran, la „Rostit”, trebuie să apară „țară”, cu virgulă.
 
-Rezultat (raportul din 23 octombrie 2026): toate au trecut; diacriticele ajung corect în câmp. Alegeri: orele întregi fără „fix”; „21:20” rămâne „ora douăzeci și unu și douăzeci de minute”. Preferința la P-13 nu a fost completată în raport.
+Rezultat (raportul din 23 octombrie 2026): toate au trecut; diacriticele ajung corect în câmp. Alegeri: orele întregi fără „fix”; „21:20” rămâne „ora douăzeci și unu și douăzeci de minute”. P-13: decis definitiv pe 23 octombrie 2026, rămâne varianta HASI („unu din patru”).
 
 ## Etapa 0.4 bis – corecturi, acronime, tastatura numerică (A-01…A-03, N-01…N-05)
 
