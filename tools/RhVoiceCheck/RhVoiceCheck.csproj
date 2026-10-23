@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Build-time tool (not shipped, not in the solution): checks an RHVoice build and writes WAV samples. See ADR 0004. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Hasi.Core\Hasi.Core.csproj" />
+    <ProjectReference Include="..\..\src\Hasi.Speech\Hasi.Speech.csproj" />
+    <ProjectReference Include="..\..\src\Hasi.Text.Ro\Hasi.Text.Ro.csproj" />
+  </ItemGroup>
+
+</Project>
