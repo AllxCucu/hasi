@@ -72,17 +72,31 @@ public sealed class NounGenderLexicon
         return table;
     }
 
-    public NounLookup Find(string word)
+    /// <param name="plural">The number before the word is not 1, so the word should be a plural form.</param>
+    public NounLookup Find(string word, bool plural = false)
     {
         if (word.Length == 0 || Lexicon.IsNeverACountedNoun(word)) return NounLookup.NotANoun;
         if (_user.TryGetValue(word, out var user)) return new(true, user, false);
         if (Lexicon.KnownGender(word) is { } known) return new(true, known, false);
         if (_dictionary.TryGetValue(word, out var listed)) return new(true, listed, false);
-        if (Lexicon.PluralEndingGender(word) is { } plural) return new(true, plural, false);
+        if (Lexicon.PluralEndingGender(word) is { } pluralEnding) return new(true, pluralEnding, false);
 
         // Unknown word: treated as a noun only if it looks like one (a lower-case word).
         if (!char.IsLower(word[0]) || word.Length < 2) return NounLookup.NotANoun;
+        if (plural)
+        {
+            // Plurals in -e (and -uri, above) take "două": smartfoane, tramvaie (tester's rule, 2026-10-23).
+            // Plurals in -i are ambiguous (lei / luni): masculine, reported as guessed.
+            return word.EndsWith('e')
+                ? new(true, Gender.Neuter, Guessed: false)
+                : new(true, Gender.Masculine, Guessed: true);
+        }
         var feminine = word.EndsWith('ă') || word.EndsWith("ie", StringComparison.Ordinal) || word.EndsWith("ea", StringComparison.Ordinal);
         return new(true, feminine ? Gender.Feminine : Gender.Masculine, Guessed: true);
     }
+
+    /// <summary>True when the word is a known noun, so a number right after it is a label ("pagina 2").</summary>
+    public bool IsKnownNoun(string word) =>
+        word.Length > 0 && !Lexicon.IsNeverACountedNoun(word)
+        && (Lexicon.IsLabelNoun(word) || _user.ContainsKey(word) || Lexicon.KnownGender(word) is not null || _dictionary.ContainsKey(word));
 }

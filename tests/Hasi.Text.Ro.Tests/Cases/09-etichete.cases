@@ -1,0 +1,26 @@
+# Numărul după substantiv e o etichetă, nu o cantitate: se citește în forma de bază, fără gen
+# (regula testerului, 23 octombrie 2026). Genul se aplică doar când numărul stă înaintea substantivului.
+
+pagina 2 => pagina doi
+camera 1 => camera unu
+linia 2 => linia doi
+etajul 1 => etajul unu
+sala 12 => sala doisprezece
+Pagina 2 goală => Pagina doi goală
+Pagina 2 este goală => Pagina doi este goală
+autobuzul 21 => autobuzul douăzeci și unu
+anul 2001 => anul două mii unu
+capitolul 22 => capitolul douăzeci și doi
+
+# Înaintea substantivului: cantitate, cu gen
+2 pagini => două pagini
+1 cameră => o cameră
+12 linii => douăsprezece linii
+
+# Ora rămâne feminină și ca etichetă
+la ora 2 => la ora două
+ora 1 => ora unu
+ora 12 => ora douăsprezece
+
+# Virgula sau punctul despart eticheta de număr: atunci contează substantivul de după
+Setări, 1 din 4 => Setări, unu din patru

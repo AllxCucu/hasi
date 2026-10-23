@@ -1,4 +1,4 @@
-namespace Hasi.Text.Ro.Tests;
+﻿namespace Hasi.Text.Ro.Tests;
 
 public class NounGenderLexiconTests
 {
@@ -38,6 +38,33 @@ public class NounGenderLexiconTests
         Assert.Equal(new NounLookup(true, Gender.Feminine, Guessed: true), lexicon.Find("frezie"));
         Assert.Equal(new NounLookup(true, Gender.Masculine, Guessed: true), lexicon.Find("xyzw"));
         Assert.False(lexicon.Find("Cluj").IsNoun);
+    }
+
+    [Fact]
+    public void Unknown_plurals_in_e_take_the_feminine_form_and_plurals_in_i_stay_guessed()
+    {
+        var lexicon = NounGenderLexicon.BuiltIn;
+
+        Assert.Equal(new NounLookup(true, Gender.Neuter, Guessed: false), lexicon.Find("smartfoane", plural: true));
+        Assert.Equal(new NounLookup(true, Gender.Masculine, Guessed: true), lexicon.Find("bitcoini", plural: true));
+    }
+
+    [Fact]
+    public void Label_nouns_are_recognized_even_without_the_dictionary()
+    {
+        Assert.True(NounGenderLexicon.BuiltIn.IsKnownNoun("etajul"));
+        Assert.False(NounGenderLexicon.BuiltIn.IsKnownNoun("din"));
+    }
+
+    [Fact]
+    public void A_guessed_plural_in_i_is_reported()
+    {
+        var reported = new List<string>();
+        var normalizer = new RomanianNormalizer(AcronymLexicon.Empty, NounGenderLexicon.BuiltIn, reported.Add);
+
+        normalizer.Normalize("2 bitcoini și 2 smartfoane");
+
+        Assert.Equal(["bitcoini"], reported);
     }
 
     [Fact]

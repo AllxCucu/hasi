@@ -336,8 +336,22 @@ public sealed partial class RomanianNormalizer : ITextNormalizer
         }
 
         var n = ParseInteger(digits);
+
+        // A number right after a noun is a label, not a quantity: base form, no gender ("pagina 2" → "pagina doi").
+        // Exception: hours are feminine ("ora 2" → "ora două").
+        var before = PreviousWordPattern().Match(text[..m.Index]);
+        if (before.Success && !negative)
+        {
+            var previous = before.Groups[1].Value;
+            if (previous.Equals("ora", StringComparison.OrdinalIgnoreCase) || previous.Equals("orele", StringComparison.OrdinalIgnoreCase))
+            {
+                return n is 1 or 21 ? RomanianNumbers.Cardinal(n) : RomanianNumbers.Cardinal(n, Gender.Feminine);
+            }
+            if (_nouns.IsKnownNoun(previous)) return sign + RomanianNumbers.Cardinal(n);
+        }
+
         var after = text[(m.Index + m.Length)..];
-        var (word, noun, hasDe) = CountedNoun(after);
+        var (word, noun, hasDe) = CountedNoun(after, plural: n != 1);
         if (!noun.IsNoun) return sign + RomanianNumbers.Cardinal(n);
         if (noun.Guessed && GenderChangesWords(n)) _onGuessedNoun?.Invoke(word);
         var words = RomanianNumbers.Cardinal(n, noun.Gender, beforeNoun: true);
@@ -345,7 +359,7 @@ public sealed partial class RomanianNormalizer : ITextNormalizer
     });
 
     /// <summary>The noun after a number ("2 ore", "20 de lei").</summary>
-    private (string Word, NounLookup Noun, bool HasDe) CountedNoun(string after)
+    private (string Word, NounLookup Noun, bool HasDe) CountedNoun(string after, bool plural)
     {
         var first = NextWordPattern().Match(after);
         if (!first.Success) return ("", NounLookup.NotANoun, false);
@@ -354,11 +368,15 @@ public sealed partial class RomanianNormalizer : ITextNormalizer
         {
             var second = NextWordPattern().Match(after[first.Length..]);
             return second.Success
-                ? (second.Groups[1].Value, _nouns.Find(second.Groups[1].Value), true)
+                ? (second.Groups[1].Value, _nouns.Find(second.Groups[1].Value, plural), true)
                 : ("", NounLookup.NotANoun, true);
         }
-        return (word, _nouns.Find(word), false);
+        return (word, _nouns.Find(word, plural), false);
     }
+
+    /// <summary>The word directly before a number, separated only by spaces (no comma, no full stop).</summary>
+    [GeneratedRegex(@"(\p{L}[\p{L}-]*)[ \t]+$", RegexOptions.CultureInvariant | RegexOptions.RightToLeft)]
+    private static partial Regex PreviousWordPattern();
 
     /// <summary>Only 1, 2 and numbers ending in them (except 11) have masculine and feminine forms.</summary>
     private static bool GenderChangesWords(long n) => (n % 10 == 1 && n % 100 != 11) || n % 10 == 2;

@@ -60,6 +60,21 @@ internal static class Lexicon
         "nu", "da", "bine", "plus", "minus", "virgulă", "punct", "ora", "orele",
     };
 
+    /// <summary>
+    /// Nouns usually followed by a number that is a label, not a quantity ("pagina 2", "etajul 1"),
+    /// in case the dictionary lacks a form. The number is then read in its base form.
+    /// </summary>
+    private static readonly HashSet<string> LabelNouns = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "pagina", "camera", "linia", "etajul", "sala", "numărul", "capitolul", "articolul", "punctul", "anexa",
+        "blocul", "scara", "apartamentul", "sectorul", "cabinetul", "biroul", "ghișeul", "peronul", "poarta", "ușa",
+        "clasa", "grupa", "lecția", "exercițiul", "întrebarea", "varianta", "nivelul", "canalul", "postul",
+        "tabelul", "figura", "pasul", "autobuzul", "tramvaiul", "troleibuzul", "ruta", "terminalul", "intrarea",
+        "rândul", "locul", "vagonul", "compartimentul", "anul", "secția", "salonul", "patul", "fereastra",
+    };
+
+    public static bool IsLabelNoun(string word) => LabelNouns.Contains(word);
+
     /// <summary>True for words that can never be the counted noun after a number.</summary>
     public static bool IsNeverACountedNoun(string word) =>
         NotNouns.Contains(word) || Months.Contains(word, StringComparer.OrdinalIgnoreCase);

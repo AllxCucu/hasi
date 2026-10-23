@@ -49,8 +49,13 @@ Approved by the owner on 2026-10-23, implemented the same day:
 - `tools/GenderTable` builds `src/Hasi.Text.Ro/Data/substantive.txt` (109,550 forms, 1.7 MB; 374 forms with
   ambiguous gender and 188 forms that are also function words left out), with the CC BY-SA 4.0 header.
 - Look-up order: the tester's `Data/genuri.txt` (m/f/n), the built-in hand-checked list, the dictionary,
-  reliable plural endings, then the guessed gender from the singular ending (steps 3-5 kept, as chosen by the
-  owner, accepting that an adjective after a number may be taken for a noun: "Pagina 2 goală").
+  reliable plural endings, then the guessed gender from the ending (steps 3-5 kept, as chosen by the owner).
+- Correction (owner, 2026-10-23): a number right **after** a noun is a label, read in its base form without
+  gender ("pagina 2" → "pagina doi", "etajul 1" → "etajul unu"); gender applies only when the number stands
+  **before** the noun. Exception: "ora 2" → "ora două". So "Pagina 2 goală" is no longer an accepted risk:
+  it is read "Pagina doi goală".
+- Correction (owner, 2026-10-23): unknown plurals after a number ending in -e or -uri take "două"
+  (smartfoane, tramvaie, meciuri); plurals in -i stay ambiguous: masculine, logged as `LEXICON?`.
 - Guessed genders that change the words (1, 2, 12, 21, 22 …) are logged as `LEXICON? <word>` in diagnostic mode.
 - Attribution in "Despre HASI" and THIRD-PARTY-NOTICES.
 - dexonline: not contacted, on the owner's instruction.

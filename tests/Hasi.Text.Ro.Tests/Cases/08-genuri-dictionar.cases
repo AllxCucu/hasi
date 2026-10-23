@@ -14,7 +14,12 @@
 32 ziare => treizeci și două de ziare
 
 # Cuvinte necunoscute, cu genul ghicit din terminație (ADR 0005, pașii 3–5, alegerea testerului din 23.10.2026).
-# Riscul acceptat: un adjectiv după număr e luat drept substantiv.
 2 hasiuri => două hasiuri
-Pagina 2 goală => Pagina două goală
 25 xyzw => douăzeci și cinci de xyzw
+
+# Plural necunoscut după un număr (regula testerului, 23.10.2026): -e și -uri dau „două”;
+# -i e ambiguu: rămâne masculin și apare ca LEXICON? în jurnal.
+2 smartfoane => două smartfoane
+2 tramvaiele => două tramvaiele
+2 meciurile => două meciurile
+2 bitcoini => doi bitcoini
