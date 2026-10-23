@@ -37,6 +37,7 @@ public sealed class KeyMap
             .Bind(Key.Escape, Command.Back).Bind(Key.NumPad0, Command.Back)
             .Bind(Key.Left, Command.Decrease).Bind(Key.NumPad4, Command.Decrease)
             .Bind(Key.Right, Command.Increase).Bind(Key.NumPad6, Command.Increase)
+            .Bind(Key.Backspace, Command.DeletePrevious)
             // Global
             .Bind(Key.F1, Command.Help).Bind(new(Key.H, ctrl), Command.Help).Bind(Key.Divide, Command.Help)
             .Bind(Key.F2, Command.RepeatLast).Bind(new(Key.R, ctrl), Command.RepeatLast).Bind(Key.Multiply, Command.RepeatLast)

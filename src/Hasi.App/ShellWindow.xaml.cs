@@ -34,12 +34,39 @@ public partial class ShellWindow : Window
 
     public void ShowMessage(string message) => Message.Text = message;
 
+    /// <summary>Raised for a key that may produce a typed character; the character follows in <see cref="CharacterTyped"/>.</summary>
+    public event EventHandler<KeyChord>? TextKeyPressed;
+
+    /// <summary>Raised for each character typed, in the user's keyboard layout (ă, î, â, ș, ț included).</summary>
+    public event EventHandler<char>? CharacterTyped;
+
+    /// <summary>Whether a chord is bound to a HASI command. Bound keys never type characters.</summary>
+    public Func<KeyChord, bool> IsCommandKey { get; set; } = _ => true;
+
     protected override void OnPreviewKeyDown(KeyEventArgs e)
     {
         ArgumentNullException.ThrowIfNull(e);
-        // Every key belongs to HASI: no menu activation on Alt, no focus moves on Tab.
+        var chord = KeyTranslator.Translate(e);
+        if (!IsCommandKey(chord) && KeyTranslator.MayTypeCharacter(chord))
+        {
+            // Left unhandled so Windows turns it into a character in the current keyboard layout.
+            TextKeyPressed?.Invoke(this, chord);
+            return;
+        }
+        // Every other key belongs to HASI: no menu activation on Alt, no focus moves on Tab.
+        // A handled key also produces no character (WPF skips TranslateMessage), so NumPad 8 never types "8".
         e.Handled = true;
-        KeyPressed?.Invoke(this, new KeyPress(KeyTranslator.Translate(e), e.IsRepeat));
+        KeyPressed?.Invoke(this, new KeyPress(chord, e.IsRepeat));
+    }
+
+    protected override void OnPreviewTextInput(TextCompositionEventArgs e)
+    {
+        ArgumentNullException.ThrowIfNull(e);
+        e.Handled = true;
+        foreach (var c in e.Text)
+        {
+            if (!char.IsControl(c)) CharacterTyped?.Invoke(this, c);
+        }
     }
 
     [DllImport("user32.dll")]

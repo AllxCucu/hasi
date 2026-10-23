@@ -21,16 +21,18 @@ public sealed class FakeSystemActions : ISystemActions
 /// </summary>
 public sealed class ShellHarness
 {
-    public ShellHarness(ShellOptions? options = null)
+    /// <param name="normalizer">Pass-through by default, so tests see the texts exactly as in ro.json.</param>
+    public ShellHarness(ShellOptions? options = null, ITextNormalizer? normalizer = null)
     {
         Localizer = JsonLocalizer.LoadRomanian(Path.Combine(AppContext.BaseDirectory, "Resources", "ro.json"));
         Output = new RecordingChannel();
         System = new FakeSystemActions();
         KeyMap = KeyMap.CreateDefault();
+        Normalizer = normalizer ?? new PassThroughNormalizer();
         var log = NullDiagnosticLog.Instance;
-        Announcer = new Announcer(new OutputHub([Output], log), new PassThroughNormalizer(), log);
+        Announcer = new Announcer(new OutputHub([Output], log), Normalizer, log);
         Shell = new Shell(Announcer, Localizer, options ?? new ShellOptions(), System, log);
-        ModuleContext = new ModuleContext(Localizer, Shell, new ApplicationInfo("0.1.0"));
+        ModuleContext = new ModuleContext(Localizer, Shell, new ApplicationInfo("0.1.0"), Normalizer);
     }
 
     public JsonLocalizer Localizer { get; }
@@ -40,6 +42,8 @@ public sealed class ShellHarness
     public FakeSystemActions System { get; }
 
     public KeyMap KeyMap { get; }
+
+    public ITextNormalizer Normalizer { get; }
 
     public Announcer Announcer { get; }
 
@@ -71,6 +75,17 @@ public sealed class ShellHarness
         foreach (var key in keys)
         {
             Shell.Dispatch(new InputEvent(KeyMap.Resolve(key), key));
+        }
+        return [.. Output.Announcements.Skip(before).Select(a => a.Utterance.Text)];
+    }
+
+    /// <summary>Types text character by character, as the keyboard would, and returns what was said.</summary>
+    public IReadOnlyList<string> Type(string text)
+    {
+        var before = Output.Announcements.Count;
+        foreach (var c in text)
+        {
+            Shell.Dispatch(new InputEvent(Command.None, new KeyChord(Key.Other), c));
         }
         return [.. Output.Announcements.Skip(before).Select(a => a.Utterance.Text)];
     }

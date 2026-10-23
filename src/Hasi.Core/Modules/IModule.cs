@@ -1,4 +1,5 @@
 using Hasi.Core.Localization;
+using Hasi.Core.Output;
 using Hasi.Core.Screens;
 
 namespace Hasi.Core.Modules;
@@ -24,6 +25,9 @@ public interface IModuleContext
     IShellServices Shell { get; }
 
     ApplicationInfo Application { get; }
+
+    /// <summary>The same normalizer speech uses, for screens that show what will be spoken.</summary>
+    ITextNormalizer Normalizer { get; }
 }
 
 /// <summary>Shell features that modules may trigger.</summary>
@@ -42,8 +46,11 @@ public interface ISystemActions
 
 public sealed record ApplicationInfo(string Version);
 
-public sealed record ModuleContext(ILocalizer Localizer, IShellServices Shell, ApplicationInfo Application)
-    : IModuleContext;
+public sealed record ModuleContext(
+    ILocalizer Localizer,
+    IShellServices Shell,
+    ApplicationInfo Application,
+    ITextNormalizer Normalizer) : IModuleContext;
 
 public static class MainMenu
 {

@@ -32,6 +32,33 @@
   "message.enter": "{title}. {message}",
   "message.help": "Ajutor pentru {title}. Apăsați Enter pentru a asculta din nou mesajul și Escape pentru a vă întoarce.",
 
+  "textInput.enter": "{title}. {prompt}",
+  "textInput.empty": "Câmpul este gol.",
+  "textInput.emptySubmit": "Câmpul este gol. Scrieți mai întâi un text.",
+  "textInput.deleted": "Șters: {char}",
+  "textInput.readBack": "Textul scris: {text}",
+  "textInput.help": "Ajutor pentru {title}. Scrieți cu tastatura; fiecare caracter este rostit. Tasta Backspace șterge ultimul caracter. Săgeata sus sau jos citește tot textul scris. Enter trimite textul, iar Escape vă întoarce.",
+
+  "char.space": "spațiu",
+  "char.comma": "virgulă",
+  "char.period": "punct",
+  "char.colon": "două puncte",
+  "char.semicolon": "punct și virgulă",
+  "char.hyphen": "cratimă",
+  "char.question": "semnul întrebării",
+  "char.exclamation": "semnul exclamării",
+  "char.quote": "ghilimele",
+  "char.apostrophe": "apostrof",
+  "char.slash": "bară",
+  "char.percent": "procent",
+  "char.plus": "plus",
+  "char.equals": "egal",
+  "char.parenOpen": "paranteză deschisă",
+  "char.parenClose": "paranteză închisă",
+  "char.at": "a rond",
+  "char.euro": "euro",
+  "char.ampersand": "și",
+
   "common.notYetAvailable": "Această funcție va fi disponibilă într-o versiune următoare. Apăsați Escape pentru a vă întoarce.",
 
   "settings.title": "Setări",
@@ -48,6 +75,12 @@
   "settings.screenReader": "Cititor de ecran",
   "settings.diagnostic": "Diagnostic",
   "settings.updates": "Actualizări",
+
+  "diagnostic.pronunciation": "Test pronunție",
+  "diagnostic.mode": "Mod de diagnostic",
+  "diagnostic.copyLog": "Copiază jurnalul pe Desktop",
+  "pronunciation.prompt": "Scrieți un text și apăsați Enter ca să-l auziți așa cum îl rostește HASI. Escape vă întoarce.",
+  "pronunciation.display": "Scris: {written}\nRostit: {spoken}",
 
   "keyTutor.title": "Învață tastele",
 

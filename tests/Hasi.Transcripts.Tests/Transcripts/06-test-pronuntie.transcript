@@ -1,0 +1,40 @@
+# M0-33: Setări → Diagnostic → Test pronunție.
+# Aici se verifică textul cerut de ecran; ce se rostește după normalizare e verificat
+# în PronunciationTestTests și în tabelele din tests/Hasi.Text.Ro.Tests/Cases.
+# "> scrie: ..." tastează textul (ecoul fiecărui caracter nu e verificat aici).
+
+> start
+< Bun venit în HASI. Meniu principal. 4 opțiuni. Selectat: Setări, 1 din 4.
+> Enter
+< Setări. 12 opțiuni. Selectat: Voce, 1 din 12.
+> End
+< Actualizări, 12 din 12.
+> Up
+< Diagnostic, 11 din 12.
+> Enter
+< Diagnostic. 3 opțiuni. Selectat: Test pronunție, 1 din 3.
+> Enter
+< Test pronunție. Scrieți un text și apăsați Enter ca să-l auziți așa cum îl rostește HASI. Escape vă întoarce.
+
+# Enter fără text
+> Enter
+< Câmpul este gol. Scrieți mai întâi un text.
+
+> scrie: Plata de 12,50 lei pe 1.03.2026 la 14:30
+> Enter
+< Plata de 12,50 lei pe 1.03.2026 la 14:30
+
+# Citirea textului scris, cu săgeata
+> Down
+< Textul scris: Plata de 12,50 lei pe 1.03.2026 la 14:30
+
+> F3
+< Sunteți în: Meniu principal, Setări, Diagnostic, Test pronunție.
+> Escape
+< Diagnostic. Selectat: Test pronunție, 1 din 3.
+
+# Celelalte două opțiuni vin în etapa 0.8
+> Down
+< Mod de diagnostic, 2 din 3.
+> Enter
+< Mod de diagnostic. Această funcție va fi disponibilă într-o versiune următoare. Apăsați Escape pentru a vă întoarce.

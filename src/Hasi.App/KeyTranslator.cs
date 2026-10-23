@@ -58,6 +58,18 @@ internal static class KeyTranslator
         _ => HasiKey.Other,
     };
 
+    /// <summary>
+    /// Letters, digits, space and punctuation, alone, with Shift, or with AltGr (Ctrl+Alt) as used by
+    /// some Romanian layouts for ș and ț.
+    /// </summary>
+    internal static bool MayTypeCharacter(KeyChord chord)
+    {
+        var plainOrShift = (chord.Modifiers & ~KeyModifiers.Shift) == KeyModifiers.None;
+        var altGr = chord.Modifiers.HasFlag(KeyModifiers.Ctrl) && chord.Modifiers.HasFlag(KeyModifiers.Alt);
+        return (plainOrShift || altGr) && chord.Key is
+            (>= HasiKey.A and <= HasiKey.Z) or (>= HasiKey.D0 and <= HasiKey.D9) or HasiKey.Space or HasiKey.Other;
+    }
+
     /// <summary>Held modifiers, without the modifier being pressed itself (Ctrl alone is plain LeftCtrl).</summary>
     internal static KeyModifiers Modifiers(ModifierKeys held, HasiKey pressed)
     {

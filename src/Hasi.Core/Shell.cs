@@ -52,7 +52,8 @@ public sealed class Shell : IShellServices, IScreenContext
 
         if (input.IsRepeat && !input.Command.RepeatsWhenHeld()) return;
 
-        _log.Write("KEY", input.IsRepeat ? $"{input.Key} (repeat)" : input.Key.ToString());
+        if (input.Character is { } typed) _log.Write("CHAR", $"'{typed}'");
+        else _log.Write("KEY", input.IsRepeat ? $"{input.Key} (repeat)" : input.Key.ToString());
         if (input.Command != Command.None) _log.Write("CMD", input.Command.ToString());
 
         // Any key interrupts speech. A modifier pressed alone does nothing else.
@@ -87,6 +88,16 @@ public sealed class Shell : IShellServices, IScreenContext
             result = ScreenResult.Pop();
         }
         Apply(result);
+    }
+
+    /// <summary>
+    /// A key was pressed whose meaning arrives later as a typed character (or never, like Caps Lock):
+    /// stop speaking now, because any key interrupts speech.
+    /// </summary>
+    public void Interrupt(KeyChord key)
+    {
+        _log.Write("KEY", key.ToString());
+        _announcer.Silence();
     }
 
     /// <summary>Another window took the keyboard: say so, otherwise keys silently go elsewhere.</summary>

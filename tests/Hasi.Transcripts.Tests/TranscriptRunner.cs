@@ -13,6 +13,7 @@ namespace Hasi.Transcripts.Tests;
 /// > Down                   presses a key (Ctrl+H, Alt+F4, NumPad8 ...)
 /// &lt; Învață tastele, 2 din 4.   what must be said after that key, in order
 /// &lt; [sunet] Sfârșitul ...  the message comes with a short sound
+/// > scrie: 12 lei          types text (the per-character echo is not checked)
 /// ! exit                   HASI must have been asked to close
 /// </code>
 /// A key followed by no "&lt;" line must produce silence.
@@ -20,6 +21,9 @@ namespace Hasi.Transcripts.Tests;
 public static class TranscriptRunner
 {
     public const string EarconMarker = "[sunet] ";
+
+    /// <summary>"> scrie: text" types the text; the echo of each character is not checked.</summary>
+    public const string TypePrefix = "scrie: ";
 
     public static IReadOnlyList<string> Run(string path, Func<IModule[]> modules)
     {
@@ -64,6 +68,14 @@ public static class TranscriptRunner
                     {
                         harness = new ShellHarness().StartWithModules(modules());
                         before = 0;
+                    }
+                    else if (body.StartsWith(TypePrefix, StringComparison.Ordinal))
+                    {
+                        if (harness is null) throw new FormatException($"{path}:{lineNumber}: '> start' must come first.");
+                        harness.Type(body[TypePrefix.Length..]);
+                        // The per-character echo is not checked here; TextInputTests cover it.
+                        step = null;
+                        continue;
                     }
                     else
                     {

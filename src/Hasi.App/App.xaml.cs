@@ -16,6 +16,7 @@ using Hasi.Modules.Exit;
 using Hasi.Modules.KeyTutor;
 using Hasi.Modules.Settings;
 using Hasi.Speech;
+using Hasi.Text.Ro;
 
 namespace Hasi.App;
 
@@ -68,15 +69,22 @@ public partial class App : Application, ISystemActions
             _log.Write("ERROR", $"{engine.Id}: {ex.GetType().Name}: {ex.Message}");
             earcons.Play(Earcon.Error);
         };
-        _announcer = new Announcer(hub, new PassThroughNormalizer(), _log);
+        var normalizer = new RomanianNormalizer();
+        _announcer = new Announcer(hub, normalizer, _log);
         _shell = new Shell(_announcer, localizer, new ShellOptions(), this, _log);
 
         // Main menu order. Keep in sync with tests/Hasi.Transcripts.Tests/TranscriptTests.cs.
         IModule[] modules = [new SettingsModule(), new KeyTutorModule(), new AboutModule(), new ExitModule()];
-        var context = new ModuleContext(localizer, _shell, new ApplicationInfo(version));
+        var context = new ModuleContext(localizer, _shell, new ApplicationInfo(version), normalizer);
 
         _shell.ScreenChanged += (_, _) => _window.ShowTitle(_shell.Current.Title);
+        _window.IsCommandKey = chord => _keyMap.Resolve(chord) != Command.None;
         _window.KeyPressed += (_, key) => OnKey(key.Chord, key.IsRepeat);
+        _window.TextKeyPressed += (_, chord) =>
+        {
+            if (!_exiting) _shell.Interrupt(chord);
+        };
+        _window.CharacterTyped += (_, c) => OnCharacter(c);
         _window.CloseRequested += (_, _) => OnKey(new KeyChord(Key.F4, KeyModifiers.Alt));
         var focusWasLost = false;
         _window.Deactivated += (_, _) =>
@@ -129,6 +137,13 @@ public partial class App : Application, ISystemActions
     {
         if (_exiting || _shell is null) return;
         _shell.Dispatch(new InputEvent(_keyMap.Resolve(chord), chord, IsRepeat: isRepeat));
+        if (_exitRequested) _ = ExitAfterSpeechAsync();
+    }
+
+    private void OnCharacter(char c)
+    {
+        if (_exiting || _shell is null) return;
+        _shell.Dispatch(new InputEvent(Command.None, new KeyChord(Key.Other), c));
         if (_exitRequested) _ = ExitAfterSpeechAsync();
     }
 
