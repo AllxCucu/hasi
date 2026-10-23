@@ -110,7 +110,7 @@ Cele două variante, din folderul proiectului:
 | R-09 | B cu `--rhvoice-path C:\nu-exista` | „Motorul de voce cerut nu a pornit. Folosesc vocea Paul. Detaliile sunt în jurnalul de diagnostic.” |
 | R-10 | După o sesiune cu B, deschizi jurnalul de diagnostic | rânduri `LATENCY … first-sound`, `LATENCY … stop`, `WORD …` (cuvintele citite) și `PERF …` (procesor, memorie) |
 | R-11 | Cu Num Lock **oprit**, în meniu: 5 de pe tastatura numerică | același efect ca Enter |
-| R-12 | (actualizat în 0.6) Test pronunție: `2 autobuze`; `2 smartfoane`; `2 bitcoini` | „două autobuze” (din dicționar); „două smartfoane” (regula pentru -e); „doi bitcoini” (-i e ambiguu) și în jurnal `LEXICON? bitcoini`. Adaugi `bitcoini => f` în `src\Hasi.Text.Ro\Data\genuri.txt`, repornești și auzi „două bitcoini”. |
+| R-12 | (actualizat după 0.6) Test pronunție: `2 autobuze`; `2 smartfoane`; `2 bitcoini`; `1 postare` | „două autobuze” (din dicționar); „două smartfoane” (regula pentru -e); „doi bitcoini” (corect; -i e ambiguu, deci apare `LEXICON? bitcoini` în jurnal); „un postare” — greșit: „postare” lipsește din MULTEXT-East și genul ghicit e masculin; în jurnal `LEXICON? postare`. Adaugi `postare => f` în `src\Hasi.Text.Ro\Data\genuri.txt`, repornești și auzi „o postare”. |
 
 ## Corecturi după 0.5 bis (C-01…C-04) și redarea audio (R-13…R-16)
 
@@ -121,7 +121,7 @@ Pornire implicită (RHVoice direct, din `%LOCALAPPDATA%\HASI\rhvoice`): `dotnet 
 | C-01 | Test pronunție: `pagina 2`, `camera 1`, `linia 2`, `etajul 1`, `sala 12` | „pagina doi”, „camera unu”, „linia doi”, „etajul unu”, „sala doisprezece” |
 | C-02 | `2 pagini`, apoi `Pagina 2 goală` | „două pagini”; „Pagina doi goală” |
 | C-03 | `la ora 2`, `ora 1` | „la ora două”, „ora unu” |
-| C-04 | `2 smartfoane`, `2 tramvaiele`, `2 meciurile` | „două smartfoane”, „două tramvaiele”, „două meciurile” |
+| C-04 | (corectat) `2 smartfoane`, `2 tramvaie`, `2 meciuri`, `cele 2 tramvaie` | „două smartfoane”, „două tramvaie”, „două meciuri”, „cele două tramvaie” |
 | R-13 | Pornești HASI, navighezi puțin. Într-un terminal **pornit ca administrator** rulezi `powercfg /requests`. Aștepți peste un minut fără să apeși nimic și rulezi din nou. | prima dată apare o cerere audio (de obicei la `SYSTEM`, o linie despre un flux audio folosit); a doua oară cererea a dispărut (dacă nu redă altceva sunet) |
 | R-14 | Cu căștile Bluetooth: aștepți 2 minute în liniște (fluxul se închide), apoi săgeata jos | prima silabă se aude întreagă (HASI pune 150 ms de liniște la redeschidere) |
 | R-15 | `--audio-idle-seconds 0`, apoi `--audio-idle-seconds 10`; `powercfg /requests` după 20 de secunde de liniște | cu 0, cererea audio rămâne mereu; cu 10, dispare după 10 secunde |

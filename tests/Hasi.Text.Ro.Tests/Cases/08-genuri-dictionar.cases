@@ -20,6 +20,10 @@
 # Plural necunoscut după un număr (regula testerului, 23.10.2026): -e și -uri dau „două”;
 # -i e ambiguu: rămâne masculin și apare ca LEXICON? în jurnal.
 2 smartfoane => două smartfoane
-2 tramvaiele => două tramvaiele
-2 meciurile => două meciurile
+2 tramvaie => două tramvaie
+2 meciuri => două meciuri
 2 bitcoini => doi bitcoini
+
+# După numeral nu se folosește forma articulată; forma articulată vine înaintea numeralului (corectura testerului).
+cele 2 tramvaie => cele două tramvaie
+cele 2 meciuri => cele două meciuri

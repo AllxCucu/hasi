@@ -53,7 +53,7 @@ internal static class Lexicon
         // pronouns and determiners
         "eu", "tu", "el", "ea", "noi", "voi", "ei", "ele", "mă", "te", "se", "îl", "o", "îi", "le", "ne", "vă",
         "un", "una", "ce", "care", "cine", "acest", "această", "acești", "aceste", "fiecare", "tot", "toți",
-        "toate", "alt", "altă", "alți", "alte",
+        "toate", "alt", "altă", "alți", "alte", "cel", "cea", "cei", "cele", "celor",
         // verbs and adverbs that often follow a number
         "este", "e", "sunt", "era", "erau", "au", "am", "are", "avem", "aveți", "fost", "va", "vor", "vom",
         "poate", "pot", "trebuie", "mai", "foarte", "doar", "numai", "aici", "acolo", "acum", "atunci", "ori",
