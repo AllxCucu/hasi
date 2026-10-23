@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace Hasi.Architecture.Tests;
 
@@ -45,10 +45,18 @@ public class DependencyRulesTests
         Assert.All(HasiReferences(module), r => Assert.Equal("Hasi.Core", r));
     }
 
-    [Fact]
-    public void Speech_depends_only_on_core_among_hasi_assemblies()
+    [Theory]
+    [InlineData("Hasi.Speech")]
+    [InlineData("Hasi.Text.Ro")]
+    public void Services_depend_only_on_core_among_hasi_assemblies(string assembly)
     {
-        Assert.All(HasiReferences("Hasi.Speech"), r => Assert.Equal("Hasi.Core", r));
+        Assert.All(HasiReferences(assembly), r => Assert.Equal("Hasi.Core", r));
+    }
+
+    [Fact]
+    public void Text_normalizer_is_pure_dotnet()
+    {
+        Assert.All(NonFrameworkReferences("Hasi.Text.Ro"), r => Assert.Equal("Hasi.Core", r));
     }
 
     public static TheoryData<string> ModuleNames() => new(Modules);

@@ -1,0 +1,92 @@
+# Numere în cuvinte, cu genul substantivului care urmează și cu „de” de la 20 în sus.
+
+0 => zero
+1 => unu
+2 => doi
+7 => șapte
+10 => zece
+11 => unsprezece
+12 => doisprezece
+14 => paisprezece
+16 => șaisprezece
+19 => nouăsprezece
+20 => douăzeci
+21 => douăzeci și unu
+35 => treizeci și cinci
+99 => nouăzeci și nouă
+100 => o sută
+101 => o sută unu
+200 => două sute
+999 => nouă sute nouăzeci și nouă
+1000 => o mie
+1.000 => o mie
+2000 => două mii
+2026 => două mii douăzeci și șase
+12.500 => douăsprezece mii cinci sute
+21000 => douăzeci și una de mii
+100.000 => o sută de mii
+1.000.000 => un milion
+2.000.000 => două milioane
+20.000.000 => douăzeci de milioane
+
+# Genul: masculin, feminin, neutru
+1 an => un an
+2 ani => doi ani
+1 oră => o oră
+2 ore => două ore
+12 ore => douăsprezece ore
+22 de ore => douăzeci și două de ore
+21 de ore => douăzeci și una de ore
+1 minut => un minut
+2 minute => două minute
+2 dosare => două dosare
+1 opțiune => o opțiune
+4 opțiuni => patru opțiuni
+12 opțiuni => douăsprezece opțiuni
+6 rânduri => șase rânduri
+1 rând => un rând
+
+# „de” de la 20 în sus
+20 de lei => douăzeci de lei
+25 oameni => douăzeci și cinci de oameni
+20 de oameni => douăzeci de oameni
+101 pagini => o sută una pagini
+120 pagini => o sută douăzeci de pagini
+
+# Fără substantiv după număr
+1 din 4 => unu din patru
+2 din 4 => doi din patru
+Pagina 2 este goală => Pagina doi este goală
+
+# Negative, coduri, numere lungi
+-5 grade => minus cinci grade
+cod 0042 => cod zero zero patru doi
+CNP 1850101123456 => CNP unu opt cinci zero unu zero unu unu doi trei patru cinci șase
+
+# Numere cu virgulă
+3,5 => trei virgulă cinci
+0,05 => zero virgulă zero cinci
+
+# Versiuni
+versiunea 0.1.0 => versiunea zero punct unu punct zero
+versiunea 2.1 sau ulterioară => versiunea doi punct unu sau ulterioară
+
+# Ordinale
+al 2-lea => al doilea
+al 3-lea => al treilea
+al 8-lea => al optulea
+al 11-lea => al unsprezecelea
+al 20-lea => al douăzecilea
+a 2-a => a doua
+a 4-a => a patra
+a 5-a => a cincea
+a 9-a => a noua
+a 10-a => a zecea
+a 21-a => a douăzeci și una
+
+# Procente
+15% => cincisprezece la sută
+1% => unu la sută
+2% => două la sută
+100% => o sută la sută
+2,5 % => doi virgulă cinci la sută
