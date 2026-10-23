@@ -1,4 +1,4 @@
-namespace Hasi.Core.Input;
+﻿namespace Hasi.Core.Input;
 
 /// <summary>
 /// Platform-neutral physical keys. Names match WPF's <c>System.Windows.Input.Key</c> where possible
@@ -16,6 +16,9 @@ public enum Key
 
     NumPad0, NumPad1, NumPad2, NumPad3, NumPad4, NumPad5, NumPad6, NumPad7, NumPad8, NumPad9,
     Divide, Multiply, Subtract, Add, Decimal,
+
+    /// <summary>Numeric keypad 5 with Num Lock off.</summary>
+    Clear,
 
     LeftCtrl, RightCtrl, LeftShift, RightShift, LeftAlt, RightAlt, LWin, RWin,
 

@@ -1,4 +1,4 @@
-namespace Hasi.Core.Input;
+﻿namespace Hasi.Core.Input;
 
 /// <summary>
 /// Maps key chords to commands. Every global command has a binding that works without F keys,
@@ -34,6 +34,9 @@ public sealed class KeyMap
             .Bind(Key.Home, Command.First).Bind(new(Key.Up, ctrl), Command.First).Bind(Key.NumPad7, Command.First)
             .Bind(Key.End, Command.Last).Bind(new(Key.Down, ctrl), Command.Last).Bind(Key.NumPad1, Command.Last)
             .Bind(Key.Enter, Command.Activate).Bind(Key.NumPad5, Command.Activate)
+            // Num Lock off: the keypad 5 arrives as Clear. Insert (keypad 0) stays unbound: it is also
+            // the main-keyboard Insert and the NVDA modifier.
+            .Bind(Key.Clear, Command.Activate)
             .Bind(Key.Escape, Command.Back).Bind(Key.NumPad0, Command.Back)
             .Bind(Key.Left, Command.Decrease).Bind(Key.NumPad4, Command.Decrease)
             .Bind(Key.Right, Command.Increase).Bind(Key.NumPad6, Command.Increase)

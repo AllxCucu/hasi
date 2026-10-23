@@ -43,6 +43,7 @@ internal static class KeyTranslator
         WpfKey.Subtract => HasiKey.Subtract,
         WpfKey.Add => HasiKey.Add,
         WpfKey.Decimal => HasiKey.Decimal,
+        WpfKey.Clear => HasiKey.Clear,
         WpfKey.LeftCtrl => HasiKey.LeftCtrl,
         WpfKey.RightCtrl => HasiKey.RightCtrl,
         WpfKey.LeftShift => HasiKey.LeftShift,

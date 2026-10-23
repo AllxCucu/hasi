@@ -49,6 +49,21 @@ public class NumericKeypadTests
         Assert.Equal(types, TextRouting.ProducesText(new KeyChord(key, modifiers), Map, textEntryActive: true, numLockOn: true));
     }
 
+    [Fact]
+    public void Keypad_5_with_num_lock_off_arrives_as_clear_and_activates()
+    {
+        Assert.Equal(Command.Activate, Map.Resolve(Key.Clear));
+        Assert.Equal(Command.None, Map.Resolve(Key.Insert)); // keypad 0 with Num Lock off stays unbound
+    }
+
+    [Fact]
+    public void Clear_opens_the_selected_item()
+    {
+        var h = new ShellHarness().Start(TestScreens.Fruits());
+
+        Assert.Equal(["Măr. Un măr."], h.Press(Key.Clear));
+    }
+
     private static ShellHarness InTextField() =>
         new ShellHarness().Start(new TextInputScreen("Test", "Scrieți.", (_, _) => ScreenResult.Handled));
 
