@@ -46,6 +46,8 @@ If the user cancels there, the programs receive `WM_ENDSESSION` with `wParam = F
    `POWER simulated: shutdown.exe …` and closes, the computer stays on. Turning it off makes the next start say once
    "Atenție: repornirea și oprirea calculatorului sunt reale." `--simulate-power` and `--real-power` override it
    for one session (`--simulate-power` wins if both are given). **Before phase 0.11 the default becomes off.**
+   Done in phase 0.11 (ADR 0007): off by default; a settings file that saved it on keeps it on (no migration,
+   the owner's decision).
 
 ## Consequences
 

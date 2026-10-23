@@ -26,15 +26,27 @@ public sealed class SettingsFileTests : IDisposable
     }
 
     [Fact]
-    public void A_file_from_before_simulare_oprire_keeps_test_mode_on()
+    public void A_file_without_simulare_oprire_gets_the_default_off()
     {
         Directory.CreateDirectory(_folder);
         File.WriteAllText(Path_, """{ "SchemaVersion": 1, "Rate": 2 }""");
 
         var settings = SettingsFile.Load(Path_, out _);
 
-        Assert.True(settings.SimulatePower);
+        Assert.False(settings.SimulatePower);
         Assert.False(settings.RealPowerNoticePending);
+        Assert.True(settings.AutoCheckUpdates);
+        Assert.Null(settings.UpdateOfferedVersion);
+        Assert.Null(settings.UpdateSource);
+    }
+
+    [Fact]
+    public void A_file_that_saved_simulare_oprire_on_keeps_it_on_no_migration()
+    {
+        Directory.CreateDirectory(_folder);
+        File.WriteAllText(Path_, """{ "SchemaVersion": 1, "SimulatePower": true }""");
+
+        Assert.True(SettingsFile.Load(Path_, out _).SimulatePower);
     }
 
     [Fact]

@@ -79,12 +79,12 @@ public class PowerTests
     }
 
     [Fact]
-    public void Test_mode_is_on_by_default()
+    public void Test_mode_is_off_by_default_since_the_installer()
     {
         var h = new ShellHarness().StartWithModules(new ExitModule());
         h.Press(Key.Enter, Key.Down);
 
-        Assert.Contains("Mod de test", h.Press(Key.Enter)[0], StringComparison.Ordinal);
+        Assert.DoesNotContain("Mod de test", h.Press(Key.Enter)[0], StringComparison.Ordinal);
     }
 
     [Theory]
@@ -260,6 +260,7 @@ public class PowerTests
     public void Turning_test_mode_off_warns_once_at_the_next_start()
     {
         var settings = new InMemorySettingsService();
+        settings.SetSimulatePower(true);
         var h = new ShellHarness(settings: settings).StartWithModules(new SettingsModule());
         // Setări → Diagnostic → Simulare oprire → Oprită
         h.Press(Key.Enter, Key.End, Key.Up, Key.Enter, Key.End, Key.Enter);

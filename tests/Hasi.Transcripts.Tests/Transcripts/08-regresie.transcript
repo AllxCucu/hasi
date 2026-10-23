@@ -115,11 +115,11 @@
 < Modul de diagnostic este pornit. Tastele și mesajele se scriu într-un jurnal, doar pe acest calculator.
 > Ctrl+Shift+D
 < Modul de diagnostic este oprit.
-# 26
+# 26 (implicit oprită de la 0.11; pe calculatorul testerului e pornită, salvată în settings.json)
 > End
 < Simulare oprire, 5 din 5.
 > Enter
-< Simulare oprire. 2 opțiuni. Selectat: Pornită: repornirea și oprirea sunt doar un test, actual, 1 din 2.
+< Simulare oprire. 2 opțiuni. Selectat: Oprită: repornirea și oprirea sunt reale, actual, 2 din 2.
 > Escape
 < Diagnostic. Selectat: Simulare oprire, 5 din 5.
 # 30
@@ -135,7 +135,7 @@
 > Down
 < Repornește calculatorul, 2 din 3.
 > Enter
-< Sigur doriți să reporniți calculatorul? Mod de test: calculatorul nu va reporni. Apăsați Enter pentru da sau Escape pentru nu.
+< Sigur doriți să reporniți calculatorul? Apăsați Enter pentru da sau Escape pentru nu.
 > Escape
 < Anulat. Ieșire. Selectat: Repornește calculatorul, 2 din 3.
 # 33
@@ -147,6 +147,6 @@
 > Down
 < Oprește calculatorul, 3 din 3.
 > Enter
-< Sigur doriți să opriți calculatorul? Mod de test: calculatorul nu se va opri. Apăsați Enter pentru da sau Escape pentru nu.
+< Sigur doriți să opriți calculatorul? Apăsați Enter pentru da sau Escape pentru nu.
 > Enter
-< Mod de test: HASI se închide, iar calculatorul rămâne pornit. La revedere.
+< Calculatorul se oprește. Așteptați, vă rog.

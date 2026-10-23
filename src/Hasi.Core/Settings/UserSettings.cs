@@ -62,9 +62,9 @@ public sealed record UserSettings
 
     /// <summary>
     /// "Simulare oprire": restart and shut down only pretend (HASI closes, the computer stays on).
-    /// On by default during development; the default becomes off before phase 0.11.
+    /// Off by default since phase 0.11; files that saved it on keep it on (ADR 0006).
     /// </summary>
-    public bool SimulatePower { get; init; } = true;
+    public bool SimulatePower { get; init; }
 
     /// <summary>Set when the user turns <see cref="SimulatePower"/> off: the next start warns once that they are real.</summary>
     public bool RealPowerNoticePending { get; init; }
