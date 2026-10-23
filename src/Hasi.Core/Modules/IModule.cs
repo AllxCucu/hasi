@@ -43,6 +43,12 @@ public interface IShellServices
 {
     /// <summary>The spoken "close HASI?" confirmation, the same one Alt+F4 uses.</summary>
     ScreenResult ConfirmExit();
+
+    /// <summary>The spoken "restart the computer?" confirmation.</summary>
+    ScreenResult ConfirmRestart();
+
+    /// <summary>The spoken "shut the computer down?" confirmation.</summary>
+    ScreenResult ConfirmShutdown();
 }
 
 /// <summary>Host operations the core may request, implemented by the application.</summary>
@@ -50,6 +56,12 @@ public interface ISystemActions
 {
     /// <summary>Close HASI once the current speech has finished.</summary>
     void RequestExit();
+
+    /// <summary>Close HASI, then restart the computer, once the current speech has finished.</summary>
+    void RequestRestart();
+
+    /// <summary>Close HASI, then shut the computer down, once the current speech has finished.</summary>
+    void RequestShutdown();
 }
 
 public sealed record ApplicationInfo(string Version);
@@ -66,6 +78,8 @@ public static class MainMenu
 {
     public const string TitleKey = "mainMenu.title";
 
+    public const string HelpKey = "mainMenu.help";
+
     /// <summary>Builds the main menu from the registered modules, in registration order.</summary>
     public static MenuScreen Create(IEnumerable<IModule> modules, IModuleContext context)
     {
@@ -74,6 +88,6 @@ public static class MainMenu
                 context.Localizer.Get(module.TitleKey),
                 _ => ScreenResult.Push(module.CreateRootScreen(context))))
             .ToList();
-        return new MenuScreen(context.Localizer.Get(TitleKey), items);
+        return new MenuScreen(context.Localizer.Get(TitleKey), items, help: context.Localizer.Get(HelpKey));
     }
 }

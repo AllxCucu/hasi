@@ -32,6 +32,8 @@ public partial class App : Application, ISystemActions
     private IDiagnosticLog _log = NullDiagnosticLog.Instance;
     private readonly KeyMap _keyMap = KeyMap.CreateDefault();
     private bool _exitRequested;
+    private PowerAction _power;
+    private bool _simulatePower;
     private bool _exiting;
 
     protected override void OnStartup(StartupEventArgs e)
@@ -48,6 +50,7 @@ public partial class App : Application, ISystemActions
         };
 
         var options = StartupOptions.Parse(e.Args);
+        _simulatePower = options.SimulatePower;
         var version = ApplicationVersion();
         _log = CreateDiagnosticLog(options);
         _log.Write("START", $"HASI {version}, {Environment.OSVersion.VersionString}");
@@ -116,7 +119,11 @@ public partial class App : Application, ISystemActions
             if (!_exiting) _shell.Interrupt(chord);
         };
         _window.CharacterTyped += (_, c) => OnCharacter(c);
-        _window.CloseRequested += (_, _) => OnKey(new KeyChord(Key.F4, KeyModifiers.Alt));
+        _window.CloseRequested += (_, _) =>
+        {
+            if (_exiting) return;
+            _shell.RequestExitConfirmation();
+        };
         var focusWasLost = false;
         _window.Deactivated += (_, _) =>
         {
@@ -160,6 +167,18 @@ public partial class App : Application, ISystemActions
 
     public void RequestExit() => _exitRequested = true;
 
+    public void RequestRestart()
+    {
+        _power = PowerAction.Restart;
+        _exitRequested = true;
+    }
+
+    public void RequestShutdown()
+    {
+        _power = PowerAction.Shutdown;
+        _exitRequested = true;
+    }
+
     protected override void OnExit(ExitEventArgs e)
     {
         _engine?.Dispose();
@@ -182,13 +201,19 @@ public partial class App : Application, ISystemActions
         if (_exitRequested) _ = ExitAfterSpeechAsync();
     }
 
-    /// <summary>Lets "La revedere" finish, then closes. Closes even if waiting fails.</summary>
+    /// <summary>
+    /// Lets "La revedere" finish, then closes (and restarts or shuts down the computer if that was confirmed).
+    /// Closes even if waiting fails. If the computer refuses to restart or shut down, HASI says so and stays open.
+    /// </summary>
     private async Task ExitAfterSpeechAsync()
     {
         _exiting = true;
+        _exitRequested = false;
+        var power = _power;
+        _power = PowerAction.None;
         try
         {
-            _log.Write("EXIT", "user confirmed");
+            _log.Write("EXIT", power == PowerAction.None ? "user confirmed" : $"user confirmed {power}");
             await _engine!.WaitUntilIdleAsync(TimeSpan.FromSeconds(5)).ConfigureAwait(true);
         }
 #pragma warning disable CA1031 // Nothing may stop a confirmed exit.
@@ -197,11 +222,15 @@ public partial class App : Application, ISystemActions
         {
             ErrorLog.Write(ex);
         }
-        finally
+
+        if (power != PowerAction.None && !PowerActions.Run(power, _simulatePower, _log))
         {
-            _window!.AllowClose = true;
-            Shutdown();
+            _exiting = false;
+            _announcer?.Say(new Utterance(_shell!.Localizer.Get("shell.powerFailed"), Earcon: Earcon.Error));
+            return;
         }
+        _window!.AllowClose = true;
+        Shutdown();
     }
 
     private void OnUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)

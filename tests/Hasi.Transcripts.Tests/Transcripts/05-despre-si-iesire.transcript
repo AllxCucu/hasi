@@ -1,4 +1,4 @@
-﻿# Despre HASI (M0-20, varianta din etapa 0.3) și Ieșire (M0-21, M0-22).
+﻿# Despre HASI (M0-20) și Ieșire (M0-21 … M0-23), etapa 0.7.
 
 > start
 < Bun venit în HASI. Meniu principal. 4 opțiuni. Selectat: Setări, 1 din 4.
@@ -8,21 +8,23 @@
 > Down
 < Despre HASI, 3 din 4.
 > Enter
-< Despre HASI. 8 rânduri. Selectat: HASI, Human Assisted Information, versiunea 0.1.0, 1 din 8.
+< Despre HASI. 9 rânduri. Selectat: HASI, Human Assisted Information, versiunea 0.1.0, 1 din 9.
 > Down
-< Mediu de lucru vorbit pentru nevăzători și slabvăzători, 2 din 8.
+< Mediu de lucru vorbit pentru nevăzători și slabvăzători, 2 din 9.
 > Down
-< HASI este program liber, sub Licența Publică Generală GNU, versiunea 3 sau ulterioară. Este oferit fără nicio garanție, 3 din 8.
+< HASI este program liber, sub Licența Publică Generală GNU, versiunea 3 sau ulterioară. Este oferit fără nicio garanție, 3 din 9.
 > Down
-< Sinteza vocală RHVoice, de Olga Yakovleva și colaboratorii, sub licența GNU LGPL, versiunea 2.1 sau ulterioară, 4 din 8.
+< Sinteza vocală RHVoice, de Olga Yakovleva și colaboratorii. Biblioteca e sub licența GNU GPL, versiunea 2 sau ulterioară, cu părți sub GNU LGPL, versiunea 2.1 sau ulterioară, 4 din 9.
 > Down
-< Vocea românească Paul, de Stefan Moisei, Paul Bogorin și Zvonimir Stanecic, cu egalizare de Tomasz Bilecki, sub licența Creative Commons Atribuire, Distribuire în condiții identice, versiunea 4.0, 5 din 8.
+< Vocea românească Paul, de Stefan Moisei, Paul Bogorin și Zvonimir Stanecic, cu egalizare de Tomasz Bilecki, sub licența Creative Commons Atribuire, Distribuire în condiții identice, versiunea 4.0, 5 din 9.
 > Down
-< Genul substantivelor, din lexiconul românesc MULTEXT-East, versiunea 4, de Tomaž Erjavec, Dan Tufiș și colaboratorii, Institutul Jožef Stefan, sub licența Creative Commons Atribuire, Distribuire în condiții identice, versiunea 4.0, 6 din 8.
+< Datele limbii române pentru RHVoice, de Stefan Moisei, sub licența GNU LGPL, 6 din 9.
 > Down
-< Redarea sunetului, cu biblioteca NAudio, de Mark Heath și colaboratorii, sub licența MIT, 7 din 8.
+< Genul substantivelor, din lexiconul românesc MULTEXT-East, versiunea 4, de Tomaž Erjavec, Dan Tufiș și colaboratorii, Institutul Jožef Stefan, sub licența Creative Commons Atribuire, Distribuire în condiții identice, versiunea 4.0, 7 din 9.
 > Down
-< Componenta System.Speech, de la .NET Foundation, sub licența MIT, 8 din 8.
+< Redarea sunetului, cu biblioteca NAudio, de Mark Heath și colaboratorii, sub licența MIT, 8 din 9.
+> Down
+< Componenta System.Speech, de la .NET Foundation, sub licența MIT, 9 din 9.
 > Escape
 < Meniu principal. Selectat: Despre HASI, 3 din 4.
 
@@ -30,13 +32,29 @@
 > Down
 < Ieșire, 4 din 4.
 > Enter
-< Ieșire. 1 opțiune. Selectat: Închide HASI, 1 din 1.
+< Ieșire. 3 opțiuni. Selectat: Închide HASI, 1 din 3.
+> F1
+< Ajutor pentru Ieșire. Folosiți săgețile sus și jos pentru a alege o opțiune. Apăsați Enter pentru a o deschide și Escape pentru a vă întoarce. F2 sau Control R repetă ultimul mesaj. F3 sau Control U vă spune unde vă aflați. Tasta Control oprește vorbirea. Fiecare alegere de aici vă cere confirmare: Enter pentru da, Escape pentru nu.
 > Enter
 < Sigur doriți să închideți HASI? Apăsați Enter pentru da sau Escape pentru nu.
 > Escape
-< Anulat. Ieșire. Selectat: Închide HASI, 1 din 1.
+< Anulat. Ieșire. Selectat: Închide HASI, 1 din 3.
 
-# M0-22 Alt+F4 cere aceeași confirmare; Enter închide
+# M0-23 Repornire și oprire: fiecare cu confirmare; Escape anulează
+> Down
+< Repornește calculatorul, 2 din 3.
+> Enter
+< Sigur doriți să reporniți calculatorul? Programele deschise se vor închide. Apăsați Enter pentru da sau Escape pentru nu.
+> Escape
+< Anulat. Ieșire. Selectat: Repornește calculatorul, 2 din 3.
+> Down
+< Oprește calculatorul, 3 din 3.
+> Enter
+< Sigur doriți să opriți calculatorul? Programele deschise se vor închide. Apăsați Enter pentru da sau Escape pentru nu.
+> Escape
+< Anulat. Ieșire. Selectat: Oprește calculatorul, 3 din 3.
+
+# M0-22 Alt+F4 cere aceeași confirmare ca Închide HASI; Enter închide
 > Alt+F4
 < Sigur doriți să închideți HASI? Apăsați Enter pentru da sau Escape pentru nu.
 > Enter

@@ -58,6 +58,14 @@ public sealed class Shell : IShellServices, IScreenContext
 
         // Any key interrupts speech. A modifier pressed alone does nothing else.
         _announcer.Silence();
+
+        // "Învață tastele": every key, global ones included, is described by the screen instead of being executed.
+        if (Current is ICapturesAllKeys)
+        {
+            Apply(Current.Handle(input, this));
+            return;
+        }
+
         if (input.Command == Command.StopSpeech
             || (input.Command == Command.None && input.Character is null && (input.Key.Key.IsModifier() || input.Key.Key.IsToggle())))
         {
@@ -138,6 +146,33 @@ public sealed class Shell : IShellServices, IScreenContext
             _system.RequestExit();
             return ScreenResult.Say(Localizer.Get("shell.exit.goodbye"));
         });
+
+    public ScreenResult ConfirmRestart() => ScreenResult.Confirm(
+        Localizer.Get("shell.restart.confirm"),
+        () =>
+        {
+            _system.RequestRestart();
+            return ScreenResult.Say(Localizer.Get("shell.restart.goodbye"));
+        });
+
+    public ScreenResult ConfirmShutdown() => ScreenResult.Confirm(
+        Localizer.Get("shell.shutdown.confirm"),
+        () =>
+        {
+            _system.RequestShutdown();
+            return ScreenResult.Say(Localizer.Get("shell.shutdown.goodbye"));
+        });
+
+    /// <summary>
+    /// The window is being closed from outside HASI's keys (taskbar, Alt+F4 handled by Windows): ask, even on
+    /// screens that capture every key.
+    /// </summary>
+    public void RequestExitConfirmation()
+    {
+        _announcer.Silence();
+        if (Current is ConfirmScreen) _announcer.Say(Current.Enter(EnterReason.Initial, this));
+        else Apply(ConfirmExit());
+    }
 
     private void Apply(ScreenResult result)
     {

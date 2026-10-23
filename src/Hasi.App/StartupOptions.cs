@@ -6,7 +6,8 @@ namespace Hasi.App;
 /// Command-line switches for testing until the Settings screens exist (phase 0.6/0.8):
 /// <c>--diagnostic</c>, <c>--voice "name"</c>, <c>--engine sapi5|onecore|rhvoice-dll</c>,
 /// <c>--rhvoice-path folder</c>, <c>--rate -10..10</c>, <c>--pitch -10..10</c>, <c>--volume 0..100</c>,
-/// <c>--audio-idle-seconds N</c> (0 = keep the audio stream open), <c>--test-voice-failure</c>.
+/// <c>--audio-idle-seconds N</c> (0 = keep the audio stream open), <c>--test-voice-failure</c>,
+/// <c>--simulate-power</c> (restart and shut down only log, and HASI closes).
 /// </summary>
 internal sealed record StartupOptions(
     bool Diagnostic,
@@ -17,7 +18,8 @@ internal sealed record StartupOptions(
     string? RhVoicePath = null,
     int? Pitch = null,
     int? Volume = null,
-    int? AudioIdleSeconds = null)
+    int? AudioIdleSeconds = null,
+    bool SimulatePower = false)
 {
     public static StartupOptions Parse(IReadOnlyList<string> args)
     {
@@ -29,6 +31,9 @@ internal sealed record StartupOptions(
             {
                 case "--diagnostic":
                     options = options with { Diagnostic = true };
+                    break;
+                case "--simulate-power":
+                    options = options with { SimulatePower = true };
                     break;
                 case "--test-voice-failure":
                     options = options with { TestVoiceFailure = true };

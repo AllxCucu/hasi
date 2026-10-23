@@ -75,8 +75,14 @@ public class LocalizationTests
     [Fact]
     public void Spoken_resources_spell_out_key_names()
     {
-        var text = File.ReadAllText(ResourcePath);
+        // Only the texts (values) are spoken; resource keys such as "keyName.LeftCtrl" may abbreviate.
+        using var document = System.Text.Json.JsonDocument.Parse(File.ReadAllText(ResourcePath),
+            new System.Text.Json.JsonDocumentOptions { CommentHandling = System.Text.Json.JsonCommentHandling.Skip, AllowTrailingCommas = true });
+        var values = document.RootElement.EnumerateObject()
+            .SelectMany(p => p.Value.ValueKind == System.Text.Json.JsonValueKind.Object
+                ? p.Value.EnumerateObject().Select(o => o.Value.GetString()!)
+                : [p.Value.GetString()!]);
 
-        Assert.DoesNotContain("Ctrl", text);
+        Assert.All(values, v => Assert.DoesNotContain("Ctrl", v));
     }
 }

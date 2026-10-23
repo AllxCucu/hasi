@@ -1,0 +1,60 @@
+# Etapa 0.7: Învață tastele (M0-17). Orice tastă își spune numele și ce face, fără să se execute.
+# Pentru a ieși: Escape de două ori la rând.
+
+> start
+< Bun venit în HASI. Meniu principal. 4 opțiuni. Selectat: Setări, 1 din 4.
+> Down
+< Învață tastele, 2 din 4.
+> Enter
+< Învață tastele. Apăsați orice tastă ca să aflați ce face; nimic nu se execută. Pe orice tastatură, și pe laptop: Control H pentru ajutor, Control R pentru a repeta, Control U pentru a afla unde sunteți, săgețile pentru a vă deplasa, Enter pentru a alege și Escape pentru a vă întoarce. Ca să ieșiți de aici, apăsați Escape de două ori.
+
+# Tastele de deplasare
+> Down
+< Săgeata jos: trece la opțiunea următoare.
+> Up
+< Săgeata sus: trece la opțiunea anterioară.
+> Enter
+< Enter: deschide sau alege opțiunea selectată.
+> Ctrl+Up
+< Control plus săgeata sus: duce la prima opțiune.
+
+# Tastele globale nu se execută, doar se explică
+> F1
+< F1: ajutor pentru ecranul în care vă aflați.
+> Ctrl+H
+< Control plus litera H: ajutor pentru ecranul în care vă aflați.
+> F2
+< F2: repetă ultimul mesaj.
+> Ctrl+U
+< Control plus litera U: spune unde vă aflați.
+> LeftCtrl
+< Control din stânga: oprește vorbirea.
+> Alt+F4
+< Alt plus F4: închide HASI, după confirmare.
+
+# Tastatura numerică și tastele de comutare
+> NumPad8
+< Tasta 8 de pe tastatura numerică: trece la opțiunea anterioară.
+> Clear
+< Tasta 5 de pe tastatura numerică, cu Num Lock oprit: deschide sau alege opțiunea selectată.
+> NumLock
+< Num Lock: când scrieți, comută tastatura numerică între cifre și navigare.
+> LeftShift
+< Shift din stânga: se ține apăsată împreună cu altă tastă.
+> F5
+< F5: nu are nicio funcție în HASI.
+
+# Literele și semnele, așa cum vin de la tastatură
+> scrie: a
+> Backspace
+< Backspace: când scrieți, șterge ultimul caracter.
+
+# Escape o dată explică; a doua oară la rând iese
+> Escape
+< Escape: înapoi la ecranul anterior. Apăsați încă o dată Escape ca să ieșiți din Învață tastele.
+> Down
+< Săgeata jos: trece la opțiunea următoare.
+> Escape
+< Escape: înapoi la ecranul anterior. Apăsați încă o dată Escape ca să ieșiți din Învață tastele.
+> Escape
+< Meniu principal. Selectat: Învață tastele, 2 din 4.

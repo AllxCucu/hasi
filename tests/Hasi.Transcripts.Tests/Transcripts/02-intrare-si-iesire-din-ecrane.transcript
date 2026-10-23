@@ -47,10 +47,4 @@
 > NumPad0
 < Meniu principal. Selectat: Setări, 1 din 4.
 
-# Învață tastele (încă neimplementat)
-> Down
-< Învață tastele, 2 din 4.
-> Enter
-< Învață tastele. Această funcție va fi disponibilă într-o versiune următoare. Apăsați Escape pentru a vă întoarce.
-> Escape
-< Meniu principal. Selectat: Învață tastele, 2 din 4.
+# Învață tastele: vezi 07-invata-tastele.transcript

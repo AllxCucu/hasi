@@ -23,6 +23,7 @@ public sealed class AboutModule : IModule
             new(l.Get("about.license")),
             new(l.Get("about.rhvoice")),
             new(l.Get("about.paul")),
+            new(l.Get("about.romanianData")),
             new(l.Get("about.multext")),
             new(l.Get("about.naudio")),
             new(l.Get("about.systemSpeech")),

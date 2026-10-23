@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using Hasi.Core.Input;
 using Hasi.Core.Output;
 
@@ -14,29 +14,6 @@ public sealed class TextInputScreen(
     string prompt,
     Func<string, IScreenContext, ScreenResult> submit) : IScreen, ITextEntry
 {
-    private static readonly Dictionary<char, string> CharacterKeys = new()
-    {
-        [' '] = "char.space",
-        [','] = "char.comma",
-        ['.'] = "char.period",
-        [':'] = "char.colon",
-        [';'] = "char.semicolon",
-        ['-'] = "char.hyphen",
-        ['?'] = "char.question",
-        ['!'] = "char.exclamation",
-        ['"'] = "char.quote",
-        ['\''] = "char.apostrophe",
-        ['/'] = "char.slash",
-        ['%'] = "char.percent",
-        ['+'] = "char.plus",
-        ['='] = "char.equals",
-        ['('] = "char.parenOpen",
-        [')'] = "char.parenClose",
-        ['@'] = "char.at",
-        ['€'] = "char.euro",
-        ['&'] = "char.ampersand",
-    };
-
     private readonly StringBuilder _text = new();
 
     public string Title { get; } = title;
@@ -98,6 +75,5 @@ public sealed class TextInputScreen(
     /// <summary>Speaks <paramref name="text"/> while the screen shows what has been typed so far.</summary>
     private ScreenResult Say(string text) => ScreenResult.Say(new Utterance(text, DisplayText: Text));
 
-    private static string CharacterName(char c, IScreenContext context) =>
-        CharacterKeys.TryGetValue(c, out var key) ? context.Localizer.Get(key) : c.ToString();
+    private static string CharacterName(char c, IScreenContext context) => KeyNames.Character(c, context.Localizer);
 }

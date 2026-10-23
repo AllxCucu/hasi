@@ -14,7 +14,13 @@ public sealed class FakeSystemActions : ISystemActions
 {
     public bool ExitRequested { get; private set; }
 
+    public string? PowerRequested { get; private set; }
+
     public void RequestExit() => ExitRequested = true;
+
+    public void RequestRestart() => PowerRequested = "restart";
+
+    public void RequestShutdown() => PowerRequested = "shutdown";
 }
 
 /// <summary>

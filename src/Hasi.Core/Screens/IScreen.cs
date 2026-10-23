@@ -37,6 +37,9 @@ public interface IScreenContext
 /// One screen of the interface. Screens are pure logic: they get commands and return what should
 /// happen. They never touch the window or the speech engine.
 /// </summary>
+/// <summary>A screen that receives every key, global ones included, instead of the shell acting on them ("Învață tastele").</summary>
+public interface ICapturesAllKeys;
+
 /// <summary>A screen where the user types text. While one is active, Num Lock on makes the numeric keypad type digits.</summary>
 public interface ITextEntry;
 
