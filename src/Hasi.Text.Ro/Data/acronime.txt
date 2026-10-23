@@ -1,0 +1,21 @@
+﻿# Acronime românești și cum le rostește HASI.
+# Format, câte unul pe rând:   ACRONIM => litere | cuvânt | pronunție scrisă
+#   litere  = pe litere, cu numele românesc al literelor („CFR” → „ce fe re”)
+#   cuvânt  = ca un cuvânt („ANAF” → „Anaf”)
+#   altceva = exact ce scrii, de exemplu „RATB => ra te be”
+# Se recunosc și formele articulate: „CFR-ul” → „ce fe re-ul”.
+# Rândurile care încep cu # sunt comentarii. După o modificare, repornește HASI.
+
+CFR => litere
+SRL => litere
+PFA => litere
+CNP => litere
+ANAF => cuvânt
+CASMB => litere
+STB => litere
+RATB => ra te be
+ANM => litere
+BCR => litere
+BRD => litere
+UE => litere
+SUA => cuvânt

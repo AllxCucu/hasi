@@ -12,29 +12,42 @@ namespace Hasi.Text.Ro;
 /// </summary>
 public sealed partial class RomanianNormalizer : ITextNormalizer
 {
-    private static readonly Func<string, string>[] Stages =
-    [
-        FixDiacritics,
-        ExpandEmailsAndWebAddresses,
-        ExpandAbbreviations,
-        ExpandPhoneNumbers,
-        ExpandMoney,
-        ExpandUnits,
-        ExpandDates,
-        ExpandTimes,
-        ExpandPercentages,
-        ExpandOrdinals,
-        ExpandVersionNumbers,
-        ExpandDecimals,
-        ExpandIntegers,
-        ExpandSymbols,
-        CollapseSpaces,
-    ];
+    private readonly Func<string, string>[] _stages;
+
+    /// <summary>Without acronyms; acronyms are then left to the voice.</summary>
+    public RomanianNormalizer()
+        : this(AcronymLexicon.Empty)
+    {
+    }
+
+    public RomanianNormalizer(AcronymLexicon acronyms)
+    {
+        ArgumentNullException.ThrowIfNull(acronyms);
+        _stages =
+        [
+            FixDiacritics,
+            ExpandEmailsAndWebAddresses,
+            acronyms.Expand,
+            ExpandAbbreviations,
+            ExpandPhoneNumbers,
+            ExpandMoney,
+            ExpandUnits,
+            ExpandDates,
+            ExpandTimes,
+            ExpandPercentages,
+            ExpandOrdinals,
+            ExpandVersionNumbers,
+            ExpandDecimals,
+            ExpandIntegers,
+            ExpandSymbols,
+            CollapseSpaces,
+        ];
+    }
 
     public string Normalize(string text)
     {
         ArgumentNullException.ThrowIfNull(text);
-        foreach (var stage in Stages) text = stage(text);
+        foreach (var stage in _stages) text = stage(text);
         return text;
     }
 

@@ -8,4 +8,8 @@
     <ProjectReference Include="..\Hasi.Core\Hasi.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Data\acronime.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

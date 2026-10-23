@@ -69,7 +69,7 @@ public partial class App : Application, ISystemActions
             _log.Write("ERROR", $"{engine.Id}: {ex.GetType().Name}: {ex.Message}");
             earcons.Play(Earcon.Error);
         };
-        var normalizer = new RomanianNormalizer();
+        var normalizer = new RomanianNormalizer(AcronymLexicon.Load(AcronymLexicon.DefaultPath));
         _announcer = new Announcer(hub, normalizer, _log);
         _shell = new Shell(_announcer, localizer, new ShellOptions(), this, _log);
 
