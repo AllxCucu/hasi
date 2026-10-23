@@ -144,3 +144,27 @@ Setările se salvează imediat în `%APPDATA%\HASI\settings.json`.
 | S-09 | Setări → Capătul listei → „Salt la celălalt capăt”; în meniul principal, săgeata jos pe „Ieșire” | [sunet] „Setări, 1 din 4.” (lista sare la început) |
 | S-10 | Pornești cu `--rate 5`; în Setări schimbi doar volumul; închizi; pornești fără opțiuni | cu `--rate 5` vorbirea e rapidă; după repornire viteza e cea salvată înainte (nu 5), iar volumul e cel nou |
 | S-11 | Închizi HASI, scrii ceva fără sens în `%APPDATA%\HASI\settings.json`, pornești | după bun venit: [sunet] „Setările salvate nu au putut fi citite. Folosesc setările inițiale. …”; lângă fișier apare `settings.json.bad` |
+
+## Etapa 0.7 – ajutor și orientare (K-01…K-08, E-01…E-07, D-01, H-01)
+
+Pornire: `dotnet run --project src\Hasi.App -- --diagnostic` (pentru E-04, adaugă `--simulate-power`).
+
+| ID | Ce faci | Ce trebuie să auzi |
+|---|---|---|
+| K-01 | În meniul principal, F1 | ajutorul obișnuit, încheiat cu „Ca să aflați ce face fiecare tastă, alegeți Învață tastele.” |
+| K-02 | Meniu principal → Învață tastele | „Învață tastele. Apăsați orice tastă ca să aflați ce face; nimic nu se execută. Pe orice tastatură, și pe laptop: Control H … Ca să ieșiți de aici, apăsați Escape de două ori.” |
+| K-03 | Săgeata jos, săgeata sus, Enter, Control + săgeata sus | „Săgeata jos: trece la opțiunea următoare.”, „Săgeata sus: …”, „Enter: deschide sau alege opțiunea selectată.”, „Control plus săgeata sus: duce la prima opțiune.” |
+| K-04 | F1, Control H, F2, Control U, Control singur, Alt+F4 | fiecare își spune numele și funcția („F1: ajutor pentru ecranul în care vă aflați.”, „Alt plus F4: închide HASI, după confirmare.”); nimic nu se execută, HASI nu se închide |
+| K-05 | Tastatura numerică: 8; apoi cu Num Lock oprit 5; Num Lock; Shift; F5 | „Tasta 8 de pe tastatura numerică: trece la opțiunea anterioară.”, „Tasta 5 de pe tastatura numerică, cu Num Lock oprit: deschide …”, „Num Lock: când scrieți, comută …”, „Shift din stânga: se ține apăsată împreună cu altă tastă.”, „F5: nu are nicio funcție în HASI.” |
+| K-06 | Litere, cifre și semne: `ș`, `7`, `,` | „Litera ș: când scrieți, scrie acest caracter. În meniuri nu are nicio funcție.”, „Cifra 7: …”, „virgulă: …” |
+| K-07 | Escape o dată; o altă tastă; Escape de două ori la rând | prima dată: „Escape: înapoi la ecranul anterior. Apăsați încă o dată Escape ca să ieșiți din Învață tastele.”; după altă tastă, Escape din nou doar explică; la al doilea Escape la rând: „Meniu principal. Selectat: Învață tastele, 2 din 4.” |
+| K-08 | În Învață tastele, ții apăsată săgeata jos | descrierea o singură dată |
+| E-01 | Meniu principal → Ieșire; F1 | „Ieșire. 3 opțiuni. Selectat: Închide HASI, 1 din 3.”; ajutorul se încheie cu „Fiecare alegere de aici vă cere confirmare: Enter pentru da, Escape pentru nu.” |
+| E-02 | Închide HASI → Escape | „Sigur doriți să închideți HASI? …”, apoi „Anulat. Ieșire. Selectat: Închide HASI, 1 din 3.” |
+| E-03 | Repornește calculatorul → Escape; Oprește calculatorul → Escape | „Sigur doriți să reporniți calculatorul? Programele deschise se vor închide. …”, „Anulat. …”; la fel pentru oprire |
+| E-04 | Cu `--simulate-power`: Repornește calculatorul → Enter; repornești HASI și faci la fel cu Oprește | „Calculatorul se repornește. La revedere.” și HASI se închide, dar calculatorul NU repornește; în jurnal `POWER simulated: shutdown.exe /r /t 0`; la oprire `/s /t 0` |
+| E-05 | (opțional, real, după ce salvezi tot) fără `--simulate-power`: Repornește calculatorul → Enter | după „La revedere”, calculatorul repornește |
+| E-06 | În Învață tastele: clic dreapta pe HASI în bara de activități → Închide fereastra | HASI întreabă „Sigur doriți să închideți HASI? …” (chiar dacă în Învață tastele Alt+F4 doar se explică) |
+| E-07 | Pe „Repornește calculatorul”, ții Enter apăsat câteva secunde | doar întrebarea de confirmare; calculatorul nu repornește |
+| D-01 | Despre HASI, rând cu rând | 9 rânduri; rândul 4: „Sinteza vocală RHVoice, de Olga Yakovleva și colaboratorii. Biblioteca e sub licența GNU GPL, versiunea 2 sau ulterioară, cu părți sub GNU LGPL, versiunea 2.1 sau ulterioară”; rândul 6: „Datele limbii române pentru RHVoice, de Stefan Moisei, sub licența GNU LGPL” |
+| H-01 | Setări → Viteză (ecranul valorii): F3, apoi F2 | „Sunteți în: Meniu principal, Setări, Viteză.”, apoi același mesaj repetat |

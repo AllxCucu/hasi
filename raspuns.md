@@ -1,138 +1,81 @@
-﻿# HASI – Răspuns după corecturi și etapa 0.6
+﻿# HASI – Răspuns după corecturi și etapa 0.7
 
-Toate cele **240 de teste automate** trec, local și pe GitHub:
+Toate cele **250 de teste automate** trec, local și pe GitHub:
 
 | Proiect de test | Teste |
 |---|---|
 | nucleu | 154 |
-| normalizator | 26 (fișiere cu peste 220 de cazuri) |
+| transcrieri și ecrane | 31 |
 | motoare de voce | 29 |
-| transcrieri și ecrane | 22 |
+| normalizator | 27 |
 | arhitectură | 9 |
 
 Mă opresc aici, cum ai cerut.
 
----
+**Pornire:** `dotnet run --project src\Hasi.App -- --diagnostic`. Pentru testele de repornire fără risc, adaugă `--simulate-power`.
 
-## 1. Cum pornești
-
-RHVoice direct e acum **motorul implicit**, deci nu mai ai nevoie de opțiuni:
-
-```
-dotnet run --project src\Hasi.App -- --diagnostic
-```
-
-**Unde caută HASI fișierele RHVoice** (DLL-ul și vocea Paul), în ordine:
-1. în folderul `rhvoice` de lângă `hasi.exe` (acolo le va pune installer-ul, în etapa 0.11);
-2. în `%LOCALAPPDATA%\HASI\rhvoice`. Am mutat acolo copia ta de test, din `rhvoice-test`.
-
-Dacă nu le găsește în niciunul, HASI folosește Paul prin SAPI, apoi OneCore.
-
-**Opțiunile pentru teste rămân**, doar pentru sesiunea curentă:
-
-| Opțiune | Efect |
-|---|---|
-| `--engine sapi5` / `onecore` / `rhvoice-dll` | alege motorul |
-| `--rhvoice-path <folder>` | caută RHVoice în alt folder |
-| `--voice "nume"` | alege vocea |
-| `--rate`, `--pitch` | viteza și tonul (-10…10) |
-| `--volume` | volumul (0…100) |
-| `--audio-idle-seconds N` | după câte secunde de liniște se închide fluxul audio (implicit 60; 0 = niciodată) |
-| `--test-voice-failure` | vocea principală „se strică” după trei mesaje |
-
-O valoare dată în linia de comandă **nu se salvează**. Se salvează doar dacă o schimbi apoi din Setări.
+**De știut înainte să testezi:** în `%APPDATA%\HASI\settings.json` au rămas, de la testele S-xx, vocea **„Paul, prin SAPI”** și viteza **70** (`Rate: 4`). De aceea HASI pornește acum cu SAPI. Ca să revii la RHVoice direct, alegi din Setări → Voce „Paul, RHVoice direct”, iar din Setări → Viteză valoarea 50. Sau ștergi pur și simplu fișierul.
 
 ---
 
-## 2. Ce am făcut
+## 1. Corecturile raportate
 
-### Deciziile tale
+- **R-12:** am scos `bitcoini => f`; „doi bitcoini” e corect, cum ai spus. Exemplul de suprascriere e acum **„postare”**:
+  - am verificat că lipsește din MULTEXT-East;
+  - terminația nu dă un gen sigur, așa că regula îl ghicește masculin: „1 postare” devine „un postare”, greșit, cu `LEXICON? postare` în jurnal;
+  - cu `postare => f` în `genuri.txt` devine „o postare”. Am pus și un test automat pentru asta.
 
-- **RHVoice.dll e motorul implicit**, cu SAPI și OneCore ca rezerve; ADR 0004 e acceptat. Compilarea DLL-ului în CI e programată înainte de etapa 0.11, cum ai cerut, nu acum.
-- **E-mail:** n-am atins istoricul.
-
-### Corecturile la normalizator
-
-- **Numărul de după substantiv e o etichetă** și se citește în forma de bază: „pagina 2” devine „pagina doi”, „camera 1” „camera unu”, „linia 2” „linia doi”, „etajul 1” „etajul unu”, „sala 12” „sala doisprezece”.
-  - Genul se aplică doar înaintea substantivului: „2 pagini” devine „două pagini”.
-  - Recunosc substantivul din fața numărului după dicționar, după lista mea scrisă de mână și după o listă de substantive-etichetă (pagina, etajul, linia, sala, camera, capitolul, autobuzul și altele).
-  - O singură excepție, ca să nu stric orele: „ora 2” rămâne „ora două”.
-  - Am scos „Pagina 2 goală” din riscurile acceptate: acum se citește „Pagina doi goală”.
-- **Pluralele necunoscute după un număr:**
-  - cele în **-e** sau **-uri** primesc „două” („două smartfoane”);
-  - cele în **-i** rămân la regula de până acum și apar ca `LEXICON?` în jurnal.
-- Cazurile noi sunt în `Cases\09-etichete.cases` și `Cases\08-genuri-dictionar.cases`. ADR 0005 e actualizat.
-
-### Redarea audio
-
-- **Fluxul audio se închide după un minut fără vorbire.** Așa calculatorul poate intra în repaus și bateria se consumă mai puțin.
-  - Durata se configurează în `settings.json` (`AudioIdleSeconds`) sau cu `--audio-idle-seconds`.
-  - Fluxul nu se închide niciodată cât timp se vorbește.
-  - La următorul mesaj se redeschide, cu 150 ms de liniște înainte.
-- **Verificat pe calculatorul tău**, cu 3 secunde: ambele fluxuri (vocea principală și vocea din ecranul de comparare) s-au închis la 3 secunde după ultimul mesaj.
-- **Neverificat de mine:**
-  - `powercfg /requests` cere un terminal de administrator;
-  - redeschiderea cere o tastă.
-
-  Le găsești ca R-13 și R-14. Documentația e în ADR 0004.
-- **Vocea se preîncarcă la pornire,** pe un fir separat, cât se construiește fereastra. Primul sunet al mesajului de bun venit a scăzut de la 280–400 ms la **16 ms**.
-
-### Etapa 0.6 – Setări
-
-Toate setările se aplică **imediat** și se salvează în `%APPDATA%\HASI\settings.json`. Dacă fișierul e deteriorat, HASI îl păstrează ca `settings.json.bad`, pornește cu setările inițiale și îți spune asta.
-
-| Setare | Cum funcționează |
-|---|---|
-| **Voce** | Lista tuturor vocilor găsite („Paul, RHVoice direct”, „Paul, prin SAPI”, „Microsoft Andrei, prin SAPI” …). Lista se deschide pe vocea actuală, marcată „actual”. După alegere, confirmarea se aude deja cu vocea nouă. Dacă vocea aleasă nu pornește, HASI îți spune și rămâne la cea veche. |
-| **Viteză, Ton** | Scara 0–100, unde 50 înseamnă valoarea normală a vocii; săgețile schimbă cu câte 5. Fiecare pas se aude deja la noua valoare. SAPI nu are reglaj de ton. |
-| **Volum** | Scara 0–100, cu pași de 10; 100 este volumul maxim. |
-| **Ecoul tastelor** | „Fiecare caracter”, „Fiecare cuvânt” sau „Fără ecou”. Pentru moment se aplică doar câmpului „Test pronunție”, singurul câmp de text de acum. |
-| **Culori** | Patru combinații cu contrast mare. |
-| **Mărimea textului** | Cinci mărimi, de la „Mic” la „Uriaș”. |
-| **Capătul listei** | „Oprire la capăt, cu sunet” (implicit) sau „Salt la celălalt capăt”. |
-
-**Ce am schimbat în texte:**
-- textul de ajutor din Setări, pe care îl validaseși (M0-08), spune acum „Aici schimbați vocea… Fiecare schimbare se salvează imediat.”, în loc de „Aici veți putea schimba…”, pentru că setările există acum;
-- în transcrierea 02, exemplul de setare încă neimplementată e acum „Pornire automată”, nu „Viteză”.
+  În jurnalele tale nu era niciun rând `LEXICON?`, de aceea am ales un cuvânt verificat de mine.
+- **C-04:** cazurile sunt acum `2 tramvaie`, `2 meciuri`, plus `cele 2 tramvaie`, care devine „cele două tramvaie”. Am trecut „cel, cea, cei, cele” printre cuvintele care nu sunt niciodată substantivul numărat.
+- **Lista de voci** arată implicit doar vocile românești, iar la sfârșit apare **„Arată toate vocile”**. Dacă vocea aleasă nu e românească, rămâne totuși în listă.
+- **Repausul sunetului** rămâne doar în `settings.json`, nu în meniu.
 
 ---
 
-## 3. Scenariile (și în `docs/manual-tests/faza-0.md`)
+## 2. Etapa 0.7
 
-### Corecturi (Test pronunție)
+- **„Învață tastele”:**
+  - orice tastă își spune numele și funcția, fără să se execute. Asta include F1, F2, F3, Control, Alt+F4, tastatura numerică, Num Lock și literele tastate;
+  - mesajul de intrare prezintă întâi alternativele care merg pe orice laptop (Control H, R, U);
+  - Escape o dată doar explică; **Escape de două ori la rând** iese.
+- **Meniul Ieșire:** „Închide HASI”, „Repornește calculatorul”, „Oprește calculatorul”, fiecare cu confirmare vocală.
+  - Repornirea și oprirea pornesc după „La revedere”, prin `shutdown.exe` din Windows.
+  - Dacă Windows refuză, HASI spune asta și rămâne deschis.
+  - Cu **`--simulate-power`** (opțiune nouă, doar pentru teste), HASI scrie în jurnal ce ar fi făcut și se închide, fără să repornească sau să oprească calculatorul.
+  - Enter ținut apăsat nu repornește niciodată calculatorul; e acoperit de un test.
+- **Alt+F4 și închiderea din bara de activități** cer confirmare peste tot. În „Învață tastele”, Alt+F4 doar se explică, dar închiderea din bara de activități tot întreabă.
+- **„Despre HASI”** are 9 rânduri:
+  - licența RHVoice e corectată după audit: biblioteca e GPL 2 sau ulterioară, cu părți LGPL 2.1, pentru că acum o folosim direct;
+  - am adăugat datele limbii române (Stefan Moisei, LGPL);
+  - THIRD-PARTY-NOTICES e actualizat la fel.
+- **F1 în meniul principal** se încheie cu „Ca să aflați ce face fiecare tastă, alegeți Învață tastele.”
+- **F2, F3 și Alt+F4** există din etapa 0.3. Am verificat, cu teste și transcrieri, că funcționează la fel și pe ecranele noi (valori, alegeri, Ieșire).
 
-| ID | Ce scrii | Ce trebuie să auzi |
-|---|---|---|
-| C-01 | `pagina 2`, `camera 1`, `linia 2`, `etajul 1`, `sala 12` | „pagina doi”, „camera unu”, „linia doi”, „etajul unu”, „sala doisprezece” |
-| C-02 | `2 pagini`, `Pagina 2 goală` | „două pagini”; „Pagina doi goală” |
-| C-03 | `la ora 2`, `ora 1` | „la ora două”, „ora unu” |
-| C-04 | `2 smartfoane`, `2 tramvaiele`, `2 meciurile` | „două …” la toate trei |
-| R-12 (actualizat) | `2 autobuze`; `2 smartfoane`; `2 bitcoini` | „două autobuze”; „două smartfoane”; „doi bitcoini”, cu `LEXICON? bitcoini` în jurnal. Adaugi `bitcoini => f` în `src\Hasi.Text.Ro\Data\genuri.txt`, repornești și auzi „două bitcoini”. |
+---
 
-### Redarea audio
-
-| ID | Ce faci | Ce urmărești |
-|---|---|---|
-| R-13 | Navighezi puțin. Într-un terminal **pornit ca administrator** rulezi `powercfg /requests`. Apoi aștepți peste un minut fără să apeși nimic și îl rulezi din nou. | prima dată apare o cerere audio, de obicei la `SYSTEM`. A doua oară cererea a dispărut, dacă nu redă altceva sunet. |
-| R-14 | Cu căștile Bluetooth: 2 minute de liniște, apoi săgeata jos | prima silabă se aude întreagă |
-| R-15 | `--audio-idle-seconds 0`, apoi `--audio-idle-seconds 10`; `powercfg /requests` după 20 de secunde de liniște | cu 0, cererea rămâne; cu 10, dispare |
-| R-16 | Asculți mesajul de bun venit; apoi deschizi jurnalul | bun venit fără întârziere; în jurnal `LATENCY … preload=…` și un `first-sound` mic la bun venit |
-
-### Setări (0.6)
+## 3. Scenariile pentru 0.7 (și în `docs/manual-tests/faza-0.md`)
 
 | ID | Ce faci | Ce trebuie să auzi |
 |---|---|---|
-| S-01 | Setări → Voce; alegi „Paul, prin SAPI”, Enter | „Vocea a fost schimbată: Paul, prin SAPI.”, rostit deja cu SAPI |
-| S-02 | Închizi și redeschizi HASI | aceeași voce aleasă; apoi revii la „Paul, RHVoice direct” |
-| S-03 | Setări → Viteză; dreapta, dreapta, stânga; End; dreapta | „Viteză. 50, viteza normală. …”, „55”, „60”, „55”, „100”, [sunet] „Valoarea maximă. 100.” |
-| S-04 | Setări → Volum; stânga de 2 ori | „Volum. 100, volumul maxim. …”, „90”, „80”, din ce în ce mai încet |
-| S-05 | Setări → Ton; dreapta de 2 ori | „Ton. 50, tonul normal. …”, „55”, „60”, cu ton tot mai înalt |
-| S-06 | Ecoul tastelor → „Fiecare cuvânt”; în Test pronunție scrii `bună ziua ` | „bună”, „ziua”; literele nu se mai aud |
-| S-07 | Ecoul tastelor → „Fără ecou”; scrii ceva | liniște; textul apare pe ecran; Enter îl rostește |
-| S-08 | Culori (toate patru) și Mărimea textului (toate cinci) | ecranul se schimbă imediat; auzi, de exemplu, „Culori: Negru pe galben.” |
-| S-09 | Capătul listei → „Salt la celălalt capăt”; în meniul principal, săgeata jos pe „Ieșire” | [sunet] „Setări, 1 din 4.” |
-| S-10 | Pornești cu `--rate 5`; schimbi doar volumul; închizi; pornești fără opțiuni | după repornire viteza e cea salvată înainte (nu 5), iar volumul e cel nou |
-| S-11 | Scrii ceva fără sens în `%APPDATA%\HASI\settings.json`, apoi pornești | [sunet] „Setările salvate nu au putut fi citite. Folosesc setările inițiale. …”; apare `settings.json.bad` |
+| K-01 | În meniul principal, F1 | ajutorul, încheiat cu „Ca să aflați ce face fiecare tastă, alegeți Învață tastele.” |
+| K-02 | Meniu principal → Învață tastele | „Învață tastele. Apăsați orice tastă ca să aflați ce face; nimic nu se execută. Pe orice tastatură, și pe laptop: Control H … Ca să ieșiți de aici, apăsați Escape de două ori.” |
+| K-03 | Săgeata jos, săgeata sus, Enter, Control + săgeata sus | „Săgeata jos: trece la opțiunea următoare.” … „Control plus săgeata sus: duce la prima opțiune.” |
+| K-04 | F1, Control H, F2, Control U, Control singur, Alt+F4 | fiecare tastă își spune funcția; nimic nu se execută, iar HASI nu se închide |
+| K-05 | Tasta 8 de pe tastatura numerică; tasta 5 cu Num Lock oprit; Num Lock; Shift; F5 | „Tasta 8 de pe tastatura numerică: …”, „Tasta 5 de pe tastatura numerică, cu Num Lock oprit: …”, „Num Lock: …”, „Shift din stânga: se ține apăsată împreună cu altă tastă.”, „F5: nu are nicio funcție în HASI.” |
+| K-06 | `ș`, `7`, `,` | „Litera ș: când scrieți, scrie acest caracter. În meniuri nu are nicio funcție.”, „Cifra 7: …”, „virgulă: …” |
+| K-07 | Escape o dată; altă tastă; Escape de două ori la rând | explicația plus „Apăsați încă o dată Escape …”; după altă tastă, Escape doar explică din nou; la al doilea Escape la rând: „Meniu principal. Selectat: Învață tastele, 2 din 4.” |
+| K-08 | Ții apăsată săgeata jos | descrierea o singură dată |
+| E-01 | Ieșire; F1 | „Ieșire. 3 opțiuni. …”; ajutorul se încheie cu „Fiecare alegere de aici vă cere confirmare: …” |
+| E-02 | Închide HASI → Escape | întrebarea, apoi „Anulat. Ieșire. Selectat: Închide HASI, 1 din 3.” |
+| E-03 | Repornește → Escape; Oprește → Escape | „Sigur doriți să reporniți calculatorul? Programele deschise se vor închide. …”, „Anulat. …”; la fel pentru oprire |
+| E-04 | Cu `--simulate-power`: Repornește → Enter; apoi la fel cu Oprește | „Calculatorul se repornește. La revedere.”; HASI se închide, calculatorul nu. În jurnal: `POWER simulated: shutdown.exe /r /t 0` (respectiv `/s /t 0`). |
+| E-05 | (opțional, real, după ce salvezi tot) fără `--simulate-power`: Repornește → Enter | calculatorul repornește |
+| E-06 | În Învață tastele: clic dreapta pe HASI în bara de activități → Închide fereastra | „Sigur doriți să închideți HASI? …” |
+| E-07 | Pe „Repornește calculatorul”, ții Enter apăsat | doar întrebarea; calculatorul nu repornește |
+| D-01 | Despre HASI, rând cu rând | 9 rânduri, cu licența RHVoice corectată (rândul 4) și datele limbii române (rândul 6) |
+| H-01 | Setări → Viteză: F3, apoi F2 | „Sunteți în: Meniu principal, Setări, Viteză.”, apoi același mesaj |
+
+Plus scenariile corectate: **R-12** (cu „postare”) și **C-04** (cu `2 tramvaie`, `2 meciuri`, `cele 2 tramvaie`).
 
 ---
 
@@ -140,9 +83,7 @@ Toate setările se aplică **imediat** și se salvează în `%APPDATA%\HASI\sett
 
 | Ce | Detalii |
 |---|---|
-| Durata de închidere a fluxului audio în meniul Setări | Acum se schimbă doar din `settings.json` și din linia de comandă. Dacă o vrei și în meniu, îți propun o setare nouă, „Repausul sunetului”; spune-mi. |
-| Voci englezești în lista de voci | Lista conține toate vocile găsite, inclusiv David, Zira și Mark (în engleză). Pot ascunde vocile care nu sunt românești; spune-mi dacă vrei. |
-| Setările de vorbire pe ecranul „Comparare voci” | Viteza și volumul se aplică doar vocii principale; ecranul de comparare folosește vocile cu setările de la pornire. |
-| Pornire automată, Cititor de ecran, Actualizări | Rămân pentru etapele 0.10, 0.9 și 0.11. |
-| Compilarea RHVoice.dll în CI | Înainte de 0.11, cum ai cerut. |
-| Redeschiderea fluxului, `powercfg`, Bluetooth, tastarea și setările în fereastra reală | Logica e acoperită de teste, dar n-am apăsat nicio tastă (regula). Am pornit HASI de cinci ori, câte 5–18 secunde, fără input. |
+| Repornirea și oprirea reale | Nu le-am rulat, ca să nu-ți repornesc calculatorul. Am verificat doar logica (teste) și varianta simulată. E-05 e testul real, dacă vrei să-l faci. |
+| Închiderea din bara de activități (E-06) | Necesită un clic real. |
+| Tastele în fereastra reală | Ca de obicei, fără input simulat. Am pornit HASI o singură dată, 5 secunde, fără nicio tastă. |
+| Restul | Cititorul de ecran (0.9), pornirea automată și tasta globală Control+Alt+H (0.10), installer-ul și compilarea RHVoice în CI (0.11). |
