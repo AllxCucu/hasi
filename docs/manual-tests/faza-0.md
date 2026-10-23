@@ -110,4 +110,37 @@ Cele două variante, din folderul proiectului:
 | R-09 | B cu `--rhvoice-path C:\nu-exista` | „Motorul de voce cerut nu a pornit. Folosesc vocea Paul. Detaliile sunt în jurnalul de diagnostic.” |
 | R-10 | După o sesiune cu B, deschizi jurnalul de diagnostic | rânduri `LATENCY … first-sound`, `LATENCY … stop`, `WORD …` (cuvintele citite) și `PERF …` (procesor, memorie) |
 | R-11 | Cu Num Lock **oprit**, în meniu: 5 de pe tastatura numerică | același efect ca Enter |
-| R-12 | Test pronunție: `2 autobuze`; apoi `2 smartfoane` | „două autobuze” (din dicționar); „doi smartfoane” (gen ghicit, greșit) și în jurnal `LEXICON? smartfoane`. Adaugi `smartfoane => f` în `src\Hasi.Text.Ro\Data\genuri.txt`, repornești: „două smartfoane”. |
+| R-12 | (actualizat în 0.6) Test pronunție: `2 autobuze`; `2 smartfoane`; `2 bitcoini` | „două autobuze” (din dicționar); „două smartfoane” (regula pentru -e); „doi bitcoini” (-i e ambiguu) și în jurnal `LEXICON? bitcoini`. Adaugi `bitcoini => f` în `src\Hasi.Text.Ro\Data\genuri.txt`, repornești și auzi „două bitcoini”. |
+
+## Corecturi după 0.5 bis (C-01…C-04) și redarea audio (R-13…R-16)
+
+Pornire implicită (RHVoice direct, din `%LOCALAPPDATA%\HASI\rhvoice`): `dotnet run --project src\Hasi.App -- --diagnostic`
+
+| ID | Ce faci | Ce trebuie să auzi |
+|---|---|---|
+| C-01 | Test pronunție: `pagina 2`, `camera 1`, `linia 2`, `etajul 1`, `sala 12` | „pagina doi”, „camera unu”, „linia doi”, „etajul unu”, „sala doisprezece” |
+| C-02 | `2 pagini`, apoi `Pagina 2 goală` | „două pagini”; „Pagina doi goală” |
+| C-03 | `la ora 2`, `ora 1` | „la ora două”, „ora unu” |
+| C-04 | `2 smartfoane`, `2 tramvaiele`, `2 meciurile` | „două smartfoane”, „două tramvaiele”, „două meciurile” |
+| R-13 | Pornești HASI, navighezi puțin. Într-un terminal **pornit ca administrator** rulezi `powercfg /requests`. Aștepți peste un minut fără să apeși nimic și rulezi din nou. | prima dată apare o cerere audio (de obicei la `SYSTEM`, o linie despre un flux audio folosit); a doua oară cererea a dispărut (dacă nu redă altceva sunet) |
+| R-14 | Cu căștile Bluetooth: aștepți 2 minute în liniște (fluxul se închide), apoi săgeata jos | prima silabă se aude întreagă (HASI pune 150 ms de liniște la redeschidere) |
+| R-15 | `--audio-idle-seconds 0`, apoi `--audio-idle-seconds 10`; `powercfg /requests` după 20 de secunde de liniște | cu 0, cererea audio rămâne mereu; cu 10, dispare după 10 secunde |
+| R-16 | Pornești HASI și asculți mesajul de bun venit; apoi jurnalul | bun venit fără întârziere; în jurnal `LATENCY … preload=…` și, la bun venit, `first-sound` de câteva zeci de ms |
+
+## Etapa 0.6 – setări (S-01…S-11)
+
+Setările se salvează imediat în `%APPDATA%\HASI\settings.json`.
+
+| ID | Ce faci | Ce trebuie să auzi |
+|---|---|---|
+| S-01 | Setări → Voce | „Voce. N opțiuni. Selectat: Paul, RHVoice direct, actual, …”; alegi „Paul, prin SAPI”, Enter: „Vocea a fost schimbată: Paul, prin SAPI.” rostit deja cu SAPI |
+| S-02 | Închizi și redeschizi HASI (fără opțiuni) | aceeași voce aleasă la S-01; apoi revii la „Paul, RHVoice direct” |
+| S-03 | Setări → Viteză; săgeata dreapta de 2 ori, stânga o dată | „Viteză. 50, viteza normală. …”, „55”, „60”, „55”, fiecare deja cu viteza nouă; End: „100”, încă o dată dreapta: [sunet] „Valoarea maximă. 100.” |
+| S-04 | Setări → Volum; stânga de 2 ori | „Volum. 100, volumul maxim. …”, „90”, „80”, din ce în ce mai încet |
+| S-05 | Setări → Ton; dreapta de 2 ori | „Ton. 50, tonul normal. …”, „55”, „60”, cu ton tot mai înalt (cu „Paul, prin SAPI” tonul nu se schimbă: SAPI nu are ton) |
+| S-06 | Setări → Ecoul tastelor → „Fiecare cuvânt”; apoi Test pronunție: scrii `bună ziua ` | „Ecoul tastelor: Fiecare cuvânt.”; la scriere: „bună”, „ziua” (literele nu se mai aud) |
+| S-07 | Ecoul tastelor → „Fără ecou”; scrii ceva în Test pronunție | liniște la scriere; textul apare pe ecran; Enter îl rostește |
+| S-08 | Setări → Culori: încerci toate patru; Mărimea textului: toate cinci | ecranul se schimbă imediat; auzi „Culori: Negru pe galben.” etc. |
+| S-09 | Setări → Capătul listei → „Salt la celălalt capăt”; în meniul principal, săgeata jos pe „Ieșire” | [sunet] „Setări, 1 din 4.” (lista sare la început) |
+| S-10 | Pornești cu `--rate 5`; în Setări schimbi doar volumul; închizi; pornești fără opțiuni | cu `--rate 5` vorbirea e rapidă; după repornire viteza e cea salvată înainte (nu 5), iar volumul e cel nou |
+| S-11 | Închizi HASI, scrii ceva fără sens în `%APPDATA%\HASI\settings.json`, pornești | după bun venit: [sunet] „Setările salvate nu au putut fi citite. Folosesc setările inițiale. …”; lângă fișier apare `settings.json.bad` |

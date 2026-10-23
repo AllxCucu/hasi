@@ -1,133 +1,148 @@
-﻿# HASI – Răspuns după al doilea experiment RHVoice.dll
+﻿# HASI – Răspuns după corecturi și etapa 0.6
 
-Toate cele **208 teste automate** trec, local și pe GitHub:
+Toate cele **240 de teste automate** trec, local și pe GitHub:
 
 | Proiect de test | Teste |
 |---|---|
-| nucleu | 140 |
-| normalizator | 22 (fișiere cu peste 200 de cazuri) |
-| motoare de voce | 23 (proiect nou) |
-| transcrieri | 14 |
+| nucleu | 154 |
+| normalizator | 26 (fișiere cu peste 220 de cazuri) |
+| motoare de voce | 29 |
+| transcrieri și ecrane | 22 |
 | arhitectură | 9 |
 
-Mă opresc aici, cum ai cerut: **asculți și decizi** dacă trecem la RHVoice.dll (secțiunea 4).
+Mă opresc aici, cum ai cerut.
 
 ---
 
-## 1. Comenzile de pornire
+## 1. Cum pornești
 
-Din folderul proiectului:
+RHVoice direct e acum **motorul implicit**, deci nu mai ai nevoie de opțiuni:
 
-**A – SAPI (varianta implicită de azi):**
 ```
-dotnet run --project src\Hasi.App -- --diagnostic --rhvoice-path "C:\Users\cucua\AppData\Local\HASI\rhvoice-test"
-```
-
-**B – RHVoice direct:**
-```
-dotnet run --project src\Hasi.App -- --diagnostic --engine rhvoice-dll --rhvoice-path "C:\Users\cucua\AppData\Local\HASI\rhvoice-test"
+dotnet run --project src\Hasi.App -- --diagnostic
 ```
 
-Ce trebuie știut despre ele:
-- **Folderul `rhvoice-test`.** Am pus acolo `RHVoice.dll` 1.18.2 (x64) și datele vocii Paul, luate din pachetele oficiale RHVoice pentru NVDA. Folderul e în afara depozitului și nimic binar nu e în git.
-- **`--rhvoice-path` apare în ambele comenzi**, pentru că ecranul „Comparare voci” are nevoie de ambele voci. Fără opțiune, HASI pornește ca înainte, doar cu SAPI.
-- **Opțiuni noi**, valabile pentru toate motoarele:
-  - `--pitch -10..10` (tonul);
-  - `--volume 0..100`;
-  - `--rate -10..10` (viteza), ca înainte.
+**Unde caută HASI fișierele RHVoice** (DLL-ul și vocea Paul), în ordine:
+1. în folderul `rhvoice` de lângă `hasi.exe` (acolo le va pune installer-ul, în etapa 0.11);
+2. în `%LOCALAPPDATA%\HASI\rhvoice`. Am mutat acolo copia ta de test, din `rhvoice-test`.
 
-  SAPI nu are reglaj de ton, deci acolo `--pitch` nu are efect.
+Dacă nu le găsește în niciunul, HASI folosește Paul prin SAPI, apoi OneCore.
 
-**Arhitectura DLL-ului față de HASI.** HASI e compilat și rulează pe **x64**. Pachetul oficial conține `RHVoice.dll` atât pentru x86, cât și pentru x64. HASI citește antetul PE al fișierului și îl încarcă doar pe cel x64. Dacă găsește doar varianta greșită, scrie în jurnal ce a găsit, spune „Motorul de voce cerut nu a pornit…” și folosește următoarea voce.
+**Opțiunile pentru teste rămân**, doar pentru sesiunea curentă:
+
+| Opțiune | Efect |
+|---|---|
+| `--engine sapi5` / `onecore` / `rhvoice-dll` | alege motorul |
+| `--rhvoice-path <folder>` | caută RHVoice în alt folder |
+| `--voice "nume"` | alege vocea |
+| `--rate`, `--pitch` | viteza și tonul (-10…10) |
+| `--volume` | volumul (0…100) |
+| `--audio-idle-seconds N` | după câte secunde de liniște se închide fluxul audio (implicit 60; 0 = niciodată) |
+| `--test-voice-failure` | vocea principală „se strică” după trei mesaje |
+
+O valoare dată în linia de comandă **nu se salvează**. Se salvează doar dacă o schimbi apoi din Setări.
 
 ---
 
-## 2. Ce am implementat
+## 2. Ce am făcut
 
-- **Deciziile tale:**
-  - **Clear → Enter:** tasta 5 de pe tastatura numerică, cu Num Lock oprit, funcționează acum ca Enter. Insert rămâne nelegat.
-  - **Dicționarul de genuri MULTEXT-East 4.0:** 109.550 de forme, în `src\Hasi.Text.Ro\Data\substantive.txt`, cu atribuirea în „Despre HASI” și în THIRD-PARTY-NOTICES.
-  - **Fișierul tău** `src\Hasi.Text.Ro\Data\genuri.txt` (`formă => m | f | n`) are prioritate. Editează-l în `src`, nu în `bin`: la compilare, fișierul din `bin` e suprascris.
-  - **Strategia de rezervă:** toți pașii din ADR 0005, cum ai ales („păstrează doi”). Riscul acceptat: „Pagina 2 goală” devine „Pagina două goală”. Genurile ghicite care schimbă cuvintele ajung în jurnal ca `LEXICON? cuvânt`.
-  - **P-13** rămâne „unu din patru”.
-- **Motorul `RhVoiceDllEngine`:** sintetizează pe un fir separat și rămâne cel mult 3 secunde înaintea redării, ca o citire lungă să nu umple memoria. SAPI rămâne implicit și rămâne în lanțul de rezervă.
-- **Biblioteca audio: NAudio 3.1.0** (licență MIT, compatibilă cu GPL-3.0). Am ales-o pentru că playerul ei WASAPI poate **urma dispozitivul implicit**: Windows însuși mută sunetul pe dispozitivul nou când scoți căștile, același mecanism ca la sunetele sistemului. Am luat 3.1.0 și nu 3.3.0, care are doar patru zile.
-- **Oprirea:** un fade-out de 8 ms, ca să nu pocnească, apoi coada se golește, iar RHVoice primește semnalul de oprire.
-- **Căștile Bluetooth:** fluxul audio stă deschis permanent și redă liniște între mesaje, deci dispozitivul nu adoarme și prima silabă nu se taie. Dacă fluxul trebuie redeschis, se adaugă întâi 150 ms de liniște.
-- **Schimbarea dispozitivului și revenirea din repaus:** le preia Windows, prin rutarea fluxului. Dacă fluxul se oprește totuși cu eroare, HASI îl reface o dată; dacă nu reușește, trece la vocea următoare.
-- **Formatul sunetului.** Paul are 24 kHz, mono. HASI îl reeșantionează la frecvența dispozitivului (la tine, 48 kHz) și îl trimite pe ambele canale din față. Dispozitivul tău raportează 8 canale, iar fără această conversie vocea s-ar fi putut auzi doar din difuzorul central.
-- **Pozițiile cuvintelor** apar în jurnal ca rânduri `WORD`. Am corectat o problemă: RHVoice dă pozițiile în octeți UTF-8, nu în caractere. Nu am construit nimic peste ele.
-- **Jurnalul de diagnostic**, pentru ambele motoare, are acum rândurile:
-  - `LATENCY … first-sound` (primul sunet) și `LATENCY … stop` (oprirea);
-  - `PERF` (procesor și memorie după fiecare mesaj);
-  - `RHVOICE` (DLL-ul, datele și dispozitivul audio).
-- **Ecranul „Comparare voci”** (Setări → Diagnostic): cinci fraze fixe (numere, diacritice, frază lungă, întrebare, dată și oră), rostite pe rând prin „Paul prin SAPI” și „Paul prin RHVoice direct”. Săgeata stânga redă doar prima variantă, săgeata dreapta doar a doua, iar orice tastă oprește.
+### Deciziile tale
+
+- **RHVoice.dll e motorul implicit**, cu SAPI și OneCore ca rezerve; ADR 0004 e acceptat. Compilarea DLL-ului în CI e programată înainte de etapa 0.11, cum ai cerut, nu acum.
+- **E-mail:** n-am atins istoricul.
+
+### Corecturile la normalizator
+
+- **Numărul de după substantiv e o etichetă** și se citește în forma de bază: „pagina 2” devine „pagina doi”, „camera 1” „camera unu”, „linia 2” „linia doi”, „etajul 1” „etajul unu”, „sala 12” „sala doisprezece”.
+  - Genul se aplică doar înaintea substantivului: „2 pagini” devine „două pagini”.
+  - Recunosc substantivul din fața numărului după dicționar, după lista mea scrisă de mână și după o listă de substantive-etichetă (pagina, etajul, linia, sala, camera, capitolul, autobuzul și altele).
+  - O singură excepție, ca să nu stric orele: „ora 2” rămâne „ora două”.
+  - Am scos „Pagina 2 goală” din riscurile acceptate: acum se citește „Pagina doi goală”.
+- **Pluralele necunoscute după un număr:**
+  - cele în **-e** sau **-uri** primesc „două” („două smartfoane”);
+  - cele în **-i** rămân la regula de până acum și apar ca `LEXICON?` în jurnal.
+- Cazurile noi sunt în `Cases\09-etichete.cases` și `Cases\08-genuri-dictionar.cases`. ADR 0005 e actualizat.
+
+### Redarea audio
+
+- **Fluxul audio se închide după un minut fără vorbire.** Așa calculatorul poate intra în repaus și bateria se consumă mai puțin.
+  - Durata se configurează în `settings.json` (`AudioIdleSeconds`) sau cu `--audio-idle-seconds`.
+  - Fluxul nu se închide niciodată cât timp se vorbește.
+  - La următorul mesaj se redeschide, cu 150 ms de liniște înainte.
+- **Verificat pe calculatorul tău**, cu 3 secunde: ambele fluxuri (vocea principală și vocea din ecranul de comparare) s-au închis la 3 secunde după ultimul mesaj.
+- **Neverificat de mine:**
+  - `powercfg /requests` cere un terminal de administrator;
+  - redeschiderea cere o tastă.
+
+  Le găsești ca R-13 și R-14. Documentația e în ADR 0004.
+- **Vocea se preîncarcă la pornire,** pe un fir separat, cât se construiește fereastra. Primul sunet al mesajului de bun venit a scăzut de la 280–400 ms la **16 ms**.
+
+### Etapa 0.6 – Setări
+
+Toate setările se aplică **imediat** și se salvează în `%APPDATA%\HASI\settings.json`. Dacă fișierul e deteriorat, HASI îl păstrează ca `settings.json.bad`, pornește cu setările inițiale și îți spune asta.
+
+| Setare | Cum funcționează |
+|---|---|
+| **Voce** | Lista tuturor vocilor găsite („Paul, RHVoice direct”, „Paul, prin SAPI”, „Microsoft Andrei, prin SAPI” …). Lista se deschide pe vocea actuală, marcată „actual”. După alegere, confirmarea se aude deja cu vocea nouă. Dacă vocea aleasă nu pornește, HASI îți spune și rămâne la cea veche. |
+| **Viteză, Ton** | Scara 0–100, unde 50 înseamnă valoarea normală a vocii; săgețile schimbă cu câte 5. Fiecare pas se aude deja la noua valoare. SAPI nu are reglaj de ton. |
+| **Volum** | Scara 0–100, cu pași de 10; 100 este volumul maxim. |
+| **Ecoul tastelor** | „Fiecare caracter”, „Fiecare cuvânt” sau „Fără ecou”. Pentru moment se aplică doar câmpului „Test pronunție”, singurul câmp de text de acum. |
+| **Culori** | Patru combinații cu contrast mare. |
+| **Mărimea textului** | Cinci mărimi, de la „Mic” la „Uriaș”. |
+| **Capătul listei** | „Oprire la capăt, cu sunet” (implicit) sau „Salt la celălalt capăt”. |
+
+**Ce am schimbat în texte:**
+- textul de ajutor din Setări, pe care îl validaseși (M0-08), spune acum „Aici schimbați vocea… Fiecare schimbare se salvează imediat.”, în loc de „Aici veți putea schimba…”, pentru că setările există acum;
+- în transcrierea 02, exemplul de setare încă neimplementată e acum „Pornire automată”, nu „Viteză”.
 
 ---
 
-## 3. Măsurătorile (și în ADR 0004)
+## 3. Scenariile (și în `docs/manual-tests/faza-0.md`)
 
-Le-am făcut cu `spikes\SpeechBench`: fiecare motor în propriul proces, aceleași texte, redare reală la volum 25, pe calculatorul tău. Testul a însemnat 5 fraze scurte, o citire lungă de aproximativ 40 de secunde și 5 opriri în mijlocul vorbirii.
+### Corecturi (Test pronunție)
 
-| | SAPI (Paul) | RHVoice.dll (Paul) |
+| ID | Ce scrii | Ce trebuie să auzi |
 |---|---|---|
-| Primul sunet (mediană) | 14 ms | 12 ms |
-| Oprire (mediană) | 33 ms | **5 ms** |
-| Procesor, în timpul citirii lungi | 0,35% din toate nucleele | 0,35% |
-| Memorie maximă în timpul citirii | 90 MB | **70 MB** |
+| C-01 | `pagina 2`, `camera 1`, `linia 2`, `etajul 1`, `sala 12` | „pagina doi”, „camera unu”, „linia doi”, „etajul unu”, „sala doisprezece” |
+| C-02 | `2 pagini`, `Pagina 2 goală` | „două pagini”; „Pagina doi goală” |
+| C-03 | `la ora 2`, `ora 1` | „la ora două”, „ora unu” |
+| C-04 | `2 smartfoane`, `2 tramvaiele`, `2 meciurile` | „două …” la toate trei |
+| R-12 (actualizat) | `2 autobuze`; `2 smartfoane`; `2 bitcoini` | „două autobuze”; „două smartfoane”; „doi bitcoini”, cu `LEXICON? bitcoini` în jurnal. Adaugi `bitcoini => f` în `src\Hasi.Text.Ro\Data\genuri.txt`, repornești și auzi „două bitcoini”. |
 
-Cum se citesc cifrele:
-- Ambele variante exclud memoria tampon a plăcii de sunet. La DLL, aceasta adaugă cel mult 40 ms.
-- În HASI, primul mesaj după pornire include și încărcarea vocii: 280–400 ms la DLL.
-
-**Recomandarea mea (ADR 0004):** DLL-ul e cel puțin la fel de bun ca SAPI la toate măsurătorile, iar câștigul principal rămâne installer-ul unic. Recomand **trecerea la RHVoice direct ca variantă implicită**, cu SAPI și OneCore ca rezerve. Condiția: ascultarea ta (R-01…R-08) să nu găsească pocnituri, silabe tăiate pe Bluetooth sau blocaje la schimbarea dispozitivului. Compilarea DLL-ului în CI, dintr-un commit fixat, e descrisă în ADR **doar ca plan**; nu am implementat-o.
-
----
-
-## 4. Scenariile R-xx (și în `docs/manual-tests/faza-0.md`)
+### Redarea audio
 
 | ID | Ce faci | Ce urmărești |
 |---|---|---|
-| R-01 | Navighezi 2–3 minute cu B, apoi la fel cu A | aceeași voce Paul. Notează orice diferență de timbru, volum, viteză sau claritate. |
-| R-02 | Setări → Diagnostic → Comparare voci; Enter pe fiecare frază; săgețile stânga și dreapta | „Varianta unu, Paul prin SAPI. …”, apoi „Varianta doi, Paul prin RHVoice direct. …”; orice tastă oprește |
-| R-03 | Cu B: F1, apoi săgeata jos în timpul vorbirii; de 10 ori | oprire imediată |
-| R-04 | Cu B: Control de mai multe ori în timpul vorbirii; asculți și începutul mesajelor | nicio pocnitură, nicio silabă tăiată |
-| R-05 | Căști Bluetooth ca dispozitiv implicit; B, 30 de secunde de liniște, apoi săgeata jos | prima silabă („Î” din „Învață tastele”) se aude întreagă. Repetă cu A. |
-| R-06 | Cu B, în timpul unui mesaj lung, scoți căștile sau schimbi dispozitivul implicit | vorbirea continuă pe dispozitivul nou, fără blocaj |
-| R-07 | Cu B deschis: repaus, trezire, apoi săgeata jos | HASI vorbește normal |
-| R-08 | B cu `--rate -5`, `--rate 5`, `--pitch 3`, `--volume 50` | se schimbă viteza, tonul și volumul. Cu A se schimbă doar viteza și volumul. |
-| R-09 | B cu `--rhvoice-path C:\nu-exista` | „Motorul de voce cerut nu a pornit. Folosesc vocea Paul. Detaliile sunt în jurnalul de diagnostic.” |
-| R-10 | După o sesiune cu B, deschizi jurnalul de diagnostic | rânduri `LATENCY`, `WORD` și `PERF`. Trimite-mi-l. |
-| R-11 | Cu Num Lock oprit, în meniu, tasta 5 de pe tastatura numerică | același efect ca Enter |
-| R-12 | Test pronunție: `2 autobuze`, apoi `2 smartfoane` | „două autobuze”; „doi smartfoane” (gen ghicit, greșit) și `LEXICON? smartfoane` în jurnal. Adaugi `smartfoane => f` în `genuri.txt`, repornești și auzi „două smartfoane”. |
+| R-13 | Navighezi puțin. Într-un terminal **pornit ca administrator** rulezi `powercfg /requests`. Apoi aștepți peste un minut fără să apeși nimic și îl rulezi din nou. | prima dată apare o cerere audio, de obicei la `SYSTEM`. A doua oară cererea a dispărut, dacă nu redă altceva sunet. |
+| R-14 | Cu căștile Bluetooth: 2 minute de liniște, apoi săgeata jos | prima silabă se aude întreagă |
+| R-15 | `--audio-idle-seconds 0`, apoi `--audio-idle-seconds 10`; `powercfg /requests` după 20 de secunde de liniște | cu 0, cererea rămâne; cu 10, dispare |
+| R-16 | Asculți mesajul de bun venit; apoi deschizi jurnalul | bun venit fără întârziere; în jurnal `LATENCY … preload=…` și un `first-sound` mic la bun venit |
+
+### Setări (0.6)
+
+| ID | Ce faci | Ce trebuie să auzi |
+|---|---|---|
+| S-01 | Setări → Voce; alegi „Paul, prin SAPI”, Enter | „Vocea a fost schimbată: Paul, prin SAPI.”, rostit deja cu SAPI |
+| S-02 | Închizi și redeschizi HASI | aceeași voce aleasă; apoi revii la „Paul, RHVoice direct” |
+| S-03 | Setări → Viteză; dreapta, dreapta, stânga; End; dreapta | „Viteză. 50, viteza normală. …”, „55”, „60”, „55”, „100”, [sunet] „Valoarea maximă. 100.” |
+| S-04 | Setări → Volum; stânga de 2 ori | „Volum. 100, volumul maxim. …”, „90”, „80”, din ce în ce mai încet |
+| S-05 | Setări → Ton; dreapta de 2 ori | „Ton. 50, tonul normal. …”, „55”, „60”, cu ton tot mai înalt |
+| S-06 | Ecoul tastelor → „Fiecare cuvânt”; în Test pronunție scrii `bună ziua ` | „bună”, „ziua”; literele nu se mai aud |
+| S-07 | Ecoul tastelor → „Fără ecou”; scrii ceva | liniște; textul apare pe ecran; Enter îl rostește |
+| S-08 | Culori (toate patru) și Mărimea textului (toate cinci) | ecranul se schimbă imediat; auzi, de exemplu, „Culori: Negru pe galben.” |
+| S-09 | Capătul listei → „Salt la celălalt capăt”; în meniul principal, săgeata jos pe „Ieșire” | [sunet] „Setări, 1 din 4.” |
+| S-10 | Pornești cu `--rate 5`; schimbi doar volumul; închizi; pornești fără opțiuni | după repornire viteza e cea salvată înainte (nu 5), iar volumul e cel nou |
+| S-11 | Scrii ceva fără sens în `%APPDATA%\HASI\settings.json`, apoi pornești | [sunet] „Setările salvate nu au putut fi citite. Folosesc setările inițiale. …”; apare `settings.json.bad` |
 
 ---
 
-## 5. Ce nu am putut testa singur
+## 4. Ce nu e făcut sau nu e testat
 
-| Ce | De ce |
+| Ce | Detalii |
 |---|---|
-| Calitatea sunetului, pocniturile | trebuie judecate după ureche (R-01…R-04) |
-| Căștile Bluetooth | nu am un dispozitiv Bluetooth conectat (R-05) |
-| Scoaterea căștilor și revenirea din repaus | cer acțiuni fizice (R-06, R-07) |
-| Tastarea și tastele în fereastra reală | regula interzice inputul simulat. Rularea mea a fost fără taste: am pornit HASI de două ori, câte 6–8 secunde, iar `SpeechBench` a redat sunet real, la volum 25, aproximativ un minut pentru fiecare motor. |
-| Comparația cu motorul OneCore | nu am cerut-o; OneCore rămâne în lanț |
-
----
-
-## 6. Adresa de e-mail în git
-
-Am setat adresa noreply GitHub **doar pentru acest depozit** (`12409211+AllxCucu@users.noreply.github.com`), cum ai ales. Commit-urile din această rundă o folosesc deja. Configurarea ta globală a rămas neschimbată.
-
-**Pentru commit-urile deja publicate** (primele 20, cu adresa Gmail), ai patru opțiuni. Nu am făcut nimic fără acordul tău.
-
-1. **Le lași așa.** Adresa e deja publică, iar orice clonă sau copie o păstrează. Nu costă nimic.
-2. **Rescrii istoricul** (`git filter-repo` cu un fișier mailmap care înlocuiește adresa în toate commit-urile), apoi `git push --force`.
-   - Toate commit-urile primesc alte identificatoare. Linkurile vechi către commit-uri și rulările CI nu mai corespund.
-   - Clonele existente trebuie refăcute.
-   - GitHub poate păstra o vreme commit-urile vechi, accesibile după identificator, iar ce a fost deja copiat de alții nu dispare.
-   - În același pas se poate scoate și calea locală din versiunea veche a fișierului `raspuns.md`.
-3. **Setări GitHub, recomandat oricum:** Settings → Emails → „Keep my email addresses private” și „Block command line pushes that expose my email”. Asta blochează pe viitor orice push cu adresa Gmail, dar nu schimbă trecutul.
-4. **Ștergi și recreezi depozitul**, cu istoricul rescris. E cea mai radicală variantă și pierde CI-ul și eventualele stele. Nici ea nu șterge copiile făcute între timp.
-
-Recomandarea mea: **3 acum**. Plus **2**, doar dacă vrei neapărat ca adresa să dispară din istoric. Atunci spune-mi explicit, iar eu pregătesc rescrierea și ți-o arăt înainte de `push --force`.
+| Durata de închidere a fluxului audio în meniul Setări | Acum se schimbă doar din `settings.json` și din linia de comandă. Dacă o vrei și în meniu, îți propun o setare nouă, „Repausul sunetului”; spune-mi. |
+| Voci englezești în lista de voci | Lista conține toate vocile găsite, inclusiv David, Zira și Mark (în engleză). Pot ascunde vocile care nu sunt românești; spune-mi dacă vrei. |
+| Setările de vorbire pe ecranul „Comparare voci” | Viteza și volumul se aplică doar vocii principale; ecranul de comparare folosește vocile cu setările de la pornire. |
+| Pornire automată, Cititor de ecran, Actualizări | Rămân pentru etapele 0.10, 0.9 și 0.11. |
+| Compilarea RHVoice.dll în CI | Înainte de 0.11, cum ai cerut. |
+| Redeschiderea fluxului, `powercfg`, Bluetooth, tastarea și setările în fereastra reală | Logica e acoperită de teste, dar n-am apăsat nicio tastă (regula). Am pornit HASI de cinci ori, câte 5–18 secunde, fără input. |
