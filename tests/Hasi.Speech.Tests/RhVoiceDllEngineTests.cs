@@ -142,6 +142,22 @@ public class RhVoiceDllEngineTests
     }
 
     [Fact]
+    public void Preload_loads_the_voice_first_without_playing_and_survives_a_stop()
+    {
+        var synth = new FakeSynthesizer();
+        var sink = new FakeSink();
+        using var engine = new RhVoiceDllEngine(synth, sink, "Paul");
+
+        engine.Preload();
+        engine.Stop(); // the welcome message interrupts whatever is "playing"
+        engine.Speak("Bun venit");
+        WaitFor(() => sink.Log.Contains("end 1"));
+
+        Assert.Equal(["Pregătire.", "Bun venit"], synth.Calls.Select(c => c.Text));
+        Assert.Equal(["fade", "write 1", "write 1", "write 1", "end 1"], sink.Log);
+    }
+
+    [Fact]
     public void A_synthesis_error_is_reported_as_failed()
     {
         var synth = new FakeSynthesizer { Throw = true };

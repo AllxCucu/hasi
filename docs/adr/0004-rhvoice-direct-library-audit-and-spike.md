@@ -170,3 +170,26 @@ done before the installer milestone. If any of those fails, stay on SAPI and fix
 **Decision (2026-10-23, owner):** switch. RHVoice.dll is the default engine, with SAPI5 and OneCore as fallbacks.
 The CI build from a pinned commit (plan above) is implemented before phase 0.11, not now. Until then HASI looks
 for the DLL and Paul's data in `<HASI folder>\rhvoice` and `%LOCALAPPDATA%\HASI\rhvoice` (or `--rhvoice-path`).
+
+## Follow-up (2026-10-23): idle stream and voice preloading
+
+**Problem raised by the owner:** a stream kept open forever (playing silence) can stop the computer from going to
+sleep and drains laptop and Bluetooth headphone batteries. Windows counts an active render stream as an audio
+power request (`powercfg /requests` lists it under `SYSTEM`/`EXECUTION` as an audio stream in use).
+
+**Change:** the output closes the stream after a configurable time without speech, **one minute by default**
+(`--audio-idle-seconds N`, `0` = always open; in the settings file from phase 0.6). The next message re-opens it
+with 150 ms of silence in front, so the first syllable is still not cut. Closing never happens while speech is
+queued or playing. Verified on the owner's PC with `--audio-idle-seconds 3`: both streams (main voice and the
+comparison voice) closed 3 s after their last message (`AUDIO … stream closed` in the diagnostic log).
+Not verified by me: `powercfg /requests` needs an elevated prompt, and re-opening needs a key press; both are in
+the owner's test scenarios (R-13, R-14).
+
+**Trade-off:** after a minute of silence the next message costs the re-open (tens of milliseconds) plus the
+150 ms of silence. Bluetooth headphones that have gone to sleep in the meantime may still need longer to wake
+than 150 ms; if R-14 shows a cut syllable, the silence can be made longer for Bluetooth devices only.
+
+**Preloading:** the voice is loaded on a background task as soon as the engine is created (a word is
+synthesized and discarded), and the synthesis thread waits for it before the first real message. Measured on
+the owner's PC: preload 275 ms, done while the window is being built; the welcome message's first sound
+went from 280–400 ms to **16 ms**.

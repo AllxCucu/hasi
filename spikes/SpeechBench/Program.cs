@@ -1,4 +1,4 @@
-// ADR 0004 measurements: the same texts through SAPI5 (Paul) and RHVoice.dll (Paul), with real playback.
+﻿// ADR 0004 measurements: the same texts through SAPI5 (Paul) and RHVoice.dll (Paul), with real playback.
 // Usage: dotnet run --project spikes/SpeechBench -c Release -- sapi5|rhvoice-dll [rhvoice folder] [volume 0-100]
 // Run each engine in its own process, so memory figures are not mixed.
 
@@ -121,5 +121,5 @@ ISpeechEngine CreateRhVoice(string folder)
     var installation = RhVoiceInstallation.Find(folder, out var problem) ?? throw new InvalidOperationException(problem);
     var library = new RhVoiceLibrary(installation.DllPath, installation.ResourcePaths,
         Path.Combine(Path.GetTempPath(), "hasi-bench-rhvoice-config"));
-    return new RhVoiceDllEngine(library, SpeechAudioOutput.Open(24000), "Paul") { Settings = settings };
+    return new RhVoiceDllEngine(library, SpeechAudioOutput.Open(24000, TimeSpan.Zero), "Paul") { Settings = settings };
 }

@@ -23,6 +23,7 @@ internal sealed class SpeechSetup
     private readonly IDiagnosticLog _log;
     private readonly SpeechSettings _settings;
     private readonly PerformanceSampler _performance = new();
+    private int _rhVoiceInstances;
 
     public SpeechSetup(StartupOptions options, IDiagnosticLog log)
     {
@@ -48,6 +49,11 @@ internal sealed class SpeechSetup
     /// </summary>
     public static string[] DefaultRhVoiceFolders =>
         [Path.Combine(AppContext.BaseDirectory, "rhvoice"), Path.Combine(AppPaths.LocalData, "rhvoice")];
+
+    /// <summary>How long the audio stream stays open without speech (--audio-idle-seconds; 0 = always open).</summary>
+    private TimeSpan AudioIdleTimeout => _options.AudioIdleSeconds is { } seconds
+        ? TimeSpan.FromSeconds(Math.Max(0, seconds))
+        : SpeechAudioOutput.DefaultIdleTimeout;
 
     /// <summary>The engine tried first: --engine, else RHVoice.dll.</summary>
     private string PreferredEngine => _options.Engine ?? RhVoiceDllEngine.EngineId;
@@ -176,7 +182,7 @@ internal sealed class SpeechSetup
         SpeechAudioOutput output;
         try
         {
-            output = SpeechAudioOutput.Open(sampleRate: 24000);
+            output = SpeechAudioOutput.Open(sampleRate: 24000, AudioIdleTimeout);
         }
         catch
         {
@@ -184,7 +190,11 @@ internal sealed class SpeechSetup
             throw;
         }
         _log.Write("RHVOICE", $"version {library.Version}, voices {string.Join(", ", library.Voices)}; audio: {output.DeviceDescription}");
+        var instance = $"{RhVoiceDllEngine.EngineId}#{++_rhVoiceInstances}";
+        output.StateChanged += state => _log.Write("AUDIO", $"engine={instance} {state}");
+        _log.Write("RHVOICE", $"{instance} created ({(_rhVoiceInstances == 1 ? "main voice" : "voice comparison")})");
         var engine = new RhVoiceDllEngine(library, output, RhVoiceProfile) { Settings = _settings };
+        engine.Preload();
         engine.WordStarted += (_, word) => _log.Write("WORD", $"engine={RhVoiceDllEngine.EngineId} {word.Position}+{word.Length} \"{word.Word}\"");
         return engine;
     }

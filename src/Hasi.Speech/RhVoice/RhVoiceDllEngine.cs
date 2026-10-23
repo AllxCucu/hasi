@@ -69,6 +69,23 @@ public sealed class RhVoiceDllEngine : ISpeechEngine, ISpeechMetrics
     /// <summary>A word starts being synthesized: position and length in the text, and the word itself.</summary>
     public event EventHandler<(int Position, int Length, string Word)>? WordStarted;
 
+    /// <summary>
+    /// Loads the voice now, in the background, by synthesizing a word without playing it, so the first real
+    /// message (the welcome) does not wait for the voice to load. The synthesis thread waits for it, so the
+    /// library is never used by two threads at once; a Stop does not cancel it.
+    /// </summary>
+    public void Preload()
+    {
+        var clock = Stopwatch.StartNew();
+        _preload = Task.Run(() =>
+        {
+            _synthesizer.Synthesize("Pregătire.", _profile, default, new SynthesisCallbacks { Samples = _ => false });
+            Report("preload", clock.Elapsed.TotalMilliseconds, "voice loaded before the first message");
+        });
+    }
+
+    private Task? _preload;
+
     public void Speak(string text)
     {
         var id = Interlocked.Increment(ref _nextId);
@@ -108,6 +125,7 @@ public sealed class RhVoiceDllEngine : ISpeechEngine, ISpeechMetrics
             Interlocked.Increment(ref _synthesizing);
             try
             {
+                WaitForPreload();
                 var settings = _settings;
                 var utf8 = Encoding.UTF8.GetBytes(text);
                 var callbacks = new SynthesisCallbacks
@@ -137,6 +155,20 @@ public sealed class RhVoiceDllEngine : ISpeechEngine, ISpeechMetrics
                 Interlocked.Decrement(ref _synthesizing);
             }
         }
+    }
+
+    private void WaitForPreload()
+    {
+        if (_preload is not { } preload) return;
+        try
+        {
+            preload.Wait();
+        }
+        catch (AggregateException ex)
+        {
+            Post(() => Failed?.Invoke(this, ex.InnerException ?? ex));
+        }
+        _preload = null;
     }
 
     private void OnFirstSound(int id)

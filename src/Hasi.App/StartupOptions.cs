@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 
 namespace Hasi.App;
 
@@ -6,7 +6,7 @@ namespace Hasi.App;
 /// Command-line switches for testing until the Settings screens exist (phase 0.6/0.8):
 /// <c>--diagnostic</c>, <c>--voice "name"</c>, <c>--engine sapi5|onecore|rhvoice-dll</c>,
 /// <c>--rhvoice-path folder</c>, <c>--rate -10..10</c>, <c>--pitch -10..10</c>, <c>--volume 0..100</c>,
-/// <c>--test-voice-failure</c>.
+/// <c>--audio-idle-seconds N</c> (0 = keep the audio stream open), <c>--test-voice-failure</c>.
 /// </summary>
 internal sealed record StartupOptions(
     bool Diagnostic,
@@ -16,7 +16,8 @@ internal sealed record StartupOptions(
     bool TestVoiceFailure,
     string? RhVoicePath = null,
     int? Pitch = null,
-    int? Volume = null)
+    int? Volume = null,
+    int? AudioIdleSeconds = null)
 {
     public static StartupOptions Parse(IReadOnlyList<string> args)
     {
@@ -50,6 +51,10 @@ internal sealed record StartupOptions(
                     break;
                 case "--pitch" when Number(next) is { } pitch:
                     options = options with { Pitch = pitch };
+                    i++;
+                    break;
+                case "--audio-idle-seconds" when Number(next) is { } idle:
+                    options = options with { AudioIdleSeconds = idle };
                     i++;
                     break;
                 case "--volume" when Number(next) is { } volume:
