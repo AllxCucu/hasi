@@ -14,6 +14,7 @@ using Hasi.Core.Power;
 using Hasi.Core.Screens;
 using Hasi.Core.Settings;
 using Hasi.Core.Speech;
+using Hasi.Core.Updates;
 using Hasi.Modules.About;
 using Hasi.Modules.Exit;
 using Hasi.Modules.KeyTutor;
@@ -55,7 +56,8 @@ public partial class App : Application, ISystemActions
         var version = ApplicationVersion();
         var header = $"HASI {version}, {Environment.OSVersion.VersionString}";
         ErrorLog.Initialize(header);
-        _instance = SingleInstance.TryAcquire(waitForPrevious: options.AfterError);
+        // After an error or an update the previous HASI may still be ending: wait for it instead of handing over.
+        _instance = SingleInstance.TryAcquire(waitForPrevious: options.AfterError || Program.Events.UpdatedTo is not null);
         if (_instance is null)
         {
             // HASI already runs: bring that one forward instead of opening a second window.
@@ -136,8 +138,10 @@ public partial class App : Application, ISystemActions
 
         // Main menu order. Keep in sync with tests/Hasi.Transcripts.Tests/TranscriptTests.cs.
         IModule[] modules = [new SettingsModule(), new KeyTutorModule(), new AboutModule(), new ExitModule()];
+        var autostart = new RegistryAutostart(_log);
+        var updates = new UpdateFlow(CreateUpdates(options, settings, version), settings, _shell, localizer, _log);
         var context = new ModuleContext(localizer, _shell, new ApplicationInfo(version), normalizer, comparison, settings, _diagnostics,
-            new RegistryAutostart(_log));
+            autostart, updates);
 
         _shell.ScreenChanged += (_, _) => _window.ShowTitle(_shell.Current.Title);
         _window.ProducesText = chord => TextRouting.ProducesText(chord, _keyMap, _shell.IsTextEntryActive, ShellWindow.NumLockOn);
@@ -187,13 +191,19 @@ public partial class App : Application, ISystemActions
         {
             _announcer.Say(new Utterance(localizer.Get("settings.loadProblem"), UtterancePriority.Queue, Earcon.Error));
         }
+        // The first start after installing turns autostart on (the owner's decision), and says so once.
+        var autostartTurnedOn = Program.Events.FirstRun && autostart.SetEnabled(true);
         var facts = new StartupFacts(
             AfterError: options.AfterError,
             NarratorRunning: NarratorIsRunning(),
             RealPowerNotice: settings.TakeRealPowerNotice(),
-            ReturnHotkeyUnavailable: !shellOptions.ReturnHotkey);
+            ReturnHotkeyUnavailable: !shellOptions.ReturnHotkey,
+            UpdatedTo: Program.Events.UpdatedTo,
+            AutostartTurnedOn: autostartTurnedOn);
         _log.Write("START", facts.ToString());
         foreach (var notice in StartupNotices.For(facts, localizer)) _announcer.Say(notice);
+        // After an update the new version has just been checked for; asking again now would be noise.
+        if (Program.Events.UpdatedTo is null) updates.CheckAtStartup();
         HangWatchdog.Start(Dispatcher, () => RecoverFromSeriousError("frozen"));
         if (options.TestError is { } test) TestErrors.Schedule(test, Dispatcher);
 
@@ -234,6 +244,29 @@ public partial class App : Application, ISystemActions
             if (!_window.HasKeyboard && !_exiting) _shell.CannotComeForward();
         };
         check.Start();
+    }
+
+    private VelopackUpdates CreateUpdates(StartupOptions options, AppSettingsService settings, string version)
+    {
+        var text = options.UpdateSource ?? settings.Current.UpdateSource;
+        UpdateSource source;
+        try
+        {
+            source = UpdateSource.Parse(text);
+        }
+        catch (FormatException ex)
+        {
+            ErrorLog.Write(ex, "update source");
+            source = UpdateSource.Default;
+        }
+        _log.Write("UPDATE", $"source {source.Kind} {source.Location}");
+        return new VelopackUpdates(source, version, Dispatcher, _log,
+            () => _engine!.WaitUntilIdleAsync(TimeSpan.FromSeconds(5)),
+            () =>
+            {
+                _exiting = true;
+                _window!.AllowClose = true;
+            });
     }
 
     private static bool NarratorIsRunning()

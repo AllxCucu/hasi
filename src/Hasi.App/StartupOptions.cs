@@ -10,7 +10,8 @@ namespace Hasi.App;
 /// <c>--simulate-power</c> (restart and shut down only log, and HASI closes),
 /// <c>--real-power</c> (restart and shut down are real for this session, whatever "Simulare oprire" says;
 /// <c>--simulate-power</c> wins if both are given), <c>--after-error</c> (set by HASI itself when it restarts after a
-/// serious error), <c>--test-error crash|hang|ui</c> (causes a serious error 5 seconds after start, for testing).
+/// serious error), <c>--test-error crash|hang|ui</c> (causes a serious error 5 seconds after start, for testing),
+/// <c>--update-source github|folder:&lt;path&gt;|http:&lt;url&gt;</c> (where updates come from, for this session).
 /// </summary>
 internal sealed record StartupOptions(
     bool Diagnostic,
@@ -25,7 +26,8 @@ internal sealed record StartupOptions(
     bool SimulatePower = false,
     bool RealPower = false,
     bool AfterError = false,
-    string? TestError = null)
+    string? TestError = null,
+    string? UpdateSource = null)
 {
     public static StartupOptions Parse(IReadOnlyList<string> args)
     {
@@ -46,6 +48,10 @@ internal sealed record StartupOptions(
                     break;
                 case "--test-error" when next is not null:
                     options = options with { TestError = next.ToLowerInvariant() };
+                    i++;
+                    break;
+                case "--update-source" when next is not null:
+                    options = options with { UpdateSource = next };
                     i++;
                     break;
                 case "--real-power":

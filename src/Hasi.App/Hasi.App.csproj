@@ -8,7 +8,13 @@
     <AssemblyName>hasi</AssemblyName>
     <RootNamespace>Hasi.App</RootNamespace>
     <PlatformTarget>x64</PlatformTarget>
+    <!-- Velopack's hooks must run before WPF starts (Program.Main). -->
+    <StartupObject>Hasi.App.Program</StartupObject>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Velopack" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Hasi.Core\Hasi.Core.csproj" />

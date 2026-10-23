@@ -202,6 +202,28 @@ internal sealed class SpeechSetup
         return engine;
     }
 
+    /// <summary>
+    /// HASI's own build says which upstream tag it is (BUILD-INFO.txt, first line), because the library reports the
+    /// version string of upstream's build script ("1.19.2" at every 1.18.x tag), not the tag.
+    /// </summary>
+    private static string BuildInfo(RhVoiceInstallation installation)
+    {
+        try
+        {
+            for (var folder = Path.GetDirectoryName(installation.DllPath); folder is not null; folder = Path.GetDirectoryName(folder))
+            {
+                var file = Path.Combine(folder, "BUILD-INFO.txt");
+                if (File.Exists(file)) return $" (build: {File.ReadLines(file).FirstOrDefault()})";
+                if (installation.ResourcePaths.Any(r => Path.GetDirectoryName(r) == folder)) break; // the installation root
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            ErrorLog.Write(ex, "reading BUILD-INFO.txt");
+        }
+        return "";
+    }
+
     private RhVoiceDllEngine StartRhVoice(RhVoiceInstallation installation)
     {
         var configFolder = Path.Combine(AppPaths.LocalData, "rhvoice-config");
@@ -221,7 +243,7 @@ internal sealed class SpeechSetup
             library.Dispose();
             throw;
         }
-        _log.Write("RHVOICE", $"version {library.Version}, voices {string.Join(", ", library.Voices)}; audio: {output.DeviceDescription}");
+        _log.Write("RHVOICE", $"version {library.Version}{BuildInfo(installation)}, voices {string.Join(", ", library.Voices)}; audio: {output.DeviceDescription}");
         var instance = $"{RhVoiceDllEngine.EngineId}#{++_rhVoiceInstances}";
         output.StateChanged += state => _log.Write("AUDIO", $"engine={instance} {state}");
         _log.Write("RHVOICE", $"{instance} created ({(_rhVoiceInstances == 1 ? "main voice" : "voice comparison")})");

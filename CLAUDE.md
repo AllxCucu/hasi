@@ -119,6 +119,7 @@ The voice output is the source of truth; visuals are secondary.
 ## Commands
 
 ```
+pwsh installer/pack.ps1 -Version 0.1.0 -RhVoice <folder of the rhvoice-x64 CI artifact>   # installer (ADR 0007)
 dotnet build
 dotnet test
 dotnet run --project src/Hasi.App                       # add: -- --diagnostic --voice "Paul" --rate 0

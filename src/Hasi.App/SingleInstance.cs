@@ -90,7 +90,10 @@ internal sealed class SingleInstance : IDisposable
     private static extern bool AllowSetForegroundWindow(int processId);
 }
 
-/// <summary>"Pornire automată": the per-user Run key, so no administrator rights are needed.</summary>
+/// <summary>
+/// "Pornire automată": the per-user Run key, so no administrator rights are needed. When HASI is installed it
+/// points to Velopack's launcher next to the <c>current</c> folder, a path that survives updates (ADR 0007).
+/// </summary>
 internal sealed class RegistryAutostart(IDiagnosticLog log) : Hasi.Core.Settings.IAutostartService
 {
     private const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
@@ -113,14 +116,25 @@ internal sealed class RegistryAutostart(IDiagnosticLog log) : Hasi.Core.Settings
         }
     }
 
+    /// <summary><c>…\HASI.App\hasi.exe</c> when installed (running from <c>…\HASI.App\current</c>), else this exe.</summary>
+    private static string StartPath()
+    {
+        var exe = Environment.ProcessPath!;
+        var folder = System.IO.Path.GetDirectoryName(exe)!;
+        if (!string.Equals(System.IO.Path.GetFileName(folder), "current", StringComparison.OrdinalIgnoreCase)) return exe;
+        var launcher = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(folder)!, System.IO.Path.GetFileName(exe));
+        return System.IO.File.Exists(launcher) ? launcher : exe;
+    }
+
     public bool SetEnabled(bool enabled)
     {
         try
         {
             using var key = Registry.CurrentUser.CreateSubKey(RunKey, writable: true);
-            if (enabled) key.SetValue(ValueName, $"\"{Environment.ProcessPath}\"");
+            var target = StartPath();
+            if (enabled) key.SetValue(ValueName, $"\"{target}\"");
             else key.DeleteValue(ValueName, throwOnMissingValue: false);
-            log.Write("AUTOSTART", enabled ? $"on: {Environment.ProcessPath}" : "off");
+            log.Write("AUTOSTART", enabled ? $"on: {target}" : "off");
             return true;
         }
         catch (Exception ex) when (ex is System.Security.SecurityException or UnauthorizedAccessException or System.IO.IOException)

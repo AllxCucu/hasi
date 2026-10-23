@@ -19,10 +19,20 @@ dotnet run --project src/Hasi.App
 Documentație: [arhitectură](docs/architecture.md), [decizii (ADR)](docs/adr/),
 [teste manuale](docs/manual-tests/). Convențiile de dezvoltare sunt în [CLAUDE.md](CLAUDE.md).
 
+## Instalare
+
+Ghidul, cu pașii pentru cititoarele de ecran: [docs/ghid-instalare.md](docs/ghid-instalare.md). Instalarea e
+per-utilizator, fără drepturi de administrator. Windows 11: testat. Windows 10: suportat, netestat.
+
+**Dezinstalarea șterge toate setările și jurnalele HASI** (`%APPDATA%\HASI` și `%LOCALAPPDATA%\HASI`), pe lângă
+program și pornirea automată.
+
 ## Confidențialitate
 
 HASI nu colectează și nu trimite date despre utilizator. Datele stau local, iar parolele
-în Windows Credential Manager.
+în Windows Credential Manager. Singura legătură la internet este verificarea actualizărilor: o cerere către
+pagina de versiuni a HASI pe GitHub, la pornire (se poate opri din Setări → Actualizări). Vezi
+[docs/data-sources.md](docs/data-sources.md).
 
 ## Licență
 

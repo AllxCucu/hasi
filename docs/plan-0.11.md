@@ -75,7 +75,12 @@
 
    **Oprire.**
 
-### Pasul 2 – pachetul Velopack
+### Pasul 2 – pachetul Velopack – **FĂCUT (aprobat pe 23 octombrie 2026), așteaptă testul tău (X-00…X-10)**
+
+> Rezultat, detalii în ADR 0007:
+> - `installer\pack.ps1` produce `HASI.App-win-Setup.exe` (83 MB, .NET și vocea incluse) și pachetele; actualizarea 0.1.0 → 0.1.1 e un delta de 0,1 MB;
+> - Velopack produce și un `HASI.App-win-Portable.zip`, pe care nu îl folosim;
+> - nu am instalat nimic pe contul tău: instalarea, pornirea automată, actualizarea și dezinstalarea sunt scenariile tale.
 
 1. Pachetul NuGet `Velopack` și unealta `vpk`, ambele cu versiune fixată (licență MIT).
    - Apar în `THIRD-PARTY-NOTICES.md` și în „Despre HASI”, în același commit.
@@ -95,7 +100,7 @@
    - la final pornește HASI, care spune bun venit;
    - cât timp versiunea e nesemnată, Windows SmartScreen avertizează înainte. Îl scriu în ghidul de instalare, cu tastele pentru NVDA.
 
-### Pasul 3 – actualizarea, cu anunț rostit (M0-31)
+### Pasul 3 – actualizarea, cu anunț rostit (M0-31) – **FĂCUT, așteaptă testul tău (X-05…X-09)**
 
 1. În nucleu, o interfață `IUpdateService` (verifică, descarcă cu progres, aplică și repornește). Implementarea Velopack stă în aplicație.
 2. Sursa vine din configurare (`architecture.md` §1.8):

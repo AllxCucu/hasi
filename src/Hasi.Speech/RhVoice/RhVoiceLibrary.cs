@@ -30,8 +30,8 @@ public interface IRhVoiceSynthesizer : IDisposable
 }
 
 /// <summary>
-/// RHVoice.dll through its C API (RHVoice.h, LGPL-2.1-or-later; the DLL as a whole is GPL-2.0-or-later,
-/// see ADR 0004). Loaded from an explicit path; function pointers are resolved by name.
+/// RHVoice.dll through its C API (RHVoice.h, LGPL-2.1-or-later). The DLL combines GPL-2.0-or-later,
+/// LGPL-2.1-or-later and LGPL-3.0-or-later files and is distributed as a whole under GPL-3.0-or-later (ADR 0004). Loaded from an explicit path; function pointers are resolved by name.
 /// One synthesis at a time per instance.
 /// </summary>
 public sealed unsafe class RhVoiceLibrary : IRhVoiceSynthesizer

@@ -247,3 +247,29 @@ Build-ul din CI e copiat în `%LOCALAPPDATA%\HASI\rhvoice-ci-1.18.4`. Cel de acu
 | W-02 | Pornești B; în jurnalul de diagnostic cauți rândul `RHVOICE version` | `RHVOICE version 1.19.2, voices Paul` (build-ul nostru se declară 1.19.2, ca scriptul RHVoice; A spune 1.18.2) și `dll=…rhvoice-ci-1.18.4\lib\x64\RHVoice.dll` |
 | W-03 | Cu B: pașii 1–23 din `regresie-faza-0.md` | totul ca în A: bun venit fără întârziere, oprire imediată a vorbirii, nicio pocnitură, Test pronunție la fel |
 | W-04 | Cu B: Setări → Diagnostic → Comparare voci, Enter pe fiecare frază | „Varianta unu, Paul prin SAPI…”, apoi „Varianta doi, Paul prin RHVoice direct…”; varianta doi sună ca până acum |
+
+## Etapa 0.11, pașii 2–3 – instalare, pornire automată, actualizare, dezinstalare (X-00…X-10)
+
+Fișierele, construite local cu `installer\pack.ps1`, cu RHVoice-ul din CI (nepublicate nicăieri):
+- programul de instalare 0.1.0: `artifacts\HASI-0.1.0-Setup.exe`;
+- sursa de actualizări locală, cu 0.1.0 și 0.1.1: `artifacts\feed`.
+
+**De știut înainte:**
+- HASI instalat folosește aceleași setări ca HASI pornit cu `dotnet run`: `%APPDATA%\HASI\settings.json`, unde „Simulare oprire” e pornită la tine.
+- E o singură instanță: dacă HASI instalat rulează, `dotnet run` doar îl aduce în față.
+
+| ID | Ce faci | Ce trebuie să auzi |
+|---|---|---|
+| X-00 | Pregătire: închizi HASI. Faci o copie de siguranță a folderului RHVoice de test, pe care dezinstalarea de la X-09 îl șterge: `robocopy "%LOCALAPPDATA%\HASI\rhvoice" "%USERPROFILE%\HASI-rhvoice-copie" /E` | – |
+| X-01 | Deschizi `artifacts\HASI-0.1.0-Setup.exe` (dacă apare SmartScreen: „Mai multe informații”, apoi „Executare oricum”) | o bară de progres fără voce, câteva secunde; apoi HASI pornește singur: „Bun venit în HASI. …”, apoi o singură dată „HASI va porni automat când porniți calculatorul. Puteți schimba asta din Setări, Pornire automată.” Pe Desktop și în meniul Start apare „HASI”. |
+| X-02 | Despre HASI, rând cu rând | rândul 1: „…versiunea 0.1.0”; rândul 4: „Sinteza vocală RHVoice 1.18.4, commitul f, a, nouă, d, d, unu, nouă, șase, … distribuită sub licența GNU GPL, versiunea 3 sau ulterioară; are părți sub GNU GPL 2 …, GNU LGPL 2.1 … și GNU LGPL 3 sau ulterioară”; rândurile 10 și 11: „Platforma .NET…”, „Instalarea și actualizările, cu Velopack…”. Spune-mi dacă commitul literă cu literă e de folos sau doar deranjează. |
+| X-03 | Setări → Pornire automată | „Pornire automată. 2 opțiuni. Selectat: Da: HASI pornește singur după ce intrați în Windows, actual, 1 din 2.” Apoi ieși din cont și intri din nou: HASI pornește singur și vorbește. În `cmd`: `reg query HKCU\Software\Microsoft\Windows\CurrentVersion\Run /v HASI` arată `%LOCALAPPDATA%\HASI.App\hasi.exe` (fără `current`). |
+| X-04 | Cu HASI deschis, Enter pe scurtătura „HASI” de pe Desktop | nu se deschide a doua fereastră; HASI vine în față și spune ecranul curent |
+| X-05 | Setări → Actualizări | „Actualizări. 3 opțiuni. Selectat: Caută actualizări acum, 1 din 3.”; al treilea rând: „Versiunea instalată: 0.1.0”. F1 spune că singura legătură la internet e cererea către pagina de versiuni. |
+| X-06 | Închizi HASI (Ieșire → Închide HASI). Tasta Windows + R și scrii: `%LOCALAPPDATA%\HASI.App\hasi.exe --update-source "folder:C:\Users\cucua\Documents\dev\workspace\Hasi\artifacts\feed"`, Enter | după bun venit (fără să-l taie): „Este disponibilă versiunea 0.1.1 a HASI. Doriți să actualizați acum? HASI se va închide și va porni din nou. Apăsați Enter pentru da sau Escape pentru nu.” Apeși **Escape**: „Puteți actualiza oricând din Setări, Actualizări. Meniu principal. …” |
+| X-07 | Închizi HASI și repeți comanda de la X-06 | **nu** se mai întreabă (o singură dată pe versiune) |
+| X-08 | Setări → Actualizări → Caută actualizări acum; Enter | „Caut actualizări.”, apoi întrebarea pentru 0.1.1; după Enter: „Se descarcă actualizarea.” (actualizarea e mică, deci procentele poate nu apar), „Actualizarea este gata. HASI pornește din nou.” HASI se închide și pornește singur: „Bun venit în HASI. …”, apoi „HASI a fost actualizat la versiunea zero punct unu punct unu.” În Despre: 0.1.1. Nicio fereastră nu apare. |
+| X-09 | Cu internetul oprit (Wi-Fi oprit sau cablul scos), pornești HASI normal (fără comanda de la X-06): Setări → Actualizări → Caută actualizări acum | „Caut actualizări.”, apoi „Nu există conexiune la internet.”. Cu internetul pornit: „Aveți cea mai nouă versiune a HASI, 0.1.1.” Pe GitHub nu există încă nicio versiune publicată; dacă auzi „Verificarea actualizărilor nu a reușit”, notează. |
+| X-10 | Dezinstalare: Setări Windows → Aplicații → Aplicații instalate → HASI → Dezinstalare | HASI se închide (dacă rula). Dispar `%LOCALAPPDATA%\HASI.App`, `%LOCALAPPDATA%\HASI`, `%APPDATA%\HASI`, scurtăturile și valoarea `HASI` din `Run` (`reg query …` de la X-03 spune că nu o găsește). **Apoi refaci folderul RHVoice:** `robocopy "%USERPROFILE%\HASI-rhvoice-copie" "%LOCALAPPDATA%\HASI\rhvoice" /E`. |
+
+**După X-10:** setările tale s-au șters. La prima pornire, HASI pornește cu valorile pentru un utilizator nou: „Simulare oprire” e **oprită**, deci repornirea și oprirea calculatorului din HASI sunt reale. Dacă vrei înapoi modul de test, îl pornești din Setări → Diagnostic → Simulare oprire.
