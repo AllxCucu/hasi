@@ -215,8 +215,19 @@ Pornire: `dotnet run --project src\Hasi.App` (fără `--diagnostic`, ca să vezi
 
 Jurnalul de erori: `%LOCALAPPDATA%\HASI\logs\errors.log`. După G-06…G-09 conține câte o intrare pentru fiecare eroare (data, locul, versiunea, eroarea), fără nimic din ce ai scris.
 
-## Etapa 0.10 – integrare în sistem (planificată)
+## Etapa 0.10 – integrare în sistem (M0-27…M0-30, I-01…I-06)
+
+Pornire: `dotnet run --project src\Hasi.App -- --diagnostic`. Pentru M0-30, HASI pornește din `src\Hasi.App\bin\Debug\net10.0-windows10.0.19041.0\hasi.exe` (acolo indică pornirea automată până la installer, în 0.11).
 
 | ID | Ce faci | Ce trebuie să auzi |
 |---|---|---|
-| M0-27 | Pornești Naratorul (Control + tasta Windows + Enter), apoi HASI | după bun venit: „Naratorul Windows este pornit și va vorbi peste HASI. Pentru a-l opri, apăsați împreună Control, tasta Windows și Enter.” |
+| M0-27 | Pornești Naratorul (Control + tasta Windows + Enter), apoi HASI | după bun venit: „Naratorul Windows este pornit și va vorbi peste HASI. Pentru a-l opri, apăsați împreună Control, tasta Windows și Enter.” Fără Narator, mesajul nu apare. |
+| M0-28 | Cu HASI deschis, deschizi Notepad (sau dai clic pe altă fereastră), apoi Control + Alt + H | „HASI nu mai este în prim-plan, iar tastele merg către altă fereastră. Pentru a reveni, apăsați împreună Control, Alt și H.”; după Control + Alt + H, HASI vine în față și spune ecranul curent, de exemplu „Meniu principal. Selectat: Setări, 1 din 4.” |
+| I-01 | Control + Alt + H când HASI e deja în față | HASI spune ecranul curent (ca un „unde sunt”, fără cale) |
+| I-02 | Minimizezi HASI (tasta Windows + săgeata jos sau din bara de activități), apoi Control + Alt + H | HASI revine pe tot ecranul și spune ecranul curent |
+| M0-29 | Cu HASI deschis, pornești HASI a doua oară (încă un `dotnet run` sau dublu clic pe `hasi.exe`) | nu se deschide a doua fereastră și nu se aude al doilea bun venit; HASI cel deschis vine în față și spune ecranul curent |
+| I-03 | Dacă Windows nu lasă HASI să vină în față (de exemplu în timp ce un program afișează o întrebare) | „Windows nu a lăsat HASI să vină în prim-plan. Țineți apăsată tasta Alt și apăsați Tab până ajungeți la HASI.” Spune-mi dacă ți s-a întâmplat. |
+| M0-30 | Setări → Pornire automată | „Pornire automată. 2 opțiuni. Selectat: Nu, actual, 2 din 2.”; săgeata sus, Enter → „Pornire automată: Da: HASI pornește singur după ce intrați în Windows. …” Repornești Windows (sau ieși din cont și intri din nou): HASI pornește singur și vorbește după autentificare. Dacă nu are tastele, spune mesajul de la M0-28, iar Control + Alt + H îl aduce în față. |
+| I-04 | Setări → Pornire automată → Nu | „Pornire automată: Nu. …”; la următoarea autentificare HASI nu mai pornește singur |
+| I-05 | Pornești HASI cu `-- --test-error crash` (după G-07) | repornirea după eroare merge și cu o singură instanță: HASI cel nou pornește (nu se oprește crezând că rulează deja) |
+| I-06 | (dacă alt program folosește deja Control + Alt + H) | la pornire: „Tasta Control Alt H este folosită de alt program, așa că nu vă poate aduce înapoi în HASI.”; mesajul de pierdere a focusului spune atunci Alt + Tab, ca înainte |

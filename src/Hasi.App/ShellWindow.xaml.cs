@@ -112,6 +112,37 @@ public partial class ShellWindow : Window
     [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     private static extern IntPtr GetForegroundWindow();
 
+    /// <summary>The id of Ctrl+Alt+H in <c>WM_HOTKEY</c>.</summary>
+    public static readonly IntPtr ReturnHotkeyId = 1;
+
+    private const uint ModAlt = 0x1;
+    private const uint ModControl = 0x2;
+    private const uint ModNoRepeat = 0x4000;
+    private const uint VkH = 0x48;
+
+    /// <summary>Ctrl+Alt+H, from any program. False when another program already holds it.</summary>
+    public bool RegisterReturnHotkey() =>
+        RegisterHotKey(new WindowInteropHelper(this).Handle, (int)ReturnHotkeyId, ModControl | ModAlt | ModNoRepeat, VkH);
+
+    /// <summary>Restores and activates the window; Windows decides whether it really gets the keyboard.</summary>
+    public void BringToFront()
+    {
+        if (WindowState == WindowState.Minimized) WindowState = WindowState.Maximized;
+        Show();
+        Activate();
+        _ = SetForegroundWindow(new WindowInteropHelper(this).Handle);
+    }
+
+    [DllImport("user32.dll")]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool RegisterHotKey(IntPtr window, int id, uint modifiers, uint key);
+
+    [DllImport("user32.dll")]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetForegroundWindow(IntPtr window);
+
     protected override void OnClosing(CancelEventArgs e)
     {
         ArgumentNullException.ThrowIfNull(e);

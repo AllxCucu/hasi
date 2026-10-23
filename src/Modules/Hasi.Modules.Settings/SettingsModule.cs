@@ -9,7 +9,7 @@ namespace Hasi.Modules.Settings;
 
 /// <summary>
 /// User preferences (phase 0.6): voice, rate, volume, pitch, key echo, colours, text size and list ends,
-/// saved at once and applied immediately. Autostart (0.10) and updates (0.11) follow later.
+/// saved at once and applied immediately; autostart (0.10). Updates (0.11) follow later.
 /// </summary>
 public sealed class SettingsModule : IModule
 {
@@ -40,7 +40,9 @@ public sealed class SettingsModule : IModule
                 (int)s!.Current.TextSize, i => s.Update(u => u with { TextSize = (TextSize)i }))),
             Item("settings.listEnd", () => Choice(context, "settings.listEnd", ["settings.listEnd.stop", "settings.listEnd.wrap"],
                 s!.Current.WrapLists ? 1 : 0, i => s.Update(u => u with { WrapLists = i == 1 }))),
-            Item("settings.autostart", null),
+            context.Autostart is { } autostart
+                ? new MenuItem(l.Get("settings.autostart"), _ => ScreenResult.Push(Autostart(context, autostart)))
+                : NotYetAvailable(l.Get("settings.autostart"), context),
             new MenuItem(l.Get("settings.diagnostic"), _ => ScreenResult.Push(DiagnosticMenu(context))),
             Item("settings.updates", null),
         ];
@@ -53,6 +55,18 @@ public sealed class SettingsModule : IModule
             v => set((v - 50) / 5),
             0, 100, 5,
             v => v == 50 ? atNormal : v.ToString(l.Culture));
+    }
+
+    private static ChoiceScreen Autostart(IModuleContext context, IAutostartService autostart)
+    {
+        var l = context.Localizer;
+        var title = l.Get("settings.autostart");
+        string[] labels = [l.Get("settings.autostart.on"), l.Get("settings.autostart.off")];
+        return new ChoiceScreen(title, labels, autostart.IsEnabled ? 0 : 1, (index, _) =>
+            autostart.SetEnabled(index == 0)
+                ? ScreenResult.Pop(prefix: l.Get("settings.choice.changed", ("title", title), ("option", labels[index])))
+                : ScreenResult.Say(new Utterance(l.Get("settings.autostart.failed"), Earcon: Earcon.Error)),
+            l.Get("settings.choice.current"));
     }
 
     private static ValueScreen Volume(IModuleContext context, ISettingsService settings)

@@ -41,6 +41,9 @@ public interface IModuleContext
 
     /// <summary>Diagnostic mode and copying its log, or null when the host has none.</summary>
     IDiagnosticsService? Diagnostics { get; }
+
+    /// <summary>Starting HASI when the user signs in, or null when the host cannot.</summary>
+    IAutostartService? Autostart { get; }
 }
 
 /// <summary>Shell features that modules may trigger.</summary>
@@ -86,7 +89,8 @@ public sealed record ModuleContext(
     ITextNormalizer Normalizer,
     IVoiceComparison? VoiceComparison = null,
     ISettingsService? Settings = null,
-    IDiagnosticsService? Diagnostics = null) : IModuleContext;
+    IDiagnosticsService? Diagnostics = null,
+    IAutostartService? Autostart = null) : IModuleContext;
 
 public static class MainMenu
 {

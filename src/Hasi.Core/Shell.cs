@@ -148,8 +148,17 @@ public sealed class Shell : IShellServices, IScreenContext
             _focusLostWhilePowerPending = true;
             return;
         }
-        _announcer.Say(Localizer.Get("shell.focusLost"));
+        _announcer.Say(FocusLostText);
     }
+
+    /// <summary>The user asked HASI to come forward, but Windows kept another window in front.</summary>
+    public void CannotComeForward()
+    {
+        _log.Write("FOCUS", "could not come forward");
+        _announcer.Say(Localizer.Get("shell.cannotComeForward"));
+    }
+
+    private string FocusLostText => Localizer.Get(Options.ReturnHotkey ? "shell.focusLost" : "shell.focusLost.altTab");
 
     /// <summary>HASI has the keyboard again: say where the user is.</summary>
     public void FocusRegained()
@@ -270,7 +279,7 @@ public sealed class Shell : IShellServices, IScreenContext
         if (_focusLostWhilePowerPending)
         {
             _focusLostWhilePowerPending = false;
-            outcome = outcome.Then(Localizer.Get("shell.focusLost"));
+            outcome = outcome.Then(FocusLostText);
         }
         _announcer.Say(outcome);
     }

@@ -24,6 +24,9 @@ public sealed class ShellOptions
 
     /// <summary>What is spoken while typing in text fields.</summary>
     public Settings.KeyEcho KeyEcho { get; set; } = Settings.KeyEcho.Character;
+
+    /// <summary>Ctrl+Alt+H brings HASI back from any program; false when Windows did not give HASI the key.</summary>
+    public bool ReturnHotkey { get; set; }
 }
 
 public interface IScreenContext

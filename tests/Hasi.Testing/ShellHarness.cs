@@ -66,6 +66,22 @@ public sealed class FakeDiagnosticsService : IDiagnosticsService
     }
 }
 
+/// <summary>Autostart in memory.</summary>
+public sealed class FakeAutostartService : IAutostartService
+{
+    public bool IsEnabled { get; private set; }
+
+    /// <summary>Simulates Windows refusing the change.</summary>
+    public bool Refuse { get; set; }
+
+    public bool SetEnabled(bool enabled)
+    {
+        if (Refuse) return false;
+        IsEnabled = enabled;
+        return true;
+    }
+}
+
 /// <summary>
 /// Runs the real shell with the real Romanian resources and no audio or window:
 /// press keys, then check what would have been said.
@@ -83,6 +99,7 @@ public sealed class ShellHarness
         var log = NullDiagnosticLog.Instance;
         Announcer = new Announcer(new OutputHub([Output], log), Normalizer, log);
         Diagnostics = new FakeDiagnosticsService();
+        Autostart = new FakeAutostartService();
         Shell = new Shell(Announcer, Localizer, options ?? new ShellOptions(), System, log, Diagnostics);
         Settings = settings ?? new InMemorySettingsService();
         System.Simulated = () => Settings.Current.SimulatePower;
@@ -95,7 +112,7 @@ public sealed class ShellHarness
                 Shell.Options.KeyEcho = s.KeyEcho;
             };
         }
-        ModuleContext = new ModuleContext(Localizer, Shell, new ApplicationInfo("0.1.0"), Normalizer, comparison, Settings, Diagnostics);
+        ModuleContext = new ModuleContext(Localizer, Shell, new ApplicationInfo("0.1.0"), Normalizer, comparison, Settings, Diagnostics, Autostart);
     }
 
     public JsonLocalizer Localizer { get; }
@@ -111,6 +128,8 @@ public sealed class ShellHarness
     public ISettingsService Settings { get; }
 
     public FakeDiagnosticsService Diagnostics { get; }
+
+    public FakeAutostartService Autostart { get; }
 
     public Announcer Announcer { get; }
 

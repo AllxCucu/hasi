@@ -15,17 +15,23 @@
 > Escape
 < Setări. Selectat: Viteză, 2 din 11.
 
-# O setare încă neimplementată (pornirea automată vine în etapa 0.10)
+# O setare încă neimplementată (actualizările vin în etapa 0.11)
 > End
 < Actualizări, 11 din 11.
+> Enter
+< Actualizări. Această funcție va fi disponibilă într-o versiune următoare. Apăsați Escape pentru a vă întoarce.
+> Enter
+< Această funcție va fi disponibilă într-o versiune următoare. Apăsați Escape pentru a vă întoarce.
+> Escape
+< Setări. Selectat: Actualizări, 11 din 11.
+
+# Pornirea automată (etapa 0.10): Da sau Nu
 > Up
 < Diagnostic, 10 din 11.
 > Up
 < Pornire automată, 9 din 11.
 > Enter
-< Pornire automată. Această funcție va fi disponibilă într-o versiune următoare. Apăsați Escape pentru a vă întoarce.
-> Enter
-< Această funcție va fi disponibilă într-o versiune următoare. Apăsați Escape pentru a vă întoarce.
+< Pornire automată. 2 opțiuni. Selectat: Nu, actual, 2 din 2.
 > Escape
 < Setări. Selectat: Pornire automată, 9 din 11.
 > Home

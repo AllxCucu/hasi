@@ -36,6 +36,8 @@ public partial class App : Application, ISystemActions
     private AppDiagnostics? _diagnostics;
     private CrashRecovery? _recovery;
     private ILocalizer? _localizer;
+    private SingleInstance? _instance;
+    private bool _focusWasLost;
     private readonly KeyMap _keyMap = KeyMap.CreateDefault();
     private bool _exitRequested;
     private PowerAction? _power;
@@ -53,6 +55,14 @@ public partial class App : Application, ISystemActions
         var version = ApplicationVersion();
         var header = $"HASI {version}, {Environment.OSVersion.VersionString}";
         ErrorLog.Initialize(header);
+        _instance = SingleInstance.TryAcquire(waitForPrevious: options.AfterError);
+        if (_instance is null)
+        {
+            // HASI already runs: bring that one forward instead of opening a second window.
+            SingleInstance.AskRunningToComeForward();
+            Shutdown();
+            return;
+        }
         _recovery = new CrashRecovery(e.Args, _log);
         DispatcherUnhandledException += OnUnhandledException;
         AppDomain.CurrentDomain.UnhandledException += (_, args) =>
@@ -126,7 +136,8 @@ public partial class App : Application, ISystemActions
 
         // Main menu order. Keep in sync with tests/Hasi.Transcripts.Tests/TranscriptTests.cs.
         IModule[] modules = [new SettingsModule(), new KeyTutorModule(), new AboutModule(), new ExitModule()];
-        var context = new ModuleContext(localizer, _shell, new ApplicationInfo(version), normalizer, comparison, settings, _diagnostics);
+        var context = new ModuleContext(localizer, _shell, new ApplicationInfo(version), normalizer, comparison, settings, _diagnostics,
+            new RegistryAutostart(_log));
 
         _shell.ScreenChanged += (_, _) => _window.ShowTitle(_shell.Current.Title);
         _window.ProducesText = chord => TextRouting.ProducesText(chord, _keyMap, _shell.IsTextEntryActive, ShellWindow.NumLockOn);
@@ -145,23 +156,26 @@ public partial class App : Application, ISystemActions
             if (_exiting) return;
             _shell.RequestExitConfirmation();
         };
-        var focusWasLost = false;
+
         _window.Deactivated += (_, _) =>
         {
             if (_exiting) return;
-            focusWasLost = true;
+            _focusWasLost = true;
             _shell.FocusLost();
         };
         _window.Activated += (_, _) =>
         {
             // The first activation happens at startup, while the welcome message is being said.
-            if (!focusWasLost || _exiting) return;
-            focusWasLost = false;
+            if (!_focusWasLost || _exiting) return;
+            _focusWasLost = false;
             _shell.FocusRegained();
         };
         _window.Show();
         _window.Activate();
         HwndSource.FromHwnd(new WindowInteropHelper(_window).Handle)?.AddHook(OnWindowMessage);
+        shellOptions.ReturnHotkey = _window.RegisterReturnHotkey();
+        _log.Write("FOCUS", shellOptions.ReturnHotkey ? "Ctrl+Alt+H registered" : "Ctrl+Alt+H taken by another program");
+        _instance.Listen(() => Dispatcher.BeginInvoke(() => ComeForward("started again")));
 
         _shell.Start(MainMenu.Create(modules, context));
         if (voiceNotice is not null)
@@ -173,14 +187,13 @@ public partial class App : Application, ISystemActions
         {
             _announcer.Say(new Utterance(localizer.Get("settings.loadProblem"), UtterancePriority.Queue, Earcon.Error));
         }
-        if (settings.TakeRealPowerNotice())
-        {
-            _announcer.Say(new Utterance(localizer.Get("power.realNotice"), UtterancePriority.Queue));
-        }
-        if (options.AfterError)
-        {
-            _announcer.Say(new Utterance(localizer.Get("error.restarted"), UtterancePriority.Queue, Earcon.Error));
-        }
+        var facts = new StartupFacts(
+            AfterError: options.AfterError,
+            NarratorRunning: NarratorIsRunning(),
+            RealPowerNotice: settings.TakeRealPowerNotice(),
+            ReturnHotkeyUnavailable: !shellOptions.ReturnHotkey);
+        _log.Write("START", facts.ToString());
+        foreach (var notice in StartupNotices.For(facts, localizer)) _announcer.Say(notice);
         HangWatchdog.Start(Dispatcher, () => RecoverFromSeriousError("frozen"));
         if (options.TestError is { } test) TestErrors.Schedule(test, Dispatcher);
 
@@ -190,14 +203,45 @@ public partial class App : Application, ISystemActions
         focusCheck.Tick += (_, _) =>
         {
             focusCheck.Stop();
-            if (_window.HasKeyboard || focusWasLost || _exiting) return;
-            focusWasLost = true;
+            if (_window.HasKeyboard || _focusWasLost || _exiting) return;
+            _focusWasLost = true;
             _shell.FocusLost();
         };
         focusCheck.Start();
     }
 
     public void RequestExit() => _exitRequested = true;
+
+    /// <summary>
+    /// Ctrl+Alt+H or a second start: HASI comes to the front and says where the user is. Windows may refuse
+    /// (another program is in the middle of something): then HASI says how to come back by hand.
+    /// </summary>
+    private void ComeForward(string reason)
+    {
+        if (_window is null || _shell is null || _exiting) return;
+        _log.Write("FOCUS", $"come forward ({reason})");
+        if (_window.HasKeyboard)
+        {
+            _shell.FocusRegained();
+            return;
+        }
+        _focusWasLost = true; // So that activation says where the user is.
+        _window.BringToFront();
+        var check = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        check.Tick += (_, _) =>
+        {
+            check.Stop();
+            if (!_window.HasKeyboard && !_exiting) _shell.CannotComeForward();
+        };
+        check.Start();
+    }
+
+    private static bool NarratorIsRunning()
+    {
+        var narrators = System.Diagnostics.Process.GetProcessesByName("Narrator");
+        foreach (var process in narrators) process.Dispose();
+        return narrators.Length > 0;
+    }
 
     public void RequestPower(PowerAction action, bool force)
     {
@@ -217,6 +261,7 @@ public partial class App : Application, ISystemActions
         _engine?.Dispose();
         foreach (var disposable in _disposables) disposable.Dispose();
         _diagnostics?.Dispose();
+        _instance?.Dispose();
         base.OnExit(e);
     }
 
@@ -294,11 +339,17 @@ public partial class App : Application, ISystemActions
     }
 
     private const int WmEndSession = 0x0016;
+    private const int WmHotkey = 0x0312;
 
     /// <summary>WPF reports the start of a session end (<see cref="Application.SessionEnding"/>) but not its cancellation.</summary>
     private IntPtr OnWindowMessage(IntPtr hwnd, int message, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
-        if (message == WmEndSession && wParam == IntPtr.Zero)
+        if (message == WmHotkey && wParam == ShellWindow.ReturnHotkeyId)
+        {
+            handled = true;
+            ComeForward("Ctrl+Alt+H");
+        }
+        else if (message == WmEndSession && wParam == IntPtr.Zero)
         {
             // The session goes on: closing the window must ask again.
             _log.Write("POWER", "session end cancelled");
