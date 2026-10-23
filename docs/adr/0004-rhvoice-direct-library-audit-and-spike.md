@@ -1,6 +1,6 @@
 ﻿# ADR 0004 – RHVoice.dll directly: license audit and spike
 
-- Status: **Proposed** – second experiment done (2026-10-23); waiting for the owner's listening tests and decision. Do not switch from SAPI before it.
+- Status: **Accepted** (2026-10-23) – RHVoice.dll is the default engine, SAPI5 and OneCore are fallbacks. The CI build of RHVoice.dll is implemented before phase 0.11 (installer).
 - Date: 2026-10-23
 - Follows: ADR 0002 (RHVoice through SAPI in phase 0)
 
@@ -167,4 +167,6 @@ about six times faster, less memory. Its main gain stays the single installer. I
 find no click, no cut first syllable on Bluetooth and no freeze on device changes**, with the CI build above
 done before the installer milestone. If any of those fails, stay on SAPI and fix it first.
 
-**Decision:** pending – the owner listens and decides.
+**Decision (2026-10-23, owner):** switch. RHVoice.dll is the default engine, with SAPI5 and OneCore as fallbacks.
+The CI build from a pinned commit (plan above) is implemented before phase 0.11, not now. Until then HASI looks
+for the DLL and Paul's data in `<HASI folder>\rhvoice` and `%LOCALAPPDATA%\HASI\rhvoice` (or `--rhvoice-path`).

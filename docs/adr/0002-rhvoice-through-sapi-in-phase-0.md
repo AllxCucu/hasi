@@ -1,6 +1,6 @@
-# ADR 0002 – RHVoice "Paul" through SAPI5 in phase 0; direct library only after a license audit
+﻿# ADR 0002 – RHVoice "Paul" through SAPI5 in phase 0; direct library only after a license audit
 
-- Status: Accepted (2026-10-21)
+- Status: Superseded by ADR 0004 (2026-10-23): RHVoice.dll is now the default; SAPI5 remains a fallback
 - Deciders: project owner (tester), lead developer
 
 ## Context

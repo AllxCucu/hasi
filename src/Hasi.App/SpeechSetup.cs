@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using Hasi.Core.Diagnostics;
 using Hasi.Core.Localization;
@@ -29,29 +29,42 @@ internal sealed class SpeechSetup
         _options = options;
         _log = log;
         _settings = new SpeechSettings(options.Rate ?? 0, options.Pitch ?? 0, options.Volume ?? 100);
-        if (options.RhVoicePath is { } path)
+        // RHVoice.dll is the default engine (ADR 0004). --rhvoice-path overrides the default locations.
+        string[] folders = options.RhVoicePath is { } path ? [path] : DefaultRhVoiceFolders;
+        foreach (var folder in folders)
         {
-            RhVoice = RhVoiceInstallation.Find(path, out var problem);
+            RhVoice = RhVoiceInstallation.Find(folder, out var problem);
             _log.Write("RHVOICE", RhVoice is null
-                ? $"not usable: {problem} (HASI is {RhVoiceInstallation.ProcessArchitecture})"
+                ? $"{folder}: not usable: {problem} (HASI is {RhVoiceInstallation.ProcessArchitecture})"
                 : $"dll={RhVoice.DllPath} arch={RhVoice.Architecture} (HASI is {RhVoiceInstallation.ProcessArchitecture}) " +
                   $"data={string.Join("; ", RhVoice.ResourcePaths)}");
+            if (RhVoice is not null) break;
         }
     }
 
-    public RhVoiceInstallation? RhVoice { get; }
+    /// <summary>
+    /// Where HASI looks for RHVoice.dll and the voice data when no --rhvoice-path is given: next to the
+    /// executable (the future installer, phase 0.11), then the user's HASI folder (the tester's copy).
+    /// </summary>
+    public static string[] DefaultRhVoiceFolders =>
+        [Path.Combine(AppContext.BaseDirectory, "rhvoice"), Path.Combine(AppPaths.LocalData, "rhvoice")];
+
+    /// <summary>The engine tried first: --engine, else RHVoice.dll.</summary>
+    private string PreferredEngine => _options.Engine ?? RhVoiceDllEngine.EngineId;
+
+    public RhVoiceInstallation? RhVoice { get; private set; }
 
     /// <summary>
-    /// Paul (RHVoice through SAPI5) if installed; otherwise a Romanian voice from SAPI5 or OneCore
-    /// (Microsoft Andrei); otherwise any voice. <c>--engine</c> moves that engine's voices to the front,
-    /// the others stay in the fallback chain. A fallback at startup is said aloud.
+    /// Paul through RHVoice.dll (default, ADR 0004); then Paul through SAPI5; then a Romanian voice from
+    /// SAPI5 or OneCore (Microsoft Andrei); then any voice. <c>--engine</c> moves that engine's voices to
+    /// the front; the others stay in the fallback chain. A fallback at startup is said aloud.
     /// </summary>
     public (FallbackSpeechEngine Engine, string? Notice) CreateMainEngine(ILocalizer localizer)
     {
         var voices = ListVoices();
         var preferred = _options.Voice ?? VoiceChooser.DefaultPreferredVoice;
         var ranked = VoiceChooser.Rank(voices, preferred)
-            .OrderBy(v => _options.Engine is not null && v.Engine.Equals(_options.Engine, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+            .OrderBy(v => v.Engine.Equals(PreferredEngine, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
             .Select((voice, index) => new SpeechCandidate(voice.Name, () =>
             {
                 var engine = StartVoice(voice);
