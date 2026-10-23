@@ -101,9 +101,10 @@ jobs:
           $dll = 'out/rhvoice/lib/x64/RHVoice.dll'
           $reported = (Select-String -Path out/check.txt -Pattern '^version\s+(.+)$').Matches[0].Groups[1].Value
           @(
-            "RHVoice built by HASI CI from upstream source (GPL; see licenses/)."
-            "Source: https://github.com/RHVoice/RHVoice/tree/$env:RHVOICE_COMMIT (tag $env:RHVOICE_TAG)"
-            "Version reported by the library: $reported"
+            "RHVoice $env:RHVOICE_TAG, commit $env:RHVOICE_COMMIT"
+            "Built by HASI's CI from upstream source; the DLL is distributed under GPL-3.0-or-later (see licenses/)."
+            "Source: https://github.com/RHVoice/RHVoice/tree/$env:RHVOICE_COMMIT"
+            "The library reports version '$reported': upstream's SConstruct (get_version) returns that string at every 1.18.x tag. The source is tag $env:RHVOICE_TAG."
             "RHVoice.dll SHA-256: $((Get-FileHash $dll -Algorithm SHA256).Hash)"
             "Voice Paul and Romanian data: submodules data/voices/paul and data/languages/Romanian at that commit"
             "Built with: SCons $env:SCONS_VERSION, runner image $env:ImageOS $env:ImageVersion"
