@@ -1,50 +1,70 @@
-﻿# HASI – 0.11, pasul 1: RHVoice.dll construit în CI
+﻿# HASI – 0.11, pașii 2 și 3: installer și actualizări
 
-Pasul 1 e gata. M-am oprit aici, la oprirea prevăzută, și aștept ascultarea ta comparativă. Programul HASI nu s-a schimbat.
+Pașii 2 și 3 sunt gata. M-am oprit la oprirea prevăzută. Pasul 4, publicarea 0.1.0, nu e început. Toate cele **339 de teste** trec, iar CI-ul e verde.
 
-## Ce s-a făcut
+## Ce s-a făcut (3 commit-uri, fiecare verificat singur)
 
-- **Workflow-ul nou** `.github/workflows/rhvoice.yml` construiește RHVoice.dll x64 din sursa oficială RHVoice, la commitul exact al tag-ului 1.18.4 (`fa9dd196…`):
-  - folosește SCons, cum ai aprobat;
-  - aduce doar submodulele necesare: Boost, datele românești și Paul, din cele peste 100 ale depozitului;
-  - construiește **doar biblioteca x64**, fără nimic pentru x86, în circa 70 de secunde;
-  - [rularea reușită](https://github.com/AllxCucu/hasi/actions/runs/40018458844).
-- **Ce rezultă:** un artifact cu DLL-ul, Paul, datele românești, textele de licență și un `BUILD-INFO.txt` (commitul, SHA-256 al DLL-ului, versiunea). Artifactul nu se publică nicăieri.
-- **Utilitarul de verificare** `tools/RhVoiceCheck` nu face parte din program. Verifică automat, în CI, că DLL-ul e x64, că are vocea Paul și că rostește cele 5 fraze din „Comparare voci”, pe care le salvează ca WAV.
+- **`a0c46e8` – actualizări cu anunț rostit:**
+  - la pornire, o versiune nouă e oferită **o singură dată**, după bun venit, fără să-l taie;
+  - Escape spune „Puteți actualiza oricând din Setări, Actualizări.”, iar HASI întreabă din nou doar pentru o versiune mai nouă;
+  - **Setări → Actualizări** are trei opțiuni: Caută actualizări acum, Verificare automată la pornire (Da/Nu) și Versiunea instalată;
+  - progresul descărcării se spune din 25 în 25 la sută, iar erorile sunt spuse simplu („Nu există conexiune la internet.” și celelalte).
+- **`c9c32ce` – „Simulare oprire” oprită implicit** pentru utilizatorii noi. La tine rămâne pornită: în `settings.json` ai salvat `true`.
+- **`74d47fb` – installer-ul**, în același commit cu textul de licență corectat:
+  - `installer\pack.ps1` face un installer cu .NET și vocea incluse, fără drepturi de administrator; acceptă doar RHVoice-ul construit în CI;
+  - prima pornire după instalare activează pornirea automată și spune o singură dată mesajul tău;
+  - după o actualizare, HASI spune versiunea nouă;
+  - dezinstalarea șterge pornirea automată, `%LOCALAPPDATA%\HASI` și `%APPDATA%\HASI`. Ghidul (`docs/ghid-instalare.md`) și README spun că **dezinstalarea șterge toate setările și jurnalele**;
+  - Windows 10 apare „suportat, netestat”;
+  - decizia e scrisă în ADR 0007.
 
-## Ce am găsit
+## Versiunea RHVoice și licența (cerințele tale)
 
-1. **Sunetul e identic bit cu bit.** Am comparat cele 5 fraze rostite de 1.18.2 (al tău) cu cele din build-ul din CI: aceleași eșantioane, la toate cinci.
-2. **De ce e la fel:**
-   - 1.18.2 e ultima versiune RHVoice publicată pentru Windows (add-on-ul NVDA pe care îl folosești); 1.18.3 și 1.18.4 au fost doar pentru Android;
-   - între 1.18.2 și 1.18.4 codul bibliotecii nu s-a schimbat deloc;
-   - Paul și româna au intrat în depozitul RHVoice după 1.18.2, iar la 1.18.4 fișierele lor sunt identice cu ce ai instalat de mână.
-3. **Versiunea afișată e „1.19.2”.** Scriptul RHVoice declară „1.19.2” la toate tag-urile 1.18.x, așa că build-ul nostru apare în jurnal ca 1.19.2. E doar eticheta: sursa e 1.18.4.
-4. **Două piedici în SCons, rezolvate:**
-   - SCons citește și scripturile installer-ului RHVoice, chiar dacă cerem doar DLL-ul, și se oprea cu o eroare. Opțiunea `sapi_dev_core=true` o evită: schimbă doar installer-ele lor SAPI, nu biblioteca.
-   - Conversia capetelor de rând (CRLF) e oprită în CI, ca fișierele de date să rămână identice cu ale RHVoice.
-5. **Corectură de licență, important.** Câteva fișiere din bibliotecă sunt sub **LGPL 3.0 sau ulterioară**, iar auditul meu din ADR 0004 nu le prinsese. DLL-ul se poate distribui în întregime sub GPL-3.0-or-later, deci rămâne compatibil cu HASI. Textul din „Despre HASI” și din `THIRD-PARTY-NOTICES.md` trebuie însă corectat, odată cu includerea DLL-ului în installer (pasul 2). Nu l-am schimbat acum, pentru că pasul 1 nu atinge programul.
-6. **Proba de pornire** (fără taste, 8 secunde), cu HASI pornit pe build-ul din CI: HASI îl încarcă, spune bun venit cu RHVoice direct, nicio eroare.
+- „Despre HASI”, `THIRD-PARTY-NOTICES.md` și `BUILD-INFO.txt` spun acum **„RHVoice 1.18.4”** și commitul `fa9dd196fd2dac3b0bf089a2d80fc8477c2380e3`.
+  - În „Despre HASI”, commitul se rostește literă cu literă, primele 8 caractere: „f, a, nouă, d, d, unu, nouă, șase”. Scris legat, fiecare caracter s-ar fi pronunțat greu de înțeles.
+  - Codul complet e în `THIRD-PARTY-NOTICES.md` și în `BUILD-INFO.txt`. Spune-mi dacă îl vrei rostit întreg.
+- **De unde vine „1.19.2”:** DLL-ul își raportează singur versiunea, prin funcția lui `RHVoice_get_version`. Valoarea e pusă la compilare de scriptul RHVoice (`SConstruct`, funcția `get_version()`), care întoarce „1.19.2” la toate tag-urile 1.18.x. Apare automat în două locuri:
+  - în jurnalul de diagnostic, unde rândul arată acum așa: `RHVOICE version 1.19.2 (build: RHVoice 1.18.4, commit fa9dd196…)`;
+  - în numele fișierelor WAV produse de utilitarul de verificare din CI.
+- **Licența** e corectată în „Despre HASI”, `THIRD-PARTY-NOTICES.md` și în comentariul din cod: GPL 3 sau ulterioară pentru întreg, cu părți GPL 2+, LGPL 2.1+ și LGPL 3+.
+- **Două build-uri ale aceleiași surse au alt SHA-256.** MSVC scrie data compilării în DLL, deci fiecare build din CI are altă amprentă. Am verificat că sunetul celor 5 fraze rămâne identic bit cu bit cu 1.18.2.
 
-## Ascultarea comparativă (W-01…W-04)
+## Ce am verificat și ce nu
 
-Ți-am pregătit totul pe calculator; folderul tău `rhvoice` a rămas neatins:
-- build-ul din CI: `%LOCALAPPDATA%\HASI\rhvoice-ci-1.18.4`;
-- frazele A/B: `%LOCALAPPDATA%\HASI\comparatie-rhvoice`.
+- **Proba de pornire** pe programul publicat (cel din installer, cu vocea inclusă), fără taste:
+  - vorbește cu RHVoice din pachet;
+  - verificarea de actualizări de la pornire tace, cum trebuie când HASI nu e instalat;
+  - nicio eroare, iar pornirea ta automată a rămas neatinsă.
+- **Nu am instalat nimic pe contul tău:** instalarea ți-ar fi schimbat pornirea automată și scurtăturile. Deci instalarea, actualizarea între două versiuni instalate și dezinstalarea **nu le-am încercat eu**: sunt scenariile tale.
 
-Cele două variante de pornire:
-- **A (1.18.2, ca până acum):** `dotnet run --project src\Hasi.App -- --diagnostic`
-- **B (din CI):** `dotnet run --project src\Hasi.App -- --diagnostic --rhvoice-path "%LOCALAPPDATA%\HASI\rhvoice-ci-1.18.4"`
+## Fișierele pentru test (construite local, nepublicate, ignorate de git)
 
-| ID | Ce faci | Ce trebuie să auzi |
+- programul de instalare 0.1.0, de 83 MB: `artifacts\HASI-0.1.0-Setup.exe`;
+- sursa locală de actualizări, cu 0.1.0 și 0.1.1: `artifacts\feed`. Actualizarea 0.1.0 → 0.1.1 e un delta de 0,1 MB.
+
+## Scenarii (X-00…X-10, în `docs/manual-tests/faza-0.md`)
+
+| ID | Ce apeși | Ce trebuie să auzi |
 |---|---|---|
-| W-01 | În `comparatie-rhvoice` asculți pe rând `fraza-1-A-actual-1.18.2.wav` și `fraza-1-B-din-CI.wav`, apoi frazele 2…5 | fiecare pereche sună la fel: aceeași voce, viteză, intonație, aceleași pauze |
-| W-02 | Pornești B și cauți în jurnal rândul `RHVOICE version` | `RHVOICE version 1.19.2, voices Paul` și `dll=…rhvoice-ci-1.18.4\lib\x64\RHVoice.dll` |
-| W-03 | Cu B: pașii 1–23 din `regresie-faza-0.md` | totul ca în A: bun venit fără întârziere, oprire imediată a vorbirii, nicio pocnitură |
-| W-04 | Cu B: Setări → Diagnostic → Comparare voci, Enter pe fiecare frază | varianta doi, „Paul prin RHVoice direct”, sună ca până acum |
+| X-00 | Închizi HASI și faci o copie a vocii de test: `robocopy "%LOCALAPPDATA%\HASI\rhvoice" "%USERPROFILE%\HASI-rhvoice-copie" /E` | – |
+| X-01 | Deschizi `artifacts\HASI-0.1.0-Setup.exe`; dacă apare SmartScreen: „Mai multe informații”, apoi „Executare oricum” | bară de progres fără voce, apoi HASI pornește singur: bun venit și o singură dată „HASI va porni automat când porniți calculatorul. Puteți schimba asta din Setări, Pornire automată.” |
+| X-02 | Despre HASI, rând cu rând | versiunea 0.1.0; rândul 4: „RHVoice 1.18.4, commitul f, a, nouă, d, d, unu, nouă, șase… GNU GPL, versiunea 3 sau ulterioară…”; rândurile 10 și 11: .NET și Velopack |
+| X-03 | Setări → Pornire automată; apoi ieși din cont și intri din nou | „…Selectat: Da: HASI pornește singur…, actual, 1 din 2.”; după autentificare HASI pornește singur. `reg query HKCU\Software\Microsoft\Windows\CurrentVersion\Run /v HASI` arată `%LOCALAPPDATA%\HASI.App\hasi.exe` |
+| X-04 | Cu HASI deschis, Enter pe scurtătura „HASI” de pe Desktop | nu apare a doua fereastră; HASI vine în față și spune ecranul curent |
+| X-05 | Setări → Actualizări | „Actualizări. 3 opțiuni. …”; al treilea rând: „Versiunea instalată: 0.1.0” |
+| X-06 | Închizi HASI. Tasta Windows + R: `%LOCALAPPDATA%\HASI.App\hasi.exe --update-source "folder:C:\Users\cucua\Documents\dev\workspace\Hasi\artifacts\feed"` | după bun venit: „Este disponibilă versiunea 0.1.1 a HASI. Doriți să actualizați acum? …”; **Escape**: „Puteți actualiza oricând din Setări, Actualizări. …” |
+| X-07 | Închizi HASI și repeți comanda de la X-06 | **nu** mai întreabă |
+| X-08 | Setări → Actualizări → Caută actualizări acum; Enter | „Caut actualizări.”, apoi întrebarea; după Enter: „Se descarcă actualizarea.”, „Actualizarea este gata. HASI pornește din nou.”; HASI repornește singur și spune „HASI a fost actualizat la versiunea zero punct unu punct unu.”; în „Despre”: 0.1.1 |
+| X-09 | Fără internet: pornești HASI normal; Setări → Actualizări → Caută acum | „Nu există conexiune la internet.” Cu internet: „Aveți cea mai nouă versiune a HASI, 0.1.1.” (pe GitHub nu e încă nimic publicat; dacă auzi „Verificarea actualizărilor nu a reușit”, notează) |
+| X-10 | Setări Windows → Aplicații → HASI → Dezinstalare | HASI se închide; dispar programul, scurtăturile, pornirea automată, `%LOCALAPPDATA%\HASI` și `%APPDATA%\HASI`. Apoi refaci vocea de test: `robocopy "%USERPROFILE%\HASI-rhvoice-copie" "%LOCALAPPDATA%\HASI\rhvoice" /E` |
 
-Scenariile sunt și în `docs/manual-tests/faza-0.md`. Detaliile tehnice sunt în ADR 0004, ultima secțiune. Planul 0.11 are pasul 1 marcat „făcut” și deciziile tale noi (8–12) trecute în tabel.
+**Atenție după X-10:**
+- Setările tale s-au șters, iar HASI pornește ca pentru un utilizator nou.
+- „Simulare oprire” e **oprită**: repornirea și oprirea din HASI sunt reale. O pornești din nou din Setări → Diagnostic → Simulare oprire.
+- La X-10 se șterg și folderele de test `rhvoice-ci-1.18.4` și `comparatie-rhvoice`.
+
+Mai de știut: Velopack produce și un `HASI.App-win-Portable.zip`, pe care nu îl folosim.
 
 ## Ce urmează
 
-Aștept rezultatele W-01…W-04 și ale regresiei. Pașii 2–4 nu încep până nu îi aprobi.
+Aștept rezultatele X-00…X-10. Pasul 4, publicarea 0.1.0, nu începe fără aprobarea ta.
