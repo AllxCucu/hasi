@@ -14,12 +14,20 @@
 la 14:30 => la ora paisprezece și treizeci de minute
 ora 9:05 => ora nouă și cinci minute
 ora 14.30 => ora paisprezece și treizeci de minute
-1:00 => ora unu fix
 2:01 => ora două și un minut
 12:15 => ora douăsprezece și cincisprezece minute
 21:20 => ora douăzeci și unu și douăzeci de minute
 22:45 => ora douăzeci și două și patruzeci și cinci de minute
 0:10 => ora zero și zece minute
+
+# Orele întregi fără „fix” (alegerea testerului, 23 octombrie 2026) și genul feminin al lui „ora”.
+14:00 => ora paisprezece
+ora 2:00 => ora două
+12:15 => ora douăsprezece și cincisprezece minute
+22:10 => ora douăzeci și două și zece minute
+1:00 => ora unu
+# „21:20” rămâne așa (alegerea testerului):
+21:20 => ora douăzeci și unu și douăzeci de minute
 
 # M0-33
 Plata de 12,50 lei pe 1.03.2026 la 14:30 => Plata de doisprezece lei și cincizeci de bani pe întâi martie două mii douăzeci și șase la ora paisprezece și treizeci de minute

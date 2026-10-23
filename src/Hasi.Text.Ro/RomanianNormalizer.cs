@@ -227,8 +227,10 @@ public sealed partial class RomanianNormalizer : ITextNormalizer
             1 or 21 => RomanianNumbers.Cardinal(hour),
             _ => RomanianNumbers.Cardinal(hour, Gender.Feminine),
         };
-        var minuteWords = minute == 0 ? "fix" : "și " + RomanianNumbers.Count(minute, "minut", "minute", Gender.Neuter);
-        return $"{lead}{hourWords} {minuteWords}";
+        // Full hours are said without "fix" (tester's choice, 2026-10-23): "ora paisprezece".
+        return minute == 0
+            ? $"{lead}{hourWords}"
+            : $"{lead}{hourWords} și {RomanianNumbers.Count(minute, "minut", "minute", Gender.Neuter)}";
     }
 
     // ---- Percentages ------------------------------------------------------------------------
