@@ -187,6 +187,9 @@ Pe lângă asta, folosim **transcrieri de referință**: un fișier text cu „t
 
   Textul afișat pe ecran rămâne neschimbat (numai diacriticele se corectează). Normalizarea se aplică doar fluxului vocal.
 
+  Implementat în etapa 0.4, în `src/Hasi.Text.Ro`. Pe lângă etapele de mai sus mai sunt: adrese de e-mail și web, telefoane (citite cifră cu cifră, pe grupe), unități (km, kg, °C…), procente, ordinale („a 2-a”, „al 3-lea”), numere de versiune („0.1.0”) și coduri lungi (CNP, cifră cu cifră). Genul substantivelor numărate vine dintr-un mic lexicon (`Lexicon.cs`) și din terminațiile tipice de plural.
+  Cazurile de test sunt în `tests/Hasi.Text.Ro.Tests/Cases/*.cases`, câte un rând de forma `scris => rostit`. Testerul poate adăuga rânduri direct acolo.
+
 ### 1.6 Coexistența cu NVDA, Narator și JAWS
 
 **Detectare** (la pornire și la fiecare 2 secunde):

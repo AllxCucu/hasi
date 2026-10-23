@@ -1,118 +1,107 @@
-# HASI – Răspuns după etapele 0.1–0.3
+# HASI – Răspuns după etapa 0.4
 
-Etapele 0.1, 0.2 și 0.3 sunt gata: 9 commit-uri pe ramura `main`, iar toate cele **106 teste automate** trec (93 pentru nucleu, 7 de arhitectură, 6 transcrieri de referință). Mă opresc aici, cum ai cerut, până primesc raportul tău.
+Etapa 0.4 e gata: normalizatorul românesc și ecranul „Test pronunție”. Toate cele **132 de teste automate** trec:
 
-Ce s-a mai făcut, pe lângă cod:
-- documentul aprobat `docs/architecture.md`, cu deciziile tale în §5 și condițiile SignPath în §5.1;
-- ADR-urile 0001, 0002 și 0003 în `docs/adr/`;
-- CLAUDE.md fără marcajul DRAFT, cu licența GPL-3.0-or-later și alternativele de taste;
-- SDK-ul .NET 10.0.402, instalat cu winget și fixat în `global.json`.
+| Proiect de test | Teste | Ce verifică |
+|---|---|---|
+| Hasi.Core.Tests | 106 | nucleul |
+| Hasi.Text.Ro.Tests | 7 | fișierele de cazuri, cu peste 150 de cazuri de pronunție |
+| Hasi.Transcripts.Tests | 10 | transcrierile de referință |
+| Hasi.Architecture.Tests | 9 | regulile de arhitectură |
+
+Mă opresc aici, cum ai cerut, până primesc raportul tău.
 
 ---
 
-## 1. Cum pornești aplicația
+## 1. Ce am făcut din raportul tău
 
-Din folderul proiectului (`C:\Users\cucua\Documents\dev\workspace\Hasi`), într-un terminal:
+- **Regulile noi** sunt în CLAUDE.md, la „Non-negotiables”: fără taste sau input simulat pe desktop fără aprobarea ta pentru fiecare rulare, și întreb înainte de orice schimbare de plan. În etapa asta n-am trimis nicio tastă. Am pornit HASI o singură dată, 3 secunde, fără input, ca să verific în jurnal că vorbirea trece prin normalizator.
+- **Jurnalul de diagnostic.** În raport a rămas textul „[cale fișier]” în loc de cale, dar am găsit sesiunile tale din 23 octombrie în `%LOCALAPPDATA%\HASI\diagnostic`. Nu apar erori, iar Paul e detectat corect. Am găsit o singură problemă: ținând săgeata jos pe ultima opțiune, „Sfârșitul listei” și sunetul se repetau de 12 ori în 0,4 secunde. **Corectat**: mesajul se spune acum o singură dată (scenariul P-14).
+- **„Problemele raportate” și „cazurile de pronunție de mai sus”** lipsesc din mesaj: toate scenariile au trecut, iar mesajul nu conține nicio listă de pronunții greșite. Dacă ai notat pronunții greșite din etapa 0.3, trimite-mi-le, sau adaugă-le direct (vezi secțiunea 4).
+- **GitHub: nu am putut crea depozitul.** `gh` nu e autentificat pe calculator. Rulează în acest terminal:
+  ```
+  ! gh auth login
+  ```
+  (alegi GitHub.com, HTTPS, autentificare din browser). Apoi creez depozitul public `AllxCucu/hasi`, trimit toate cele 13 commit-uri și verific că CI-ul trece pe GitHub.
+
+---
+
+## 2. Cum pornești
+
+La fel ca înainte:
 
 ```
 dotnet run --project src\Hasi.App -- --diagnostic
 ```
 
-`--diagnostic` salvează tot ce s-a rostit și toate tastele apăsate în
-`%LOCALAPPDATA%\HASI\diagnostic\sesiune-AAAA-LL-ZZ_HH-MM-SS.log`. Pentru testele tale, recomand să îl folosești mereu. Când ceva nu merge, trimite-mi acel fișier.
+**Drumul până la Test pronunție:** Meniu principal → Setări (Enter) → End → săgeata sus („Diagnostic, 11 din 12”) → Enter → Enter pe „Test pronunție”.
 
-Alte opțiuni, utile până apar ecranele de Setări (etapa 0.6):
+Ce face ecranul:
+- **scrii** cu tastatura, inclusiv ă, î, â, ș, ț. Fiecare caracter e rostit, iar semnele de punctuație au nume („virgulă”, „punct”, „spațiu”);
+- **Backspace** șterge ultimul caracter și spune ce a șters; ținut apăsat, șterge în continuu;
+- **săgeata sus sau jos** citește tot textul scris;
+- **Enter** rostește textul exact cum îl spune HASI. Pe ecran apar două rânduri, „Scris: …” și „Rostit: …”. Textul rămâne în câmp, ca să-l poți corecta și asculta din nou;
+- **Escape** te întoarce în meniu. F1, F2 și F3 funcționează ca peste tot.
 
-| Opțiune | Efect |
-|---|---|
-| `--rate -3` | vorbire mai lentă (de la -10 la 10; 0 = normal) |
-| `--voice "Microsoft Andrei"` | forțează o anumită voce |
-
-Exemplu: `dotnet run --project src\Hasi.App -- --diagnostic --rate -3`
-
-După primul `dotnet run`, poți porni HASI și direct, cu dublu clic pe
-`src\Hasi.App\bin\Debug\net10.0-windows10.0.19041.0\hasi.exe`.
-
-**Cum închizi HASI:** Alt+F4, apoi Enter. Sau, din meniu: Ieșire → Închide HASI → Enter.
-
-**Dacă HASI nu primește tastele:** uneori Windows nu dă focusul unei ferestre noi. În acest caz, după 2 secunde HASI spune: „HASI nu mai este în prim-plan… țineți apăsată tasta Alt și apăsați Tab.” Folosește Alt+Tab până ajungi la fereastra HASI. La revenire, HASI îți spune unde ești.
+În jurnalul de diagnostic, fiecare Enter apare cu `text=` (ce ai scris), `normalized=` (ce a produs normalizatorul) și `SPEAK` (exact ce a primit Paul).
 
 ---
 
-## 2. Ce trebuie instalat înainte
+## 3. Scenariile pentru 0.4, inclusiv M0-33
 
-1. **Vocea Paul (RHVoice), pentru SAPI.** Descarcă și rulează installer-ul oficial
-   `RHVoice-voice-Romanian-Paul-v4.2.1001.23-setup.exe`, de pe https://rhvoice.org/ro-voices/
-   (linkul „Download the voice for other Windows programs”). Te rog să-mi spui:
-   - dacă installer-ul a cerut drepturi de administrator;
-   - dacă, după instalare, HASI **nu** mai spune „Vocea Paul nu este instalată”.
+Sunt și în `docs/manual-tests/faza-0.md`. Scrie fiecare text singur în câmp; între teste golești câmpul ținând Backspace apăsat.
 
-   Dacă mesajul apare în continuare, deschide jurnalul de diagnostic. Rândul `VOICES` arată toate vocile pe care le vede HASI. Trimite-mi-l: e posibil ca Paul să fie înregistrat doar pentru programele pe 32 de biți (riscul notat în ADR 0002).
-2. **Pachetul de voce românesc din Windows.** Pe calculatorul tău **este deja instalat** (am văzut vocea Microsoft Andrei, ro-RO). Pe alt calculator: Setări → Oră și limbă → Vorbire → Adăugare voci → Română (România). Andrei e vocea de rezervă când Paul lipsește.
-3. **Cititoarele de ecran:** coexistența cu NVDA și Narator vine în etapa 0.9. Până atunci, dacă testezi cu NVDA pornit, vei auzi două voci. Soluția temporară: în fereastra HASI apasă **NVDA+Shift+S** (în aspectul laptop: NVDA+Shift+Z), care pune NVDA în modul de somn doar pentru această aplicație (aceeași combinație îl trezește). Te rog să verifici că și tastatura numerică ajunge la HASI în acest mod: e exact întrebarea pe care trebuie s-o confirme experimentul din etapa 0.9. Naratorul îl oprești cu Control+Windows+Enter.
-
----
-
-## 3. Scenariile de test M0-01…M0-12, adaptate la ce s-a implementat
-
-Se găsesc și în `docs/manual-tests/faza-0.md`. „[sunet]” = un ton scurt înaintea mesajului.
-
-| ID | Ce apeși | Ce trebuie să auzi |
+| ID | Ce faci | Ce trebuie să auzi |
 |---|---|---|
-| M0-01 | Pornești HASI | „Bun venit în HASI. Meniu principal. 4 opțiuni. Selectat: Setări, 1 din 4.” Fără Paul urmează: „Vocea Paul nu este instalată. Folosesc vocea Microsoft Andrei.” |
-| M0-02 | Săgeata jos de 3 ori | „Învață tastele, 2 din 4.”, „Despre HASI, 3 din 4.”, „Ieșire, 4 din 4.” |
-| M0-03 | Încă o dată săgeata jos | [sunet] „Sfârșitul listei. Ieșire, 4 din 4.” |
-| M0-04 | Home, apoi End (pe laptop: Control + săgeată sus / Control + săgeată jos) | „Setări, 1 din 4.”, apoi „Ieșire, 4 din 4.” |
-| M0-05 | Home, apoi Enter pe Setări | „Setări. 12 opțiuni. Selectat: Voce, 1 din 12.” |
-| M0-06 | Escape | „Meniu principal. Selectat: Setări, 1 din 4.” |
-| M0-07 | Încă o dată Escape | „Sunteți în meniul principal. Pentru a închide HASI, alegeți Ieșire.” (HASI rămâne deschis) |
-| M0-08 | Enter pe Setări, apoi F1 (sau Control H) | „Ajutor pentru Setări. Folosiți săgețile sus și jos…”, la final: „…Aici veți putea schimba vocea, viteza vorbirii, culorile și alte preferințe.” |
-| M0-09 | Săgeata jos, apoi F2 (sau Control R) | „Viteză, 2 din 12.”, apoi același mesaj încă o dată |
-| M0-10 | F3 (sau Control U); apoi Enter pe Viteză și din nou F3 | „Sunteți în: Meniu principal, Setări.”, apoi „Viteză. Această funcție va fi disponibilă într-o versiune următoare…”, apoi „Sunteți în: Meniu principal, Setări, Viteză.” |
-| M0-11 | F1 (mesaj lung), apoi săgeata jos în timp ce vorbește | vorbirea se oprește **imediat**; auzi doar opțiunea nouă |
-| M0-12 | F1, apoi tasta Control în timp ce vorbește | liniște imediată, fără alt mesaj |
+| P-01 | Intri în Test pronunție | „Test pronunție. Scrieți un text și apăsați Enter ca să-l auziți așa cum îl rostește HASI. Escape vă întoarce.” |
+| P-02 | Scrii `abc`, apoi Backspace | „a”, „b”, „c”, apoi „Șters: c” |
+| P-03 | Scrii `ș ț ă î â` | fiecare literă, iar spațiile ca „spațiu” |
+| P-04 | Enter cu câmpul gol | „Câmpul este gol. Scrieți mai întâi un text.” |
+| P-05 | Săgeata jos după ce ai scris ceva | „Textul scris: …” |
+| **M0-33** | `Plata de 12,50 lei pe 1.03.2026 la 14:30`, apoi Enter | „Plata de doisprezece lei și cincizeci de bani pe întâi martie două mii douăzeci și șase la ora paisprezece și treizeci de minute”. Pe ecran: ambele forme. |
+| P-06 | `1 leu`, `21 lei`, `0,50 lei` | „un leu”; „douăzeci și unu de lei”; „cincizeci de bani” |
+| P-07 | `21.10.2026`, `1 mai` | „douăzeci și unu octombrie două mii douăzeci și șase”; „întâi mai” |
+| P-08 | `ora 9:05`, `21:20` | „ora nouă și cinci minute”; „ora douăzeci și unu și douăzeci de minute” |
+| P-09 | `2 ore`, `12 ore`, `2 ani`, `20 de oameni` | „două ore”, „douăsprezece ore”, „doi ani”, „douăzeci de oameni” |
+| P-10 | `tel. 0722 123 456` | „telefon zero șapte doi doi, unu doi trei, patru cinci șase” |
+| P-11 | `Str. Lalelelor nr. 12, bl. A3, sc. 2, ap. 14` | „strada Lalelelor numărul doisprezece, blocul A3, scara doi, apartamentul paisprezece” |
+| P-12 | `15%`, `a 2-a`, `al 3-lea` | „cincisprezece la sută”, „a doua”, „al treilea” |
+| P-13 | Asculți din nou meniurile | numerele sunt acum spuse de HASI în cuvinte: „patru opțiuni”, „unu din patru”, „douăsprezece opțiuni”. Înainte le citea Paul singur. Spune-mi care variantă sună mai natural. |
+| P-14 | În meniul principal, ții apăsată săgeata jos | opțiunile, apoi **o singură dată** [sunet] „Sfârșitul listei. Ieșire, 4 din 4.” |
 
-Ce te rog să urmărești în mod special:
-- **la M0-11 și M0-12:** cât de repede se oprește vocea. Dacă se mai aude o bucată din mesajul vechi, spune-mi cât de lungă (cuvinte sau secunde);
-- **pronunția:** cum citește vocea „HASI”, „4 din 4”, „12 opțiuni”. Normalizatorul românesc vine abia în etapa 0.4, deci acum numerele le citește vocea singură. Notează tot ce sună greșit; din fiecare fac un caz de test;
-- **formulările:** orice mesaj confuz sau prea lung e un bug. Poți corecta formularea direct în `tests\Hasi.Transcripts.Tests\Transcripts\*.transcript` (rândurile care încep cu `<`). Testul va pica, iar eu aliniez textele aplicației la formularea ta.
-
-Verificări în plus, opționale (X-01…X-06), sunt în `docs/manual-tests/faza-0.md`: litere fără funcție, tastatura numerică, Despre HASI, Ieșire cu anulare, Alt+F4, Alt+Tab.
+**Formulări pe care am ales să le validezi tu după ureche:**
+- „21:20” devine „ora douăzeci și unu **și** douăzeci de minute”. Cei doi „și” pot suna greoi. Alternativa ar fi „ora douăzeci și unu, douăzeci de minute”.
+- „14:00” devine „ora paisprezece **fix**”.
+- „1 din 4” devine „**unu** din patru”, iar „1 opțiune” devine „**o** opțiune”.
+- „101 pagini” devine „o sută una pagini”, fără „de”, după regula CLDR a pluralelor; o parte dintre vorbitori ar spune „o sută una de pagini”.
 
 ---
 
-## 4. Ce nu funcționează încă (nu raporta acestea)
+## 4. Cum îmi raportezi o pronunție greșită
 
-| Ce lipsește | Când vine |
+Varianta cea mai simplă: îmi trimiți textul scris și ce ai auzit.
+
+Varianta directă: deschizi un fișier din `tests\Hasi.Text.Ro.Tests\Cases\` (de exemplu `02-numere.cases`) și adaugi un rând de forma:
+
+```
+ce e scris => ce trebuie rostit
+```
+
+Rândurile care încep cu `#` sunt comentarii. Testul va pica, iar eu corectez normalizatorul până trece. Dacă `normalized=` din jurnal e corect, dar Paul tot pronunță greșit, problema e a vocii, nu a normalizatorului; spune-mi și așa.
+
+---
+
+## 5. Ce nu funcționează încă sau ce am lăsat deoparte
+
+| Ce | Detalii |
 |---|---|
-| Toate cele 12 opțiuni din Setări spun „va fi disponibilă într-o versiune următoare”. Viteza și vocea se schimbă doar cu `--rate` și `--voice`. Nimic nu se salvează. | 0.6 |
-| Normalizarea textului românesc (numere, sume, date, ore, abrevieri, ş/ţ → ș/ț) | 0.4 |
-| Ecranul „Test pronunție” | 0.4 |
-| „Învață tastele”: acum spune doar că va fi disponibil | 0.7 |
-| Ieșire → Repornește / Oprește calculatorul (acum există doar „Închide HASI”) | 0.7 |
-| Pornirea/oprirea modului de diagnostic din meniu sau cu Control+Shift+D, plus „Copiază jurnalul pe Desktop” (acum doar `--diagnostic`) | 0.8 |
-| Repornirea automată după o eroare gravă (acum HASI spune „A apărut o problemă neașteptată” și continuă; detaliile ajung în `%LOCALAPPDATA%\HASI\logs\errors.log`) | 0.8 |
-| Coexistența cu NVDA/Narator: acum se aud două voci (vezi soluția temporară din secțiunea 2) | 0.9 |
-| Tasta globală Control+Alt+H pentru revenire; pornirea automată cu Windows; o singură instanță (acum, dacă pornești HASI de două ori, se deschid două ferestre) | 0.10 |
-| Installer, actualizare automată, semnare | 0.11 |
-| Culori și mărimea textului configurabile (acum: galben pe negru, text mare, fix) | 0.6 |
-| Ecoul tastelor | 0.6 |
-| Sunetele sunt tonuri simple, generate | ulterior, dacă vrei altele |
-
-Două lucruri pe care le-am făcut altfel decât în plan, ca să ți le semnalez:
-- **Motorul OneCore** era în etapa 0.5. L-am adus în formă minimă, pentru că inițial credeam că Andrei e vizibil doar prin OneCore. Am constatat apoi că `System.Speech` sub .NET 10 îl vede și prin SAPI5, deci HASI folosește SAPI5 pentru Andrei. OneCore intervine doar dacă SAPI5 nu pornește și **nu a fost încă testat după ureche**.
-- **Anunțul pentru pierderea focusului** era în etapa 0.10. L-am adus acum, într-o formă simplă (fără tasta globală de revenire), pentru că fără el tastele tale ar putea ajunge, fără niciun semn, în altă fereastră.
-
----
-
-## 5. De știut
-
-- **Un incident în testele mele.** La prima pornire de probă am trimis automat tastele săgeată jos, F3, Alt+F4 și Enter fără să verific ce fereastră avea focusul. Fereastra activă era terminalul (Windows Terminal), deci tastele au putut ajunge acolo. Jurnalul HASI din acea rundă conține și taste pe care nu le-am trimis eu, probabil ale tale. De atunci trimit taste numai după ce verific că HASI e în prim-plan, iar regula e scrisă în CLAUDE.md. Testul final a mers cap-coadă: F3, Control H, Alt+F4, Enter → „La revedere.” → HASI s-a închis normal.
-- **Depozitul GitHub** încă nu există, deci CI-ul n-a rulat niciodată pe GitHub. Ca să-l creez public, îmi trebuie numele contului sau al organizației și confirmarea ta. E primul pas și pentru SignPath (§5.1 din `docs/architecture.md`: MFA activ, o versiune publicată, apoi formularul de pe signpath.org/apply).
-- **Recenzie independentă cu Codex** (doar citire, fără modificări din partea lui). A găsit 7 probleme reale; le-am verificat și le-am corectat pe toate, cu teste:
-  1. **Enter ținut apăsat** deschidea întrebarea de închidere și o confirma singur, prin autorepetarea tastei. Acum, ținute apăsat, se repetă doar săgețile și tastele care schimbă valori. Enter și Escape acționează o singură dată pe apăsare. Te rog să verifici asta și după ureche: ține Enter apăsat pe „Închide HASI”.
-  2. Dacă vocea cea mai bună nu pornea, HASI nu le mai încerca pe celelalte. Acum le încearcă pe rând. Fără nicio voce, mesajul apare pe ecran, însoțit de tonul de eroare.
-  3. Erorile apărute în timpul vorbirii treceau neobservate (liniște fără explicație). Acum se scriu în jurnalul de erori și se aude tonul de eroare.
-  4. O eroare de scriere în jurnalul de diagnostic putea bloca ieșirea din HASI. Acum jurnalul nu mai poate bloca nimic, iar ieșirea se încheie oricum.
-  5. și 6. Două condiții de concurență în motorul OneCore, care puteau tăia sau pierde mesaje.
-  7. Un parametru inserat într-un text putea fi interpretat greșit drept alt parametru.
+| Ecoul fiecărui caracter tastat | Fix, doar în câmpul de text. Nu e o mutare de etapă: un câmp de text fără ecou nu poate fi folosit de un nevăzător. Setarea globală „Ecoul tastelor” (caracter / cuvânt / niciunul) rămâne în etapa 0.6. Dacă vrei altfel, spune-mi. |
+| Cifrele de pe tastatura numerică | Nu scriu cifre în câmpul de text, pentru că rămân taste de navigare. Pentru cifre folosește rândul de cifre de deasupra literelor. |
+| Lipirea textului (Control V) | Nu există. Textul se scrie doar de la tastatură. |
+| Acronimele (CFR, ANAF, SRL) | Le las vocii, fără să le spun literă cu literă. Spune-mi cum le citește Paul. |
+| Cifrele romane („secolul XX”) | Nu le transform încă. |
+| „1 mai” | E citit mereu „întâi mai” (dată), chiar și în propoziții rare ca „1 mai mult”. |
+| Genul substantivelor | Vine dintr-un lexicon mic, plus terminațiile tipice de plural. Un substantiv necunoscut după un număr poate primi forma masculină („doi”) și poate pierde „de”. Fiecare caz pe care îl găsești ajunge în tabele. |
+| Scrierea efectivă în fereastră | Nu am testat-o eu, pentru că regula nouă interzice inputul simulat. Logica e acoperită de teste, dar primul test real al tastării (mai ales ș, ț, ă, î, â din aspectul românesc) e al tău, la P-02 și P-03. Dacă literele nu ajung în câmp, trimite-mi jurnalul: rândurile `KEY` și `CHAR` arată exact ce s-a primit. |
+| Diagnostic → „Mod de diagnostic” și „Copiază jurnalul pe Desktop” | Spun încă „va fi disponibilă” (etapa 0.8). |
+| Restul | Ca în lista de la etapa 0.3: setările (0.6), „Învață tastele” (0.7), coexistența cu NVDA (0.9), tasta globală și instanța unică (0.10), installer-ul (0.11). |
