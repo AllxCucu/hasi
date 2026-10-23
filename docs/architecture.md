@@ -336,7 +336,7 @@ Fiecare etapă înseamnă commit-uri mici (Conventional Commits, în engleză) c
 | **0.10 Integrare în sistem** | pornire automată (opțională), o singură instanță, tasta globală de revenire, detectarea pierderii focusului; **detectarea Naratorului** la pornire, cu mesajul din §1.6 | detectarea Naratorului cu un detector simulat; restul manual |
 | **0.11 Instalare și actualizare** | installer Velopack per-utilizator, actualizare cu anunț rostit; sursa e configurabilă (vezi §1.8); semnare prin SignPath Foundation, dacă proiectul e acceptat. **Înainte de 0.11:** „Simulare oprire” (Setări → Diagnostic) devine implicit **oprită**; acum e pornită implicit, doar pe durata dezvoltării (ADR 0006). Tot înainte de 0.11: construirea RHVoice.dll în CI (ADR 0004). În 0.11, „Pornire automată” trebuie să indice executabilul instalat de Velopack (acum indică `hasi.exe` din folderul de build) | publicare de test în CI |
 
-**Gata, pentru Faza 0, înseamnă:** toate scenariile M0-xx de mai jos trec la tine, pe Windows 11 și pe Windows 10, cu și fără NVDA pornit.
+**Gata, pentru Faza 0, înseamnă:** toate scenariile M0-xx de mai jos trec la tine, pe Windows 11 și pe Windows 10, cu și fără NVDA pornit. **Windows 10** (decizia din 23 octombrie 2026): **suportat, netestat**, până când testerul are acces la un calculator cu Windows 10; testul pe Windows 10 se face atunci.
 
 ### 4.1 Formatul jurnalului de diagnostic
 

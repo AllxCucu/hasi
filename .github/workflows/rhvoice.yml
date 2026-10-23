@@ -55,7 +55,12 @@ jobs:
 
       - name: Build only the x64 library
         working-directory: rhvoice-src
-        run: scons -j4 languages=romanian build/windows/x86_64/lib/RHVoice.dll
+        shell: pwsh
+        run: |
+          # With WiX on the runner, SCons would also read upstream's installer scripts, which we do not build.
+          Remove-Item Env:WIX, Env:WIXTOOLPATH -ErrorAction SilentlyContinue
+          scons -j4 languages=romanian build/windows/x86_64/lib/RHVoice.dll
+          if ($LASTEXITCODE -ne 0) { exit 1 }
 
       - name: Show what was built
         if: always()

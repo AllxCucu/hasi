@@ -1,7 +1,7 @@
 # Planul etapei 0.11 – instalare și actualizare
 
-> **Stare: PROPUNERE, neaprobată.** Nu scriu cod până nu aprobi, iar tu aprobi după rezultatele regresiei
-> (`docs/manual-tests/regresie-faza-0.md`).
+> **Stare:** pasul 1 **APROBAT** (23 octombrie 2026), pentru că nu atinge programul. Pașii 2–4 sunt încă
+> **PROPUNERE**: îi aprobi după rezultatele regresiei (`docs/manual-tests/regresie-faza-0.md`).
 
 ## Decizii primite (23 octombrie 2026)
 
@@ -14,6 +14,11 @@
 | 5 | Windows 10 | Nu ai. Vezi întrebarea 1 de la final. |
 | 6 | P-13 | **Decis definitiv:** „unu din patru”, varianta HASI. |
 | 7 | Sursa actualizărilor | GitHub Releases. |
+| 8 | Windows 10 (răspuns final) | Varianta c: rămâne **„suportat, netestat”** până ai acces la un calculator cu Windows 10. |
+| 9 | Pornirea automată după instalare | **Pornită implicit.** La prima pornire după instalare, HASI spune o singură dată: „HASI va porni automat când porniți calculatorul. Puteți schimba asta din Setări, Pornire automată.” |
+| 10 | Opririle din 0.11 | Trei: după pasul 1, după pașii 2–3, înainte de publicarea 0.1.0. |
+| 11 | Întrebarea de actualizare | **O singură dată pentru fiecare versiune nouă.** După Escape, HASI nu mai întreabă la pornire pentru acea versiune; actualizarea rămâne în Setări → Actualizări. Dacă apare între timp o versiune și mai nouă, întreabă din nou, o dată. |
+| 12 | Dezinstalarea | Ștergere completă, confirmată: pornirea automată, `%LOCALAPPDATA%\HASI`, `%APPDATA%\HASI`. **Ghidul de instalare și README spun că dezinstalarea șterge toate setările și jurnalele.** |
 
 ## Ce am verificat pentru acest plan (nu presupun)
 
@@ -73,7 +78,7 @@
    - **self-contained** `win-x64`: .NET intră în pachet, deci nu se instalează niciun runtime și nu apare nicio fereastră de administrator (UAC);
    - RHVoice de la pasul 1 intră în `rhvoice\`, lângă program. HASI caută deja acolo, primul.
    - Măsor dimensiunea installer-ului și ți-o spun.
-4. **Pornire automată:** când HASI rulează instalat, cheia `Run` indică `hasi.exe` de pornire (`%LOCALAPPDATA%\HASI.App\hasi.exe`), nu folderul `current`.
+4. **Pornire automată:** când HASI rulează instalat, cheia `Run` indică `hasi.exe` de pornire (`%LOCALAPPDATA%\HASI.App\hasi.exe`), nu folderul `current`. Se activează la prima pornire după instalare (`OnFirstRun`), iar HASI spune o singură dată mesajul de la decizia 9.
 5. **„Simulare oprire” devine oprită implicit** în `UserSettings`. ADR 0006 se actualizează. Testele care presupun „pornită implicit” se inversează, iar transcrierile 05 și 08 se schimbă vizibil în diff. La tine rămâne pornită (decizia 1).
 6. **Ce aude un utilizator la instalare:**
    - `Setup.exe` are o fereastră de progres, fără voce;
@@ -90,10 +95,10 @@
    - „Caută actualizări acum”;
    - „Verificare automată la pornire: Da / Nu”, implicit Da;
    - „Versiunea instalată: 0.1.0”.
-4. **La pornire,** dacă există o versiune nouă: după bun venit, HASI pune întrebarea de confirmare (anunțată, ca orice confirmare):
+4. **La pornire,** dacă există o versiune nouă **despre care HASI nu a întrebat încă** (decizia 11; versiunea refuzată se ține minte în `settings.json`): după bun venit, HASI pune întrebarea de confirmare (anunțată, ca orice confirmare):
    - Întrebarea: „Este disponibilă versiunea {v} a HASI. Doriți să actualizați acum? HASI se va închide și va porni din nou.”
    - **Enter:** „Se descarcă actualizarea.”, apoi progresul („50 la sută”), „Actualizarea este gata. HASI pornește din nou.”, iar după repornire „HASI a fost actualizat la versiunea {v}.”
-   - **Escape:** „Puteți actualiza oricând din Setări, Actualizări.”
+   - **Escape:** „Puteți actualiza oricând din Setări, Actualizări.” HASI nu mai întreabă pentru această versiune, ci doar pentru una mai nouă.
 5. **Erori,** în română simplă, fără coduri:
    - verificarea automată fără internet: tăcere, doar o linie în jurnal;
    - „Caută acum” fără internet: „Nu există conexiune la internet.”;
