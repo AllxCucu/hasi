@@ -8,19 +8,21 @@
 > Down
 < Despre HASI, 3 din 4.
 > Enter
-< Despre HASI. 7 rânduri. Selectat: HASI, Human Assisted Information, versiunea 0.1.0, 1 din 7.
+< Despre HASI. 8 rânduri. Selectat: HASI, Human Assisted Information, versiunea 0.1.0, 1 din 8.
 > Down
-< Mediu de lucru vorbit pentru nevăzători și slabvăzători, 2 din 7.
+< Mediu de lucru vorbit pentru nevăzători și slabvăzători, 2 din 8.
 > Down
-< HASI este program liber, sub Licența Publică Generală GNU, versiunea 3 sau ulterioară. Este oferit fără nicio garanție, 3 din 7.
+< HASI este program liber, sub Licența Publică Generală GNU, versiunea 3 sau ulterioară. Este oferit fără nicio garanție, 3 din 8.
 > Down
-< Sinteza vocală RHVoice, de Olga Yakovleva și colaboratorii, sub licența GNU LGPL, versiunea 2.1 sau ulterioară, 4 din 7.
+< Sinteza vocală RHVoice, de Olga Yakovleva și colaboratorii, sub licența GNU LGPL, versiunea 2.1 sau ulterioară, 4 din 8.
 > Down
-< Vocea românească Paul, de Stefan Moisei, Paul Bogorin și Zvonimir Stanecic, cu egalizare de Tomasz Bilecki, sub licența Creative Commons Atribuire, Distribuire în condiții identice, versiunea 4.0, 5 din 7.
+< Vocea românească Paul, de Stefan Moisei, Paul Bogorin și Zvonimir Stanecic, cu egalizare de Tomasz Bilecki, sub licența Creative Commons Atribuire, Distribuire în condiții identice, versiunea 4.0, 5 din 8.
 > Down
-< Genul substantivelor, din lexiconul românesc MULTEXT-East, versiunea 4, de Tomaž Erjavec, Dan Tufiș și colaboratorii, Institutul Jožef Stefan, sub licența Creative Commons Atribuire, Distribuire în condiții identice, versiunea 4.0, 6 din 7.
+< Genul substantivelor, din lexiconul românesc MULTEXT-East, versiunea 4, de Tomaž Erjavec, Dan Tufiș și colaboratorii, Institutul Jožef Stefan, sub licența Creative Commons Atribuire, Distribuire în condiții identice, versiunea 4.0, 6 din 8.
 > Down
-< Componenta System.Speech, de la .NET Foundation, sub licența MIT, 7 din 7.
+< Redarea sunetului, cu biblioteca NAudio, de Mark Heath și colaboratorii, sub licența MIT, 7 din 8.
+> Down
+< Componenta System.Speech, de la .NET Foundation, sub licența MIT, 8 din 8.
 > Escape
 < Meniu principal. Selectat: Despre HASI, 3 din 4.
 

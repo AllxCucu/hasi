@@ -1,4 +1,4 @@
-# M0-33: Setări → Diagnostic → Test pronunție.
+﻿# M0-33: Setări → Diagnostic → Test pronunție.
 # Aici se verifică textul cerut de ecran; ce se rostește după normalizare e verificat
 # în PronunciationTestTests și în tabelele din tests/Hasi.Text.Ro.Tests/Cases.
 # "> scrie: ..." tastează textul (ecoul fiecărui caracter nu e verificat aici).
@@ -12,7 +12,7 @@
 > Up
 < Diagnostic, 11 din 12.
 > Enter
-< Diagnostic. 3 opțiuni. Selectat: Test pronunție, 1 din 3.
+< Diagnostic. 4 opțiuni. Selectat: Test pronunție, 1 din 4.
 > Enter
 < Test pronunție. Scrieți un text și apăsați Enter ca să-l auziți așa cum îl rostește HASI. Escape vă întoarce.
 
@@ -31,10 +31,18 @@
 > F3
 < Sunteți în: Meniu principal, Setări, Diagnostic, Test pronunție.
 > Escape
-< Diagnostic. Selectat: Test pronunție, 1 din 3.
+< Diagnostic. Selectat: Test pronunție, 1 din 4.
+
+# Comparare voci: fără RHVoice direct, ecranul explică ce lipsește
+> Down
+< Comparare voci, 2 din 4.
+> Enter
+< Comparare voci. Comparația are nevoie de vocea Paul prin SAPI și de RHVoice direct. Porniți HASI cu opțiunea rhvoice path și cu folderul în care se află RHVoice. Apăsați Escape pentru a vă întoarce.
+> Escape
+< Diagnostic. Selectat: Comparare voci, 2 din 4.
 
 # Celelalte două opțiuni vin în etapa 0.8
 > Down
-< Mod de diagnostic, 2 din 3.
+< Mod de diagnostic, 3 din 4.
 > Enter
 < Mod de diagnostic. Această funcție va fi disponibilă într-o versiune următoare. Apăsați Escape pentru a vă întoarce.

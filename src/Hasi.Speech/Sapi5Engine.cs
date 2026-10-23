@@ -6,46 +6,82 @@ namespace Hasi.Speech;
 
 /// <summary>
 /// SAPI5 voices through System.Speech. RHVoice "Paul" appears here once its SAPI installer has run
-/// (see ADR 0002). Must be created and used on one thread.
+/// (see ADR 0002). Must be created and used on one thread; its events arrive on that thread.
 /// </summary>
-public sealed class Sapi5Engine : ISpeechEngine
+public sealed class Sapi5Engine : ISpeechEngine, ISpeechMetrics
 {
+    public const string EngineId = "sapi5";
+
     private readonly SpeechSynthesizer _synthesizer = new();
+    private readonly Dictionary<Prompt, Stopwatch> _prompts = [];
+    private readonly HashSet<Prompt> _started = [];
+    private readonly Stopwatch _stopClock = new();
+    private SpeechSettings _settings = new();
 
     public Sapi5Engine()
     {
         _synthesizer.SetOutputToDefaultAudioDevice();
+        _synthesizer.SpeakProgress += (_, e) =>
+        {
+            // The first word of a prompt is the closest SAPI gets to "the first sound".
+            if (_prompts.TryGetValue(e.Prompt, out var clock) && _started.Add(e.Prompt))
+            {
+                Report("first-sound", clock.Elapsed.TotalMilliseconds);
+            }
+            Report("word", 0, $"{e.CharacterPosition}+{e.CharacterCount} \"{e.Text}\"");
+        };
         _synthesizer.SpeakCompleted += (_, e) =>
         {
+            _started.Remove(e.Prompt);
+            if (_prompts.Remove(e.Prompt, out var clock) && !e.Cancelled)
+            {
+                Report("finished", clock.Elapsed.TotalMilliseconds);
+            }
+            if (e.Cancelled && _stopClock.IsRunning && _prompts.Count == 0)
+            {
+                _stopClock.Stop();
+                Report("stop", _stopClock.Elapsed.TotalMilliseconds, "SpeakCompleted(cancelled) received");
+            }
             if (!e.Cancelled && e.Error is not null) Failed?.Invoke(this, e.Error);
         };
     }
 
     public event EventHandler<Exception>? Failed;
 
-    public string Id => "sapi5";
+    public event EventHandler<SpeechMetric>? MetricReported;
+
+    public string Id => EngineId;
 
     public string? CurrentVoiceName => _synthesizer.Voice?.Name;
 
     public bool IsSpeaking => _synthesizer.State == SynthesizerState.Speaking;
 
-    /// <summary>SAPI rate, from -10 (slowest) to 10 (fastest).</summary>
-    public int Rate
+    /// <summary>Rate maps directly (-10 to 10); volume 0 to 100; SAPI has no pitch setting, so pitch is ignored.</summary>
+    public SpeechSettings Settings
     {
-        get => _synthesizer.Rate;
-        set => _synthesizer.Rate = Math.Clamp(value, -10, 10);
+        get => _settings;
+        set
+        {
+            _settings = value;
+            _synthesizer.Rate = value.Rate;
+            _synthesizer.Volume = value.Volume;
+        }
     }
 
     public IReadOnlyList<VoiceCandidate> Voices =>
         [.. _synthesizer.GetInstalledVoices()
             .Where(v => v.Enabled)
-            .Select(v => new VoiceCandidate(v.VoiceInfo.Name, v.VoiceInfo.Culture?.Name ?? "", "sapi5"))];
+            .Select(v => new VoiceCandidate(v.VoiceInfo.Name, v.VoiceInfo.Culture?.Name ?? "", EngineId))];
 
     public void SelectVoice(string name) => _synthesizer.SelectVoice(name);
 
-    public void Speak(string text) => _synthesizer.SpeakAsync(text);
+    public void Speak(string text) => _prompts[_synthesizer.SpeakAsync(text)] = Stopwatch.StartNew();
 
-    public void Stop() => _synthesizer.SpeakAsyncCancelAll();
+    public void Stop()
+    {
+        if (_prompts.Count > 0) _stopClock.Restart();
+        _synthesizer.SpeakAsyncCancelAll();
+    }
 
     public async Task WaitUntilIdleAsync(TimeSpan timeout)
     {
@@ -59,4 +95,7 @@ public sealed class Sapi5Engine : ISpeechEngine
     }
 
     public void Dispose() => _synthesizer.Dispose();
+
+    private void Report(string kind, double milliseconds, string? detail = null) =>
+        MetricReported?.Invoke(this, new SpeechMetric(EngineId, kind, milliseconds, detail));
 }

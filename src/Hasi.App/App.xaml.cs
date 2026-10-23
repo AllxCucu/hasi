@@ -52,16 +52,23 @@ public partial class App : Application, ISystemActions
         _log.Write("START", $"HASI {version}, {Environment.OSVersion.VersionString}");
 
         var localizer = JsonLocalizer.LoadRomanian(AppPaths.Resources);
-        var (engine, voiceNotice) = CreateSpeechEngine(options, localizer);
+        var normalizer = new RomanianNormalizer(
+            AcronymLexicon.Load(AcronymLexicon.DefaultPath),
+            NounGenderLexicon.LoadDefault(),
+            word => _log.Write("LEXICON?", word));
+        var speech = new SpeechSetup(options, _log);
+        var (engine, voiceNotice) = speech.CreateMainEngine(localizer);
         _engine = engine;
         _log.Write("ENGINE", $"{engine.Id} voice=\"{engine.CurrentVoiceName}\"");
+        var comparison = speech.CreateComparison(localizer, normalizer);
+        if (comparison is not null) _disposables.Add(comparison);
 
         _window = new ShellWindow();
         var earcons = new ToneEarconPlayer();
         _disposables.Add(earcons);
-        var hub = new OutputHub(
-            [new SpeechOutputChannel(engine, earcons, _log), new VisualChannel(_window)],
-            _log);
+        List<IOutputChannel> channels = [new SpeechOutputChannel(engine, earcons, _log), new VisualChannel(_window)];
+        if (comparison is not null) channels.Add(comparison);
+        var hub = new OutputHub(channels, _log);
         engine.Failed += (_, ex) =>
         {
             // Every voice has failed. Never fail in silence: log it and play the error tone.
@@ -83,16 +90,12 @@ public partial class App : Application, ISystemActions
                 _announcer.Say(_announcer.Last is { } last ? notice.Then(last) : notice);
             });
         };
-        var normalizer = new RomanianNormalizer(
-            AcronymLexicon.Load(AcronymLexicon.DefaultPath),
-            NounGenderLexicon.LoadDefault(),
-            word => _log.Write("LEXICON?", word));
         _announcer = new Announcer(hub, normalizer, _log);
         _shell = new Shell(_announcer, localizer, new ShellOptions(), this, _log);
 
         // Main menu order. Keep in sync with tests/Hasi.Transcripts.Tests/TranscriptTests.cs.
         IModule[] modules = [new SettingsModule(), new KeyTutorModule(), new AboutModule(), new ExitModule()];
-        var context = new ModuleContext(localizer, _shell, new ApplicationInfo(version), normalizer);
+        var context = new ModuleContext(localizer, _shell, new ApplicationInfo(version), normalizer, comparison);
 
         _shell.ScreenChanged += (_, _) => _window.ShowTitle(_shell.Current.Title);
         _window.ProducesText = chord => TextRouting.ProducesText(chord, _keyMap, _shell.IsTextEntryActive, ShellWindow.NumLockOn);
@@ -214,84 +217,6 @@ public partial class App : Application, ISystemActions
         {
             ErrorLog.Write(ex);
             return NullDiagnosticLog.Instance;
-        }
-    }
-
-    /// <summary>
-    /// Paul (RHVoice through SAPI5) if installed; otherwise a Romanian voice from SAPI5 or OneCore
-    /// (Microsoft Andrei); otherwise any voice. A fallback is said aloud.
-    /// </summary>
-    private (FallbackSpeechEngine Engine, string? Notice) CreateSpeechEngine(StartupOptions options, ILocalizer localizer)
-    {
-        var voices = new List<VoiceCandidate>();
-        voices.AddRange(Attempt("SAPI5 voices", () =>
-        {
-            using var lister = new Sapi5Engine();
-            return lister.Voices;
-        }) ?? []);
-        voices.AddRange(Attempt("OneCore voices", () => OneCoreEngine.Voices) ?? []);
-        _log.Write("VOICES", string.Join(", ", voices.Select(v => $"{v.Engine}:\"{v.Name}\" {v.Culture}")));
-
-        var preferred = options.Voice ?? VoiceChooser.DefaultPreferredVoice;
-        var ranked = VoiceChooser.Rank(voices, preferred)
-            .Where(v => options.Engine is null || v.Engine.Equals(options.Engine, StringComparison.OrdinalIgnoreCase))
-            .Select((voice, index) => new SpeechCandidate(voice.Name, () =>
-            {
-                var engine = StartVoice(voice, options);
-                // --test-voice-failure: the best voice breaks after three messages, to hear the fallback.
-                return engine is not null && index == 0 && options.TestVoiceFailure ? new FailingAfterEngine(engine, 3) : engine;
-            }));
-
-        var chain = FallbackSpeechEngine.Start(ranked, (voice, ex) =>
-        {
-            ErrorLog.Write(ex);
-            _log.Write("ERROR", $"voice \"{voice}\" did not start: {ex.Message}");
-        });
-        if (chain.CurrentVoiceName is not { } current)
-        {
-            _log.Write("ERROR", "no working voice; text is shown on screen only");
-            return (chain, localizer.Get("speech.noVoice"));
-        }
-        // No notice when the tester chose the voice or the engine on the command line.
-        var notice = options.Voice is null && options.Engine is null && !current.Contains(preferred, StringComparison.OrdinalIgnoreCase)
-            ? localizer.Get("speech.voiceFallback", ("voice", current))
-            : null;
-        return (chain, notice);
-    }
-
-    /// <summary>Each voice gets its own engine, so a failing one can be thrown away without affecting the next.</summary>
-    private static ISpeechEngine? StartVoice(VoiceCandidate voice, StartupOptions options)
-    {
-        switch (voice.Engine)
-        {
-            case "sapi5":
-                var sapi = new Sapi5Engine();
-                sapi.SelectVoice(voice.Name);
-                if (options.Rate is { } sapiRate) sapi.Rate = sapiRate;
-                return sapi;
-            case "onecore":
-                var oneCore = new OneCoreEngine();
-                oneCore.SelectVoice(voice.Name);
-                if (options.Rate is { } oneCoreRate) oneCore.Rate = oneCoreRate;
-                return oneCore;
-            default:
-                return null;
-        }
-    }
-
-    private T? Attempt<T>(string what, Func<T?> action) where T : class
-    {
-        try
-        {
-            return action();
-        }
-#pragma warning disable CA1031 // Without speech HASI still shows every message on screen.
-        catch (Exception ex)
-#pragma warning restore CA1031
-        {
-            ErrorLog.Write(ex);
-            _log.Write("ERROR", $"{what} unavailable: {ex.Message}");
-            return null;
         }
     }
 

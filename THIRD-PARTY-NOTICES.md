@@ -10,6 +10,12 @@ Every entry here must also appear in the spoken "Despre HASI" screen.
 - License: MIT
 - Source: https://github.com/dotnet/runtime
 
+### NAudio (NAudio.Core, NAudio.Wasapi 3.1.0)
+- Copyright: Mark Heath and contributors
+- License: MIT
+- Source: https://github.com/naudio/NAudio
+- Used for HASI's own audio output (RHVoice.dll experiment, ADR 0004).
+
 ### MULTEXT-East free lexicons 4.0 – Romanian lexicon (noun genders)
 - Erjavec, T., Bruda, Ş., Derzhanski, I., Dimitrova, L., Garabík, R., Holozan, P., Ide, N., Kaalep, H.-J.,
   Kotsyba, N., Oravecz, C., Petkevič, V., Priest-Dorman, G., Shevchenko, I., Simov, K., Sinapova, L.,

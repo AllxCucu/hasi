@@ -80,6 +80,22 @@
   "settings.updates": "Actualizări",
 
   "diagnostic.pronunciation": "Test pronunție",
+  "diagnostic.compare": "Comparare voci",
+  "compare.unavailable": "Comparația are nevoie de vocea Paul prin SAPI și de RHVoice direct. Porniți HASI cu opțiunea rhvoice path și cu folderul în care se află RHVoice. Apăsați Escape pentru a vă întoarce.",
+  "compare.help": "Alegeți o frază cu săgețile sus și jos. Enter o rostește pe rând prin fiecare variantă: {variants}. Săgeata stânga o rostește doar prin prima variantă, săgeata dreapta doar prin a doua. Orice tastă oprește comparația.",
+  "compare.variant.sapi": "Paul prin SAPI",
+  "compare.variant.dll": "Paul prin RHVoice direct",
+  "compare.announce": "Varianta {number}, {name}.",
+  "compare.numbers.label": "Numere și sume",
+  "compare.numbers.text": "Am plătit 1.250,99 lei pentru 21 de facturi, adică 3% din total, iar restul de 12 rate vine pe 2 ani.",
+  "compare.diacritics.label": "Diacritice",
+  "compare.diacritics.text": "Șase școlari își țineau în mână câte o pâine și o înghețată, în timp ce țânțarii zburau prin grădină.",
+  "compare.long.label": "Frază lungă",
+  "compare.long.text": "Bun venit în HASI. Acesta este un text mai lung, pentru a asculta cum sună vocea pe o citire de câteva propoziții. Vremea de mâine va fi însorită în cea mai mare parte a țării, cu temperaturi între 15 și 22 de grade. Spre seară, în zonele de munte, sunt posibile averse de scurtă durată. Vă dorim o zi bună și vă mulțumim că folosiți HASI.",
+  "compare.question.label": "Întrebare",
+  "compare.question.text": "Doriți să trimiteți acest mesaj acum, sau preferați să-l mai citiți o dată?",
+  "compare.dateTime.label": "Dată și oră",
+  "compare.dateTime.text": "Programarea la medic este miercuri, 21.10.2026, la ora 9:30, la cabinetul din Str. Lalelelor nr. 12.",
   "diagnostic.mode": "Mod de diagnostic",
   "diagnostic.copyLog": "Copiază jurnalul pe Desktop",
   "pronunciation.prompt": "Scrieți un text și apăsați Enter ca să-l auziți așa cum îl rostește HASI. Escape vă întoarce.",
@@ -95,6 +111,7 @@
   "about.rhvoice": "Sinteza vocală RHVoice, de Olga Yakovleva și colaboratorii, sub licența GNU LGPL, versiunea 2.1 sau ulterioară",
   "about.paul": "Vocea românească Paul, de Stefan Moisei, Paul Bogorin și Zvonimir Stanecic, cu egalizare de Tomasz Bilecki, sub licența Creative Commons Atribuire, Distribuire în condiții identice, versiunea 4.0",
   "about.multext": "Genul substantivelor, din lexiconul românesc MULTEXT-East, versiunea 4, de Tomaž Erjavec, Dan Tufiș și colaboratorii, Institutul Jožef Stefan, sub licența Creative Commons Atribuire, Distribuire în condiții identice, versiunea 4.0",
+  "about.naudio": "Redarea sunetului, cu biblioteca NAudio, de Mark Heath și colaboratorii, sub licența MIT",
   "about.systemSpeech": "Componenta System.Speech, de la .NET Foundation, sub licența MIT",
 
   "exit.title": "Ieșire",
@@ -102,5 +119,6 @@
 
   "speech.voiceFallback": "Vocea Paul nu este instalată. Folosesc vocea {voice}.",
   "speech.switched": "Vocea {failed} nu mai funcționează. Folosesc vocea {voice}.",
+  "speech.engineUnavailable": "Motorul de voce cerut nu a pornit. Folosesc vocea {voice}. Detaliile sunt în jurnalul de diagnostic.",
   "speech.noVoice": "Nu am găsit nicio voce care să funcționeze. Mesajele apar doar pe ecran."
 }

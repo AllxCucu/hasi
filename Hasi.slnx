@@ -14,6 +14,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/Hasi.Architecture.Tests/Hasi.Architecture.Tests.csproj" />
     <Project Path="tests/Hasi.Core.Tests/Hasi.Core.Tests.csproj" />
+    <Project Path="tests/Hasi.Speech.Tests/Hasi.Speech.Tests.csproj" />
     <Project Path="tests/Hasi.Testing/Hasi.Testing.csproj" />
     <Project Path="tests/Hasi.Text.Ro.Tests/Hasi.Text.Ro.Tests.csproj" />
     <Project Path="tests/Hasi.Transcripts.Tests/Hasi.Transcripts.Tests.csproj" />

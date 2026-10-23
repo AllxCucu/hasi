@@ -47,9 +47,26 @@ public sealed class SettingsModule : IModule
         return new MenuScreen(l.Get("settings.diagnostic"),
         [
             new MenuItem(l.Get("diagnostic.pronunciation"), _ => ScreenResult.Push(PronunciationTest(context))),
+            new MenuItem(l.Get("diagnostic.compare"), _ => ScreenResult.Push(VoiceComparison(context))),
             NotYetAvailable(l.Get("diagnostic.mode"), context),
             NotYetAvailable(l.Get("diagnostic.copyLog"), context),
         ]);
+    }
+
+    /// <summary>The phrases are fixed, so every comparison is made on the same text.</summary>
+    private static readonly string[] ComparisonPhraseKeys =
+        ["compare.numbers", "compare.diacritics", "compare.long", "compare.question", "compare.dateTime"];
+
+    private static IScreen VoiceComparison(IModuleContext context)
+    {
+        var l = context.Localizer;
+        var title = l.Get("diagnostic.compare");
+        if (context.VoiceComparison is not { } comparison) return VoiceComparisonScreen.Unavailable(title, l.Get("compare.unavailable"));
+        var phrases = ComparisonPhraseKeys
+            .Select(key => (l.Get(key + ".label"), l.Get(key + ".text")))
+            .ToList();
+        var help = l.Get("compare.help", ("variants", string.Join(", ", comparison.Variants)));
+        return new VoiceComparisonScreen(title, phrases, comparison, help);
     }
 
     /// <summary>

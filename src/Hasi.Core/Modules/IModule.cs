@@ -1,6 +1,7 @@
-using Hasi.Core.Localization;
+﻿using Hasi.Core.Localization;
 using Hasi.Core.Output;
 using Hasi.Core.Screens;
+using Hasi.Core.Speech;
 
 namespace Hasi.Core.Modules;
 
@@ -28,6 +29,9 @@ public interface IModuleContext
 
     /// <summary>The same normalizer speech uses, for screens that show what will be spoken.</summary>
     ITextNormalizer Normalizer { get; }
+
+    /// <summary>Voice comparison for the Diagnostic menu, or null when the voices to compare are not available.</summary>
+    IVoiceComparison? VoiceComparison { get; }
 }
 
 /// <summary>Shell features that modules may trigger.</summary>
@@ -50,7 +54,8 @@ public sealed record ModuleContext(
     ILocalizer Localizer,
     IShellServices Shell,
     ApplicationInfo Application,
-    ITextNormalizer Normalizer) : IModuleContext;
+    ITextNormalizer Normalizer,
+    IVoiceComparison? VoiceComparison = null) : IModuleContext;
 
 public static class MainMenu
 {

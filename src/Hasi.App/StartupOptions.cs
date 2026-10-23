@@ -4,41 +4,63 @@ namespace Hasi.App;
 
 /// <summary>
 /// Command-line switches for testing until the Settings screens exist (phase 0.6/0.8):
-/// <c>--diagnostic</c>, <c>--voice "name"</c>, <c>--rate -10..10</c>, <c>--engine sapi5|onecore</c>,
+/// <c>--diagnostic</c>, <c>--voice "name"</c>, <c>--engine sapi5|onecore|rhvoice-dll</c>,
+/// <c>--rhvoice-path folder</c>, <c>--rate -10..10</c>, <c>--pitch -10..10</c>, <c>--volume 0..100</c>,
 /// <c>--test-voice-failure</c>.
 /// </summary>
-internal sealed record StartupOptions(bool Diagnostic, string? Voice, int? Rate, string? Engine, bool TestVoiceFailure)
+internal sealed record StartupOptions(
+    bool Diagnostic,
+    string? Voice,
+    int? Rate,
+    string? Engine,
+    bool TestVoiceFailure,
+    string? RhVoicePath = null,
+    int? Pitch = null,
+    int? Volume = null)
 {
     public static StartupOptions Parse(IReadOnlyList<string> args)
     {
-        var diagnostic = false;
-        var testVoiceFailure = false;
-        string? voice = null;
-        string? engine = null;
-        int? rate = null;
+        var options = new StartupOptions(false, null, null, null, false);
         for (var i = 0; i < args.Count; i++)
         {
+            var next = i + 1 < args.Count ? args[i + 1] : null;
             switch (args[i].ToLowerInvariant())
             {
                 case "--diagnostic":
-                    diagnostic = true;
+                    options = options with { Diagnostic = true };
                     break;
                 case "--test-voice-failure":
-                    testVoiceFailure = true;
+                    options = options with { TestVoiceFailure = true };
                     break;
-                case "--voice" when i + 1 < args.Count:
-                    voice = args[++i];
+                case "--voice" when next is not null:
+                    options = options with { Voice = next };
+                    i++;
                     break;
-                case "--engine" when i + 1 < args.Count:
-                    engine = args[++i];
+                case "--engine" when next is not null:
+                    options = options with { Engine = next };
+                    i++;
                     break;
-                case "--rate" when i + 1 < args.Count
-                    && int.TryParse(args[i + 1], NumberStyles.Integer, CultureInfo.InvariantCulture, out var value):
-                    rate = value;
+                case "--rhvoice-path" when next is not null:
+                    options = options with { RhVoicePath = next };
+                    i++;
+                    break;
+                case "--rate" when Number(next) is { } rate:
+                    options = options with { Rate = rate };
+                    i++;
+                    break;
+                case "--pitch" when Number(next) is { } pitch:
+                    options = options with { Pitch = pitch };
+                    i++;
+                    break;
+                case "--volume" when Number(next) is { } volume:
+                    options = options with { Volume = volume };
                     i++;
                     break;
             }
         }
-        return new StartupOptions(diagnostic, voice, rate, engine, testVoiceFailure);
+        return options;
     }
+
+    private static int? Number(string? text) =>
+        int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var value) ? value : null;
 }

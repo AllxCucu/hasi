@@ -28,16 +28,18 @@ public sealed class OneCoreEngine : ISpeechEngine
     public static IReadOnlyList<VoiceCandidate> Voices =>
         [.. SpeechSynthesizer.AllVoices.Select(v => new VoiceCandidate(v.DisplayName, v.Language, "onecore"))];
 
-    /// <summary>Same scale as SAPI: -10 (slowest) to 10 (fastest), 0 is normal.</summary>
-    public int Rate
+    /// <summary>HASI's rate, pitch and volume, mapped to OneCore's ranges.</summary>
+    public SpeechSettings Settings
     {
         get;
         set
         {
-            field = Math.Clamp(value, -10, 10);
-            _synthesizer.Options.SpeakingRate = Math.Clamp(Math.Pow(3, field / 10.0), 0.5, 6.0);
+            field = value;
+            _synthesizer.Options.SpeakingRate = value.OneCoreRate;
+            _synthesizer.Options.AudioPitch = value.OneCorePitch;
+            _synthesizer.Options.AudioVolume = value.Gain;
         }
-    }
+    } = new();
 
     /// <summary>A message could not be synthesized or played; the engine keeps working.</summary>
     public event EventHandler<Exception>? Failed;

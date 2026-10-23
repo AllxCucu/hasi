@@ -5,6 +5,7 @@ using Hasi.Core.Localization;
 using Hasi.Core.Modules;
 using Hasi.Core.Output;
 using Hasi.Core.Screens;
+using Hasi.Core.Speech;
 
 namespace Hasi.Testing;
 
@@ -22,7 +23,7 @@ public sealed class FakeSystemActions : ISystemActions
 public sealed class ShellHarness
 {
     /// <param name="normalizer">Pass-through by default, so tests see the texts exactly as in ro.json.</param>
-    public ShellHarness(ShellOptions? options = null, ITextNormalizer? normalizer = null)
+    public ShellHarness(ShellOptions? options = null, ITextNormalizer? normalizer = null, IVoiceComparison? comparison = null)
     {
         Localizer = JsonLocalizer.LoadRomanian(Path.Combine(AppContext.BaseDirectory, "Resources", "ro.json"));
         Output = new RecordingChannel();
@@ -32,7 +33,7 @@ public sealed class ShellHarness
         var log = NullDiagnosticLog.Instance;
         Announcer = new Announcer(new OutputHub([Output], log), Normalizer, log);
         Shell = new Shell(Announcer, Localizer, options ?? new ShellOptions(), System, log);
-        ModuleContext = new ModuleContext(Localizer, Shell, new ApplicationInfo("0.1.0"), Normalizer);
+        ModuleContext = new ModuleContext(Localizer, Shell, new ApplicationInfo("0.1.0"), Normalizer, comparison);
     }
 
     public JsonLocalizer Localizer { get; }
