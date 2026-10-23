@@ -7,7 +7,9 @@ namespace Hasi.App;
 /// <c>--diagnostic</c>, <c>--voice "name"</c>, <c>--engine sapi5|onecore|rhvoice-dll</c>,
 /// <c>--rhvoice-path folder</c>, <c>--rate -10..10</c>, <c>--pitch -10..10</c>, <c>--volume 0..100</c>,
 /// <c>--audio-idle-seconds N</c> (0 = keep the audio stream open), <c>--test-voice-failure</c>,
-/// <c>--simulate-power</c> (restart and shut down only log, and HASI closes).
+/// <c>--simulate-power</c> (restart and shut down only log, and HASI closes),
+/// <c>--real-power</c> (restart and shut down are real for this session, whatever "Simulare oprire" says;
+/// <c>--simulate-power</c> wins if both are given).
 /// </summary>
 internal sealed record StartupOptions(
     bool Diagnostic,
@@ -19,7 +21,8 @@ internal sealed record StartupOptions(
     int? Pitch = null,
     int? Volume = null,
     int? AudioIdleSeconds = null,
-    bool SimulatePower = false)
+    bool SimulatePower = false,
+    bool RealPower = false)
 {
     public static StartupOptions Parse(IReadOnlyList<string> args)
     {
@@ -34,6 +37,9 @@ internal sealed record StartupOptions(
                     break;
                 case "--simulate-power":
                     options = options with { SimulatePower = true };
+                    break;
+                case "--real-power":
+                    options = options with { RealPower = true };
                     break;
                 case "--test-voice-failure":
                     options = options with { TestVoiceFailure = true };

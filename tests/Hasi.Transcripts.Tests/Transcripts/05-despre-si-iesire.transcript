@@ -40,17 +40,17 @@
 > Escape
 < Anulat. Ieșire. Selectat: Închide HASI, 1 din 3.
 
-# M0-23 Repornire și oprire: fiecare cu confirmare; Escape anulează
+# M0-23 Repornire și oprire: fiecare cu confirmare; Escape anulează. „Simulare oprire” e pornită implicit (mod de test).
 > Down
 < Repornește calculatorul, 2 din 3.
 > Enter
-< Sigur doriți să reporniți calculatorul? Programele deschise se vor închide. Apăsați Enter pentru da sau Escape pentru nu.
+< Sigur doriți să reporniți calculatorul? Mod de test: calculatorul nu va reporni. Apăsați Enter pentru da sau Escape pentru nu.
 > Escape
 < Anulat. Ieșire. Selectat: Repornește calculatorul, 2 din 3.
 > Down
 < Oprește calculatorul, 3 din 3.
 > Enter
-< Sigur doriți să opriți calculatorul? Programele deschise se vor închide. Apăsați Enter pentru da sau Escape pentru nu.
+< Sigur doriți să opriți calculatorul? Mod de test: calculatorul nu se va opri. Apăsați Enter pentru da sau Escape pentru nu.
 > Escape
 < Anulat. Ieșire. Selectat: Oprește calculatorul, 3 din 3.
 

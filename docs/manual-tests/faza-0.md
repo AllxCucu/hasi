@@ -169,6 +169,26 @@ Pornire: `dotnet run --project src\Hasi.App -- --diagnostic` (pentru E-04, adaug
 | D-01 | Despre HASI, rând cu rând | 9 rânduri; rândul 4: „Sinteza vocală RHVoice, de Olga Yakovleva și colaboratorii. Biblioteca e sub licența GNU GPL, versiunea 2 sau ulterioară, cu părți sub GNU LGPL, versiunea 2.1 sau ulterioară”; rândul 6: „Datele limbii române pentru RHVoice, de Stefan Moisei, sub licența GNU LGPL” |
 | H-01 | Setări → Viteză (ecranul valorii): F3, apoi F2 | „Sunteți în: Meniu principal, Setări, Viteză.”, apoi același mesaj repetat |
 
+## Repornire și oprire fără tăcere, „Simulare oprire” (O-01…O-10)
+
+Înlocuiesc E-03…E-05 de la 0.7 (ADR 0006). Pornire: `dotnet run --project src\Hasi.App -- --diagnostic`.
+„Simulare oprire” e **pornită implicit**: O-01…O-05 nu repornesc nimic. O-06…O-10 sunt reale: **salvează tot înainte**.
+
+| ID | Ce faci | Ce trebuie să auzi |
+|---|---|---|
+| O-01 | Fără alte programe deschise: Ieșire → Repornește calculatorul | „Sigur doriți să reporniți calculatorul? Mod de test: calculatorul nu va reporni. Apăsați Enter pentru da sau Escape pentru nu.” |
+| O-02 | Deschizi Notepad și două ferestre Edge, apoi Repornește calculatorul | după „Mod de test…”: „Sunt deschise 2 programe: Notepad, Microsoft Edge, 2 ferestre. Dacă aveți modificări nesalvate, se pot pierde.” (numele exacte depind de programe; titlurile ferestrelor nu se spun). Spune-mi dacă lipsește un program sau apare unul pe care nu-l vezi. |
+| O-03 | La O-02, Enter | „Mod de test: HASI se închide, iar calculatorul rămâne pornit. La revedere.”; HASI se închide, calculatorul nu; în jurnal `POWER simulated: shutdown.exe /r /t 0` |
+| O-04 | La fel cu Oprește calculatorul | „… Mod de test: calculatorul nu se va opri. …”; în jurnal `/s /t 0` |
+| O-05 | Setări → Diagnostic → Simulare oprire | „Simulare oprire. 2 opțiuni. Selectat: Pornită: repornirea și oprirea sunt doar un test, actual, 1 din 2.” Alegi „Oprită…” → „Simulare oprire: Oprită: repornirea și oprirea sunt reale.” Închizi și pornești HASI: după bun venit, o singură dată, „Atenție: repornirea și oprirea calculatorului sunt reale.”; la a doua pornire nu se mai spune |
+| O-06 | (real) Fără programe deschise: Repornește → Enter | „Calculatorul se repornește. Așteptați, vă rog.”, apoi calculatorul repornește |
+| O-07 | (real) Notepad cu text nesalvat: Repornește → Enter; nu atingi nimic 40 de secunde | lista cu Notepad înainte de confirmare; după „Așteptați, vă rog”, apare ecranul Windows; în cel mult ~10 secunde: „Repornirea așteaptă. Probabil un program are modificări nesalvate și împiedică repornirea. Pe ecran, Windows vă întreabă dacă reporniți oricum sau anulați. Este deschis un program: Notepad.”, repetat la 30 de secunde. **Spune-mi:** se aude vocea HASI peste ecranul Windows? Ce taste merg acolo (Tab, săgeți, Enter, Escape)? NVDA citește ecranul? |
+| O-08 | La O-07, alegi „Anulare” pe ecranul Windows | „Repornirea a fost anulată. Rămâne deschis un program: Notepad.” și, dacă tastele nu sunt la HASI, cum reveniți (Alt+Tab). **Spune-mi** ce fereastră a rămas în față. |
+| O-09 | După O-08, în HASI: Repornește → Enter | a doua întrebare: „Repornirea de mai devreme a fost împiedicată de un program. Doriți o repornire forțată? Programele deschise se închid fără să salveze, iar modificările nesalvate se pierd.” Escape → „Anulat.”, nimic nu repornește. (Enter ar reporni forțat și ai pierde textul din Notepad.) |
+| O-10 | (real, opțional) Pornire rapidă: Oprește calculatorul din HASI, pornești din nou, apoi în PowerShell: `Get-WinEvent -FilterHashtable @{LogName='System'; ProviderName='Microsoft-Windows-Kernel-Boot'; Id=27} -MaxEvents 3 \| Format-List TimeCreated, Message` | la ultima pornire „The boot type was 0x0” (oprire completă). Dacă e 0x1, HASI a făcut o oprire cu Pornire rapidă: spune-mi. |
+
+Pentru O-07…O-09, trimite-mi jurnalul de diagnostic: rândurile `POWER` arată fiecare pas (comanda, „session ending”, „waiting”, „cancelled”).
+
 ## Plan modificat (24 octombrie 2026): etapa 0.9 scoasă
 
 Etapa 0.9 (coexistența cu cititoarele de ecran) a fost scoasă din Faza 0, la decizia testerului. Cu NVDA pornit și repornit, fără modul de somn, cu tastatura numerică în aspectul desktop și cu ecoul tastării în „Test pronunție”, s-a auzit o singură voce, a HASI, iar tastele au ajuns la HASI (ADR 0003, acum „înlocuit”).

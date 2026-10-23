@@ -1,24 +1,26 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Hasi.Core.Diagnostics;
+using Hasi.Core.Power;
 
 namespace Hasi.App;
 
-internal enum PowerAction
-{
-    None,
-    Restart,
-    Shutdown,
-}
-
 /// <summary>Restarts or shuts down Windows with the system's own <c>shutdown.exe</c>.</summary>
+/// <remarks>
+/// Never <c>/f</c> unless the user confirmed a forced restart a second time, so programs may still ask to save.
+/// Never <c>/hybrid</c>: shutting down is a full shutdown even with Fast Startup on, as a restart always is.
+/// <c>/t 0</c> matters: any longer delay implies <c>/f</c>.
+/// </remarks>
 internal static class PowerActions
 {
-    /// <param name="simulate"><c>--simulate-power</c>: only log what would happen (for testing).</param>
-    /// <returns>False when Windows refused (for example a policy forbids it); HASI then stays open.</returns>
-    public static bool Run(PowerAction action, bool simulate, IDiagnosticLog log)
+    private const int SmShuttingDown = 0x2000;
+
+    /// <param name="simulate">Only log what would happen ("Simulare oprire", <c>--simulate-power</c>).</param>
+    /// <returns>False when Windows refused at once (for example a policy forbids it).</returns>
+    public static bool Run(PowerAction action, bool force, bool simulate, IDiagnosticLog log)
     {
-        var arguments = action == PowerAction.Restart ? "/r /t 0" : "/s /t 0";
+        var arguments = (action == PowerAction.Restart ? "/r" : "/s") + (force ? " /f" : "") + " /t 0";
         if (simulate)
         {
             log.Write("POWER", $"simulated: shutdown.exe {arguments}");
@@ -43,4 +45,11 @@ internal static class PowerActions
             return false;
         }
     }
+
+    /// <summary>True while Windows is ending the session (expected also while its blocking screen is shown).</summary>
+    public static bool SessionIsEnding => GetSystemMetrics(SmShuttingDown) != 0;
+
+    [DllImport("user32.dll")]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    private static extern int GetSystemMetrics(int index);
 }

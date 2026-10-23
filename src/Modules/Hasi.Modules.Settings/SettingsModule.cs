@@ -116,6 +116,11 @@ public sealed class SettingsModule : IModule
             new MenuItem(l.Get("diagnostic.compare"), _ => ScreenResult.Push(VoiceComparison(context))),
             NotYetAvailable(l.Get("diagnostic.mode"), context),
             NotYetAvailable(l.Get("diagnostic.copyLog"), context),
+            context.Settings is { } settings
+                ? new MenuItem(l.Get("diagnostic.simulatePower"), _ => ScreenResult.Push(Choice(context, "diagnostic.simulatePower",
+                    ["settings.simulatePower.on", "settings.simulatePower.off"],
+                    settings.Current.SimulatePower ? 0 : 1, i => settings.SetSimulatePower(i == 0))))
+                : NotYetAvailable(l.Get("diagnostic.simulatePower"), context),
         ]);
     }
 

@@ -26,6 +26,18 @@ public sealed class SettingsFileTests : IDisposable
     }
 
     [Fact]
+    public void A_file_from_before_simulare_oprire_keeps_test_mode_on()
+    {
+        Directory.CreateDirectory(_folder);
+        File.WriteAllText(Path_, """{ "SchemaVersion": 1, "Rate": 2 }""");
+
+        var settings = SettingsFile.Load(Path_, out _);
+
+        Assert.True(settings.SimulatePower);
+        Assert.False(settings.RealPowerNoticePending);
+    }
+
+    [Fact]
     public void Settings_survive_a_save_and_a_load()
     {
         var saved = new UserSettings

@@ -1,4 +1,4 @@
-using Hasi.Core.Input;
+﻿using Hasi.Core.Input;
 using Hasi.Modules.About;
 using Hasi.Modules.Exit;
 using Hasi.Modules.KeyTutor;
@@ -11,21 +11,6 @@ public class ExitAndKeyTutorTests
 {
     private static ShellHarness Started() =>
         new ShellHarness().StartWithModules(new SettingsModule(), new KeyTutorModule(), new AboutModule(), new ExitModule());
-
-    [Theory]
-    [InlineData(1, "restart", "Calculatorul se repornește. La revedere.")]
-    [InlineData(2, "shutdown", "Calculatorul se oprește. La revedere.")]
-    public void A_confirmed_restart_or_shutdown_says_goodbye_and_asks_the_host(int item, string action, string goodbye)
-    {
-        var h = Started();
-        h.Press(Key.End, Key.Enter);
-        for (var i = 0; i < item; i++) h.Press(Key.Down);
-        h.Press(Key.Enter);
-
-        Assert.Equal([goodbye], h.Press(Key.Enter));
-        Assert.Equal(action, h.System.PowerRequested);
-        Assert.False(h.System.ExitRequested);
-    }
 
     [Fact]
     public void Holding_enter_never_restarts_the_computer()

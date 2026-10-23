@@ -4,6 +4,7 @@ using Hasi.Core.Input;
 using Hasi.Core.Localization;
 using Hasi.Core.Modules;
 using Hasi.Core.Output;
+using Hasi.Core.Power;
 using Hasi.Core.Screens;
 using Hasi.Core.Settings;
 using Hasi.Core.Speech;
@@ -14,13 +15,27 @@ public sealed class FakeSystemActions : ISystemActions
 {
     public bool ExitRequested { get; private set; }
 
-    public string? PowerRequested { get; private set; }
+    public PowerAction? PowerRequested { get; private set; }
+
+    public bool ForceRequested { get; private set; }
+
+    /// <summary>Whether restart and shut down only pretend; the harness ties it to "Simulare oprire".</summary>
+    public Func<bool> Simulated { get; set; } = () => false;
+
+    public bool PowerIsSimulated => Simulated();
+
+    /// <summary>What <see cref="OpenPrograms"/> returns; none by default.</summary>
+    public List<OpenProgram> Programs { get; } = [];
 
     public void RequestExit() => ExitRequested = true;
 
-    public void RequestRestart() => PowerRequested = "restart";
+    public void RequestPower(PowerAction action, bool force)
+    {
+        PowerRequested = action;
+        ForceRequested = force;
+    }
 
-    public void RequestShutdown() => PowerRequested = "shutdown";
+    public IReadOnlyList<OpenProgram> OpenPrograms() => [.. Programs];
 }
 
 /// <summary>
@@ -41,6 +56,7 @@ public sealed class ShellHarness
         Announcer = new Announcer(new OutputHub([Output], log), Normalizer, log);
         Shell = new Shell(Announcer, Localizer, options ?? new ShellOptions(), System, log);
         Settings = settings ?? new InMemorySettingsService();
+        System.Simulated = () => Settings.Current.SimulatePower;
         if (Settings is InMemorySettingsService memory)
         {
             // As the application does: list ends and key echo follow the settings at once.

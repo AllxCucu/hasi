@@ -3,6 +3,7 @@ using Hasi.Core.Input;
 using Hasi.Core.Localization;
 using Hasi.Core.Modules;
 using Hasi.Core.Output;
+using Hasi.Core.Power;
 using Hasi.Core.Screens;
 
 namespace Hasi.Core;
@@ -17,6 +18,8 @@ public sealed class Shell : IShellServices, IScreenContext
     private readonly Announcer _announcer;
     private readonly ISystemActions _system;
     private readonly IDiagnosticLog _log;
+    private readonly PowerWatch _power = new();
+    private bool _focusLostWhilePowerPending;
 
     public Shell(Announcer announcer, ILocalizer localizer, ShellOptions options, ISystemActions system, IDiagnosticLog log)
     {
@@ -128,6 +131,13 @@ public sealed class Shell : IShellServices, IScreenContext
     {
         if (_stack.Count == 0) return;
         _log.Write("FOCUS", "lost");
+        if (PowerPending)
+        {
+            // Windows' own screens take the keyboard while the session ends: not worth interrupting
+            // "Calculatorul se repornește". Said with the outcome if the computer does not restart.
+            _focusLostWhilePowerPending = true;
+            return;
+        }
         _announcer.Say(Localizer.Get("shell.focusLost"));
     }
 
@@ -136,6 +146,7 @@ public sealed class Shell : IShellServices, IScreenContext
     {
         if (_stack.Count == 0) return;
         _log.Write("FOCUS", "regained");
+        _focusLostWhilePowerPending = false;
         _announcer.Say(Current.Enter(EnterReason.Return, this));
     }
 
@@ -147,21 +158,115 @@ public sealed class Shell : IShellServices, IScreenContext
             return ScreenResult.Say(Localizer.Get("shell.exit.goodbye"));
         });
 
-    public ScreenResult ConfirmRestart() => ScreenResult.Confirm(
-        Localizer.Get("shell.restart.confirm"),
-        () =>
+    public ScreenResult ConfirmRestart() => ConfirmPower(PowerAction.Restart);
+
+    public ScreenResult ConfirmShutdown() => ConfirmPower(PowerAction.Shutdown);
+
+    /// <summary>A restart or shutdown was asked for and its outcome is not known yet.</summary>
+    public bool PowerPending => _power.Active is not null;
+
+    /// <summary>Windows accepted the restart or shutdown; HASI stays open until the session really ends.</summary>
+    public void PowerStarted(PowerAction action, DateTimeOffset now)
+    {
+        _log.Write("POWER", $"{action} started");
+        _power.Started(action, now);
+    }
+
+    /// <summary>Windows refused at once (for example a policy forbids it).</summary>
+    public void PowerFailed(PowerAction action)
+    {
+        _log.Write("POWER", $"{action} refused");
+        SayPowerOutcome(new Utterance(Localizer.Get(PowerKey(action, "failed")), Earcon: Earcon.Error));
+    }
+
+    /// <summary>Windows has begun closing the session.</summary>
+    public void PowerSessionEnding()
+    {
+        if (_power.SessionEnding()) _log.Write("POWER", "session ending");
+    }
+
+    /// <summary>Windows reported that the session goes on (the restart or shutdown was cancelled).</summary>
+    public void PowerCancelled()
+    {
+        if (_power.Active is not { } action) return;
+        _power.Cancelled();
+        _log.Write("POWER", $"{action} cancelled");
+        SayPowerOutcome(new Utterance(PowerSentence(action, "cancelled", "power.remainOpen"), Earcon: Earcon.Error));
+    }
+
+    /// <summary>Called about once a second while <see cref="PowerPending"/>.</summary>
+    public void PowerTick(DateTimeOffset now)
+    {
+        if (_power.Active is not { } action) return;
+        switch (_power.Tick(now))
         {
-            _system.RequestRestart();
-            return ScreenResult.Say(Localizer.Get("shell.restart.goodbye"));
+            case PowerStatus.NotStarted:
+                _log.Write("POWER", $"{action} not started");
+                SayPowerOutcome(new Utterance(Localizer.Get(PowerKey(action, "notStarted")), Earcon: Earcon.Error));
+                break;
+            case PowerStatus.Waiting:
+                _log.Write("POWER", $"{action} waiting");
+                _announcer.Say(new Utterance(PowerSentence(action, "waiting", "power.openPrograms"), Earcon: Earcon.Error));
+                break;
+        }
+    }
+
+    private ScreenResult ConfirmPower(PowerAction action)
+    {
+        if (_power.Active is { } pending) return ScreenResult.Say(Localizer.Get(PowerKey(pending, "alreadyPending")));
+        var simulated = _system.PowerIsSimulated;
+        List<string> question = [Localizer.Get(PowerKey(action, "confirm"))];
+        if (simulated) question.Add(Localizer.Get(PowerKey(action, "testMode")));
+        if (ProgramsSentence("power.openPrograms") is { } programs)
+        {
+            question.Add(programs);
+            question.Add(Localizer.Get("power.unsavedMayBeLost"));
+        }
+        return ScreenResult.Confirm(string.Join(" ", question), () =>
+        {
+            // A program blocked an earlier attempt and programs are still open: offer forcing, explicitly.
+            if (!simulated && _power.WasBlocked && _system.OpenPrograms().Count > 0)
+            {
+                return ScreenResult.Confirm(Localizer.Get(PowerKey(action, "forceConfirm")), () => RequestPower(action, force: true));
+            }
+            return RequestPower(action, force: false);
         });
 
-    public ScreenResult ConfirmShutdown() => ScreenResult.Confirm(
-        Localizer.Get("shell.shutdown.confirm"),
-        () =>
+        ScreenResult RequestPower(PowerAction requested, bool force)
         {
-            _system.RequestShutdown();
-            return ScreenResult.Say(Localizer.Get("shell.shutdown.goodbye"));
-        });
+            _system.RequestPower(requested, force);
+            return ScreenResult.Say(Localizer.Get(simulated ? "power.simulatedGoodbye" : PowerKey(requested, "goodbye")));
+        }
+    }
+
+    /// <summary>"Repornirea a fost anulată." plus which programs are open, if any.</summary>
+    private string PowerSentence(PowerAction action, string what, string programsKey) =>
+        ProgramsSentence(programsKey) is { } programs
+            ? $"{Localizer.Get(PowerKey(action, what))} {programs}"
+            : Localizer.Get(PowerKey(action, what));
+
+    private string? ProgramsSentence(string key)
+    {
+        var programs = _system.OpenPrograms();
+        if (programs.Count == 0) return null;
+        var names = string.Join(", ", programs.Select(p =>
+            p.Windows > 1 ? Localizer.Plural("power.programWindows", p.Windows, ("name", p.Name)) : p.Name));
+        return Localizer.Plural(key, programs.Count, ("names", names));
+    }
+
+    /// <summary>The outcome ends the wait; if Windows took the keyboard meanwhile, say how to come back.</summary>
+    private void SayPowerOutcome(Utterance outcome)
+    {
+        if (_focusLostWhilePowerPending)
+        {
+            _focusLostWhilePowerPending = false;
+            outcome = outcome.Then(Localizer.Get("shell.focusLost"));
+        }
+        _announcer.Say(outcome);
+    }
+
+    private static string PowerKey(PowerAction action, string what) =>
+        $"power.{(action == PowerAction.Restart ? "restart" : "shutdown")}.{what}";
 
     /// <summary>
     /// The window is being closed from outside HASI's keys (taskbar, Alt+F4 handled by Windows): ask, even on

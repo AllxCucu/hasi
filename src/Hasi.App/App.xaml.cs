@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Text;
 using System.Windows;
+using System.Windows.Interop;
 using System.Windows.Threading;
 using Hasi.Core;
 using Hasi.Core.Diagnostics;
@@ -9,6 +10,7 @@ using Hasi.Core.Input;
 using Hasi.Core.Localization;
 using Hasi.Core.Modules;
 using Hasi.Core.Output;
+using Hasi.Core.Power;
 using Hasi.Core.Screens;
 using Hasi.Core.Settings;
 using Hasi.Core.Speech;
@@ -32,8 +34,11 @@ public partial class App : Application, ISystemActions
     private IDiagnosticLog _log = NullDiagnosticLog.Instance;
     private readonly KeyMap _keyMap = KeyMap.CreateDefault();
     private bool _exitRequested;
-    private PowerAction _power;
-    private bool _simulatePower;
+    private PowerAction? _power;
+    private bool _forcePower;
+    private StartupOptions _options = StartupOptions.Parse([]);
+    private AppSettingsService? _settings;
+    private DispatcherTimer? _powerTimer;
     private bool _exiting;
 
     protected override void OnStartup(StartupEventArgs e)
@@ -46,11 +51,13 @@ public partial class App : Application, ISystemActions
         };
         SessionEnding += (_, _) =>
         {
+            // HASI never blocks a restart or shutdown, whoever asked for it.
             if (_window is not null) _window.AllowClose = true;
+            _shell?.PowerSessionEnding();
         };
 
         var options = StartupOptions.Parse(e.Args);
-        _simulatePower = options.SimulatePower;
+        _options = options;
         var version = ApplicationVersion();
         _log = CreateDiagnosticLog(options);
         _log.Write("START", $"HASI {version}, {Environment.OSVersion.VersionString}");
@@ -101,6 +108,7 @@ public partial class App : Application, ISystemActions
         var shellOptions = new ShellOptions();
         _shell = new Shell(_announcer, localizer, shellOptions, this, _log);
         var settings = new AppSettingsService(AppPaths.SettingsFile, savedSettings, options, speech, engine, shellOptions, _window, _log);
+        _settings = settings;
         settings.SaveFailed += (_, _) => _announcer.Say(new Utterance(localizer.Get("settings.saveProblem"), UtterancePriority.Queue, Earcon.Error));
 
         // Main menu order. Keep in sync with tests/Hasi.Transcripts.Tests/TranscriptTests.cs.
@@ -140,6 +148,7 @@ public partial class App : Application, ISystemActions
         };
         _window.Show();
         _window.Activate();
+        HwndSource.FromHwnd(new WindowInteropHelper(_window).Handle)?.AddHook(OnWindowMessage);
 
         _shell.Start(MainMenu.Create(modules, context));
         if (voiceNotice is not null)
@@ -150,6 +159,10 @@ public partial class App : Application, ISystemActions
         if (settingsProblem is not null)
         {
             _announcer.Say(new Utterance(localizer.Get("settings.loadProblem"), UtterancePriority.Queue, Earcon.Error));
+        }
+        if (settings.TakeRealPowerNotice())
+        {
+            _announcer.Say(new Utterance(localizer.Get("power.realNotice"), UtterancePriority.Queue));
         }
 
         // Windows may refuse to give the new window the keyboard (for example when started from a
@@ -167,17 +180,18 @@ public partial class App : Application, ISystemActions
 
     public void RequestExit() => _exitRequested = true;
 
-    public void RequestRestart()
+    public void RequestPower(PowerAction action, bool force)
     {
-        _power = PowerAction.Restart;
+        _power = action;
+        _forcePower = force;
         _exitRequested = true;
     }
 
-    public void RequestShutdown()
-    {
-        _power = PowerAction.Shutdown;
-        _exitRequested = true;
-    }
+    /// <summary><c>--simulate-power</c> and <c>--real-power</c> win for the session; otherwise "Simulare oprire".</summary>
+    public bool PowerIsSimulated =>
+        _options.SimulatePower || (!_options.RealPower && (_settings?.Current.SimulatePower ?? true));
+
+    public IReadOnlyList<OpenProgram> OpenPrograms() => OpenWindows.List(_log);
 
     protected override void OnExit(ExitEventArgs e)
     {
@@ -202,18 +216,18 @@ public partial class App : Application, ISystemActions
     }
 
     /// <summary>
-    /// Lets "La revedere" finish, then closes (and restarts or shuts down the computer if that was confirmed).
-    /// Closes even if waiting fails. If the computer refuses to restart or shut down, HASI says so and stays open.
+    /// Lets the goodbye finish, then closes HASI. For a real restart or shutdown HASI asks Windows and stays
+    /// open: Windows closes it when the session really ends, and until then the shell follows what happens.
     /// </summary>
     private async Task ExitAfterSpeechAsync()
     {
         _exiting = true;
         _exitRequested = false;
         var power = _power;
-        _power = PowerAction.None;
+        _power = null;
         try
         {
-            _log.Write("EXIT", power == PowerAction.None ? "user confirmed" : $"user confirmed {power}");
+            _log.Write("EXIT", power is null ? "user confirmed" : $"user confirmed {power}{(_forcePower ? " (forced)" : "")}");
             await _engine!.WaitUntilIdleAsync(TimeSpan.FromSeconds(5)).ConfigureAwait(true);
         }
 #pragma warning disable CA1031 // Nothing may stop a confirmed exit.
@@ -223,14 +237,56 @@ public partial class App : Application, ISystemActions
             ErrorLog.Write(ex);
         }
 
-        if (power != PowerAction.None && !PowerActions.Run(power, _simulatePower, _log))
+        if (power is { } action)
         {
-            _exiting = false;
-            _announcer?.Say(new Utterance(_shell!.Localizer.Get("shell.powerFailed"), Earcon: Earcon.Error));
-            return;
+            var simulated = PowerIsSimulated;
+            var accepted = PowerActions.Run(action, _forcePower, simulated, _log);
+            if (!simulated)
+            {
+                _exiting = false;
+                if (!accepted)
+                {
+                    _shell!.PowerFailed(action);
+                    return;
+                }
+                _shell!.PowerStarted(action, DateTimeOffset.Now);
+                StartPowerTimer();
+                return;
+            }
         }
         _window!.AllowClose = true;
         Shutdown();
+    }
+
+    /// <summary>Once a second while a restart or shutdown is pending, until it is resolved.</summary>
+    private void StartPowerTimer()
+    {
+        if (_powerTimer is null)
+        {
+            _powerTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+            _powerTimer.Tick += (_, _) =>
+            {
+                if (PowerActions.SessionIsEnding) _shell!.PowerSessionEnding();
+                _shell!.PowerTick(DateTimeOffset.Now);
+                if (!_shell.PowerPending) _powerTimer.Stop();
+            };
+        }
+        _powerTimer.Start();
+    }
+
+    private const int WmEndSession = 0x0016;
+
+    /// <summary>WPF reports the start of a session end (<see cref="Application.SessionEnding"/>) but not its cancellation.</summary>
+    private IntPtr OnWindowMessage(IntPtr hwnd, int message, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        if (message == WmEndSession && wParam == IntPtr.Zero)
+        {
+            // The session goes on: closing the window must ask again.
+            _log.Write("POWER", "session end cancelled");
+            if (_window is not null) _window.AllowClose = _exiting;
+            _shell?.PowerCancelled();
+        }
+        return IntPtr.Zero;
     }
 
     private void OnUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)

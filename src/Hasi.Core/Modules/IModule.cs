@@ -1,5 +1,6 @@
 ﻿using Hasi.Core.Localization;
 using Hasi.Core.Output;
+using Hasi.Core.Power;
 using Hasi.Core.Screens;
 using Hasi.Core.Settings;
 using Hasi.Core.Speech;
@@ -57,11 +58,19 @@ public interface ISystemActions
     /// <summary>Close HASI once the current speech has finished.</summary>
     void RequestExit();
 
-    /// <summary>Close HASI, then restart the computer, once the current speech has finished.</summary>
-    void RequestRestart();
+    /// <summary>
+    /// Once the current speech has finished, ask Windows to restart or shut down. HASI stays open and reports
+    /// the outcome to the shell (<see cref="Shell.PowerStarted"/>, <see cref="Shell.PowerFailed"/>), unless the
+    /// power action is only simulated: then HASI closes and the computer stays on.
+    /// </summary>
+    /// <param name="force">Close the other programs without letting them save (only after a second confirmation).</param>
+    void RequestPower(PowerAction action, bool force);
 
-    /// <summary>Close HASI, then shut the computer down, once the current speech has finished.</summary>
-    void RequestShutdown();
+    /// <summary>Restart and shut down only pretend ("Simulare oprire", <c>--simulate-power</c>).</summary>
+    bool PowerIsSimulated { get; }
+
+    /// <summary>Other programs with open windows, named before a restart or shutdown.</summary>
+    IReadOnlyList<OpenProgram> OpenPrograms();
 }
 
 public sealed record ApplicationInfo(string Version);

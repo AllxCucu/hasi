@@ -60,6 +60,15 @@ public sealed record UserSettings
     /// <summary>Close the audio stream after this many seconds without speech; 0 = keep it open.</summary>
     public int AudioIdleSeconds { get; init; } = 60;
 
+    /// <summary>
+    /// "Simulare oprire": restart and shut down only pretend (HASI closes, the computer stays on).
+    /// On by default during development; the default becomes off before phase 0.11.
+    /// </summary>
+    public bool SimulatePower { get; init; } = true;
+
+    /// <summary>Set when the user turns <see cref="SimulatePower"/> off: the next start warns once that they are real.</summary>
+    public bool RealPowerNoticePending { get; init; }
+
     [JsonIgnore]
     public SpeechSettings Speech => new(Rate, Pitch, Volume);
 
@@ -182,4 +191,27 @@ public interface ISettingsService
 
     /// <summary>Switches to another voice; false if it could not start (the previous voice stays).</summary>
     bool SelectVoice(VoiceOption voice);
+}
+
+public static class SettingsServiceExtensions
+{
+    /// <summary>Turns "Simulare oprire" on or off; turning it off arms the one-time warning for the next start.</summary>
+    public static void SetSimulatePower(this ISettingsService settings, bool simulate)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+        settings.Update(u => u with
+        {
+            SimulatePower = simulate,
+            RealPowerNoticePending = !simulate && (u.SimulatePower || u.RealPowerNoticePending),
+        });
+    }
+
+    /// <summary>True once, at the first start after "Simulare oprire" was turned off.</summary>
+    public static bool TakeRealPowerNotice(this ISettingsService settings)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+        if (!settings.Current.RealPowerNoticePending) return false;
+        settings.Update(u => u with { RealPowerNoticePending = false });
+        return !settings.Current.SimulatePower;
+    }
 }
