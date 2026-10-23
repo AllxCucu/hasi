@@ -87,3 +87,27 @@ Acronimele se editează în `Data\acronime.txt`, lângă `hasi.exe` (în sursă:
 | V-03 | `dotnet run --project src\Hasi.App -- --diagnostic --test-voice-failure`, apoi apeși săgeata jos de 3–4 ori | după al treilea mesaj, vocea principală „se strică”: „Vocea Paul nu mai funcționează. Folosesc vocea …”, urmat de ultimul mesaj, repetat cu vocea nouă; apoi totul continuă normal |
 | V-04 | Ca la V-03, apoi F2 | ultimul mesaj, cu vocea nouă |
 | V-05 | `--engine onecore --rate -3` | Andrei vorbește mai rar |
+
+## Etapa 0.5 bis – al doilea experiment RHVoice.dll (R-01…R-12)
+
+Cele două variante, din folderul proiectului:
+
+- **A (SAPI, implicit):** `dotnet run --project src\Hasi.App -- --diagnostic --rhvoice-path "C:\Users\cucua\AppData\Local\HASI\rhvoice-test"`
+- **B (RHVoice direct):** `dotnet run --project src\Hasi.App -- --diagnostic --engine rhvoice-dll --rhvoice-path "C:\Users\cucua\AppData\Local\HASI\rhvoice-test"`
+
+`--rhvoice-path` e necesar în ambele variante pentru ecranul „Comparare voci”.
+
+| ID | Ce faci | Ce urmărești |
+|---|---|---|
+| R-01 | Navighezi 2–3 minute prin meniuri cu B, apoi la fel cu A | aceeași voce Paul; spune-mi orice diferență de timbru, volum, viteză sau claritate |
+| R-02 | Setări → Diagnostic → Comparare voci; Enter pe fiecare din cele 5 fraze | „Varianta unu, Paul prin SAPI. …”, apoi „Varianta doi, Paul prin RHVoice direct. …”; săgeata stânga = doar varianta 1, săgeata dreapta = doar varianta 2; orice tastă oprește |
+| R-03 | Cu B: F1 (mesaj lung), apoi săgeata jos în timpul vorbirii; de 10 ori | oprire imediată, fără rest din mesajul vechi |
+| R-04 | Cu B: apeși Control de mai multe ori în timpul vorbirii; asculți și începutul fiecărui mesaj | nicio pocnitură sau „clic” la oprire ori la pornire |
+| R-05 | Căști Bluetooth ca dispozitiv implicit; pornești B, aștepți 30 de secunde fără să apeși nimic, apoi săgeata jos | prima silabă („Î” din „Învață tastele”) se aude întreagă. Repetă cu A și compară. |
+| R-06 | Cu B, în timpul unui mesaj lung, scoți căștile (sau schimbi dispozitivul implicit din Windows) | vorbirea continuă pe dispozitivul nou, fără blocaj; următoarea tastă funcționează |
+| R-07 | Cu B deschis, pui calculatorul în repaus, îl trezești, apoi săgeata jos | HASI vorbește normal |
+| R-08 | B cu `--rate -5`, apoi `--rate 5`, `--pitch 3`, `--volume 50` | mai rar, mai repede, ton mai înalt, mai încet. A: viteza și volumul se schimbă, tonul nu (SAPI nu are ton). |
+| R-09 | B cu `--rhvoice-path C:\nu-exista` | „Motorul de voce cerut nu a pornit. Folosesc vocea Paul. Detaliile sunt în jurnalul de diagnostic.” |
+| R-10 | După o sesiune cu B, deschizi jurnalul de diagnostic | rânduri `LATENCY … first-sound`, `LATENCY … stop`, `WORD …` (cuvintele citite) și `PERF …` (procesor, memorie) |
+| R-11 | Cu Num Lock **oprit**, în meniu: 5 de pe tastatura numerică | același efect ca Enter |
+| R-12 | Test pronunție: `2 autobuze`; apoi `2 smartfoane` | „două autobuze” (din dicționar); „doi smartfoane” (gen ghicit, greșit) și în jurnal `LEXICON? smartfoane`. Adaugi `smartfoane => f` în `src\Hasi.Text.Ro\Data\genuri.txt`, repornești: „două smartfoane”. |

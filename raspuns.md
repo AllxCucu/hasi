@@ -1,195 +1,133 @@
-# HASI – Răspuns după corecturile din 0.4 și etapa 0.5
+﻿# HASI – Răspuns după al doilea experiment RHVoice.dll
 
-Toate cele **165 de teste automate** trec, local și pe GitHub:
+Toate cele **208 teste automate** trec, local și pe GitHub:
 
 | Proiect de test | Teste |
 |---|---|
-| Hasi.Core.Tests | 131 |
-| Hasi.Text.Ro.Tests | 15 (fișiere cu peste 180 de cazuri) |
-| Hasi.Architecture.Tests | 9 |
-| Hasi.Transcripts.Tests | 10 |
+| nucleu | 140 |
+| normalizator | 22 (fișiere cu peste 200 de cazuri) |
+| motoare de voce | 23 (proiect nou) |
+| transcrieri | 14 |
+| arhitectură | 9 |
 
-Depozitul public este **https://github.com/AllxCucu/hasi**, cu CI verde. Mă opresc aici: îți cer **trei decizii** (secțiunea 1), apoi urmează raportul tău pentru scenariile din secțiunea 7.
-
----
-
-## 1. Deciziile pe care ți le cer
-
-1. **RHVoice.dll direct, în loc de SAPI** (ADR 0004, secțiunea 5). Recomand să trecem, în doi pași:
-   - un al doilea experiment, cu redare audio proprie, pe care să-l judeci după ureche;
-   - apoi trecerea propriu-zisă, înainte de installer.
-
-   Până decizi, HASI rămâne pe SAPI.
-2. **Dicționarul de genuri** (ADR 0005, secțiunea 4). Pot folosi lexiconul MULTEXT-East (licență CC BY-SA 4.0)? Și vrei să cer acordul celor de la dexonline?
-3. **Tastele 5 și 0 de pe tastatura numerică, cu Num Lock oprit** (secțiunea 3). Pot lega tasta „Clear” (5) de Enter? E o modificare a KeyMap-ului aprobat, deci nu am făcut-o fără tine.
-
-Și o preferință pe care n-ai completat-o: la **P-13**, rândul a rămas „prefer [varianta HASI / varianta vocii]”. Până îmi spui, rămâne varianta HASI („unu din patru”).
+Mă opresc aici, cum ai cerut: **asculți și decizi** dacă trecem la RHVoice.dll (secțiunea 4).
 
 ---
 
-## 2. Ce am făcut din raport
+## 1. Comenzile de pornire
 
-- **Jurnal și nume de depozit.** În raport au rămas `[cale exactă a fișierului]` și `[AllxCucu/hasi sau alt nume]`. Am folosit numele confirmat data trecută, **AllxCucu/hasi**.
-- **Ce s-a publicat odată cu depozitul.** Commit-urile poartă numele și adresa de e-mail din configurarea ta git (cucumarianalexandru@gmail.com), iar istoricul conține și calea locală a proiectului dintr-o versiune mai veche a acestui fișier.
-- **CI:** trece pe `windows-latest`. Am actualizat acțiunile GitHub (`checkout@v7`, `setup-dotnet@v6`), pentru că versiunile vechi foloseau Node 20, care e învechit.
-- **Orele întregi** se spun acum fără „fix”: „14:00” devine „ora paisprezece”. „21:20” rămâne „ora douăzeci și unu și douăzeci de minute”.
-- **Cazurile tale** (`ora 2:00`, `12:15`, `22:10`, `1:00`) sunt în `tests\Hasi.Text.Ro.Tests\Cases\04-date-si-ore.cases` și trec toate. „ora 2:00” devine „ora două”, fără „fix”, după alegerea ta.
+Din folderul proiectului:
 
----
-
-## 3. Cerințele noi
-
-### 3.1 Acronimele (gata)
-
-Fișierul editabil este `Data\acronime.txt`, lângă `hasi.exe`; în sursă e `src\Hasi.Text.Ro\Data\acronime.txt`. Formatul este același cu al fișierelor de cazuri:
-
+**A – SAPI (varianta implicită de azi):**
 ```
-CFR => litere          → „ce fe re”
-ANAF => cuvânt         → „Anaf”
-RATB => ra te be       → exact cum e scris
+dotnet run --project src\Hasi.App -- --diagnostic --rhvoice-path "C:\Users\cucua\AppData\Local\HASI\rhvoice-test"
 ```
 
-Merg și formele articulate: „CFR-ul” devine „ce fe re-ul”. Literele au numele românești: be, ce, de, fe, ge, haș, je, ca, le, me, ne, pe, chiu, re, se, șe, te, țe, ve, dublu ve, ics, i grec, ze. Acronimele necunoscute, de exemplu NATO, rămân la vocea Paul. După ce modifici fișierul, repornește HASI.
-
-Cum am trecut lista ta (te rog să le verifici după ureche):
-- **pe litere:** CFR, SRL, PFA, CNP, CASMB („ce a se me be”), STB, ANM, BCR, BRD, UE („u e”);
-- **ca un cuvânt:** ANAF, SUA;
-- **pronunție explicită:** RATB („ra te be”).
-
-Un efect secundar: „CNP 1850101…” spune acum „ce ne pe unu opt cinci…”.
-
-### 3.2 Tastatura numerică în câmpurile de text (gata)
-
-În câmpurile de text:
-- cu **Num Lock pornit**, tastele 0–9 și tasta zecimală scriu cifre;
-- cu **Num Lock oprit**, tastatura numerică navighează;
-- la fiecare apăsare pe Num Lock, HASI spune „Tastatura numerică: cifre.” sau „Tastatura numerică: navigare.”.
-
-**Afectează KeyMap-ul aprobat?**
-- **Legăturile aprobate nu se schimbă.** În meniuri, tastatura numerică navighează ca înainte, indiferent de Num Lock, iar acolo apăsarea pe Num Lock nu spune nimic, pentru că nu schimbă nimic.
-- **S-a adăugat o regulă de context, nu o legătură nouă.** Într-un câmp de text cu Num Lock pornit, NumPad 0–9 scriu cifre în loc de comenzile lor de navigare. Regula e în nucleu (`TextRouting`) și e testată.
-- **Tastele / * - de pe tastatura numerică rămân comenzi globale** (ajutor, repetă, unde sunt), chiar și în câmpurile de text, deci nu scriu „/”, „*” sau „-”.
-- **O problemă pe care nu am rezolvat-o.** Cu Num Lock oprit, Windows trimite pentru 5 tasta „Clear”, iar pentru 0 tasta „Insert”, iar acestea nu au legătură în KeyMap. În câmpuri, dar și în meniuri, 5 și 0 nu fac nimic atunci. Propunere: **Clear → Enter**, sigur, pentru că „Clear” există doar pe tastatura numerică. „Insert” nu-l leg: e și tasta de pe tastatura mare, și modificatorul NVDA. Aștept acordul tău.
-
----
-
-## 4. Dicționarul de genuri: propunere, nimic integrat (ADR 0005)
-
-Ce am verificat:
-
-| Sursă | Licență | Verdict |
-|---|---|---|
-| **MULTEXT-East 4.0, lexiconul românesc** | **CC BY-SA 4.0**, compatibilă cu GPL-3.0 | **Recomandat.** Am descărcat fișierul într-un folder temporar doar ca să-l verific: 120.228 de forme de substantive, 18.705 lexeme. Genul de acord e marcat exact cum ne trebuie: neutrul apare ca masculin la singular („dosar”) și ca feminin la plural („dosare”). |
-| Wiktionary (kaikki.org) | CC BY-SA 4.0 + GFDL | Completare bună pentru cuvintele noi |
-| dexonline | Definițiile sunt GPL, dar **flexiunile nu sunt acoperite** de pagina de licență, iar site-ul interzice preluarea automată fără acord scris | Doar cu acordul lor; le pot scrie, dacă vrei |
-| UniMorph (română) | CC BY-SA **3.0** | **Incompatibil** cu GPL-3.0 |
-
-Cum l-aș folosi:
-- un instrument rulat la build extrage tabelul `formă → gen` (aproximativ 2 MB), cu ş/ţ convertite în ș/ț;
-- atribuirea apare în „Despre HASI”;
-- plus un fișier `Data\genuri.txt` al tău, de exemplu `minut => n`, care are prioritate față de dicționar.
-
-**Strategia de rezervă** pentru substantivele necunoscute:
-1. fișierul tău, apoi dicționarul;
-2. terminațiile sigure de plural (-uri, -ări, -ții, -uni, -ăți);
-3. terminațiile de singular (-ă, -ie, -ea înseamnă feminin);
-4. **„de” nu depinde de gen**: de la 20 în sus îl pun înaintea oricărui cuvânt care pare substantiv;
-5. dacă genul rămâne necunoscut (contează doar la 1, 2, 12, 22…), folosesc forma masculină și scriu `LEXICON? cuvânt` în jurnalul de diagnostic, ca să mi-l raportezi.
-
----
-
-## 5. Etapa 0.5: motoarele de voce
-
-**Lanțul de rezervă (gata).** HASI pornește cu cea mai bună voce care funcționează: Paul, apoi Microsoft Andrei prin SAPI5, apoi Andrei prin OneCore, apoi orice altă voce. Dacă o voce se strică **în timpul folosirii**, HASI trece la următoarea și spune „Vocea Paul nu mai funcționează. Folosesc vocea Microsoft Andrei.”, apoi repetă ultimul mesaj, ca să nu se piardă nimic. Fără nicio voce, se aude tonul de eroare, iar mesajul apare pe ecran.
-
-**OneCore** a fost verificat acum, pentru prima dată: pornește și vorbește cu Andrei, fără erori. Ca să-l asculți, folosește `--engine onecore`.
-
-**Opțiuni noi pentru teste:**
-
-| Opțiune | Efect |
-|---|---|
-| `--engine sapi5` / `--engine onecore` | forțează motorul |
-| `--test-voice-failure` | vocea principală „se strică” după trei mesaje, ca să auzi trecerea la vocea următoare |
-
-**Auditul de licență RHVoice (ADR 0004):**
-- `RHVoice.dll` combină fișiere LGPL-2.1+ cu fișiere **GPL-2.0-or-later** (motorul HTS modificat și câteva fișiere din nucleu);
-- **nu există niciun fișier GPL-2.0-only**, deci DLL-ul e compatibil cu HASI (GPL-3.0-or-later);
-- dacă îl distribuim, trebuie să oferim sursele exacte. Cel mai curat e să-l compilăm noi în CI, dintr-un commit fixat;
-- datele limbii române sunt LGPL, iar vocea Paul e CC BY-SA 4.0.
-
-**Experimentul.** L-am rulat cu `RHVoice.dll` și vocea Paul din pachetele oficiale pentru NVDA, ținute într-un folder temporar, în afara depozitului.
-
-| Măsurătoare | DLL direct | SAPI5 |
-|---|---|---|
-| Primul sunet | **4 ms** | nu se poate măsura |
-| Sinteza unei fraze de 4,5 secunde | 131 ms | 130 ms |
-| Oprire la cerere | **sub 1 ms** | „instant”, după raportul tău |
-
-**Concluzie:** trecerea la DLL nu aduce viteză. Aduce altceva:
-- **un singur installer**, fără instalarea separată a vocii Paul. Pentru utilizatorii noștri, asta e câștigul cel mai mare;
-- control complet asupra sunetului (ton, volum, poziția cuvântului citit);
-- independență de instalarea SAPI.
-
-**Ce costă:**
-- HASI trebuie să redea singur sunetul, cu cod nou care trebuie testat după ureche;
-- obligațiile GPL pentru binarul distribuit;
-- aproximativ 18 MB în plus în installer.
-
-Recomandarea mea și opțiunile sunt în ADR 0004; aștept decizia ta (punctul 1 din secțiunea 1).
-
----
-
-## 6. Cum pornești
-
+**B – RHVoice direct:**
 ```
-dotnet run --project src\Hasi.App -- --diagnostic
+dotnet run --project src\Hasi.App -- --diagnostic --engine rhvoice-dll --rhvoice-path "C:\Users\cucua\AppData\Local\HASI\rhvoice-test"
 ```
 
-Pentru scenariile V-02…V-05 adaugi `--engine onecore`, `--test-voice-failure` sau `--rate -3`, după tabel.
+Ce trebuie știut despre ele:
+- **Folderul `rhvoice-test`.** Am pus acolo `RHVoice.dll` 1.18.2 (x64) și datele vocii Paul, luate din pachetele oficiale RHVoice pentru NVDA. Folderul e în afara depozitului și nimic binar nu e în git.
+- **`--rhvoice-path` apare în ambele comenzi**, pentru că ecranul „Comparare voci” are nevoie de ambele voci. Fără opțiune, HASI pornește ca înainte, doar cu SAPI.
+- **Opțiuni noi**, valabile pentru toate motoarele:
+  - `--pitch -10..10` (tonul);
+  - `--volume 0..100`;
+  - `--rate -10..10` (viteza), ca înainte.
+
+  SAPI nu are reglaj de ton, deci acolo `--pitch` nu are efect.
+
+**Arhitectura DLL-ului față de HASI.** HASI e compilat și rulează pe **x64**. Pachetul oficial conține `RHVoice.dll` atât pentru x86, cât și pentru x64. HASI citește antetul PE al fișierului și îl încarcă doar pe cel x64. Dacă găsește doar varianta greșită, scrie în jurnal ce a găsit, spune „Motorul de voce cerut nu a pornit…” și folosește următoarea voce.
 
 ---
 
-## 7. Scenariile (și în `docs/manual-tests/faza-0.md`)
+## 2. Ce am implementat
 
-**Corecturi și acronime** (în Test pronunție):
-
-| ID | Ce scrii | Ce trebuie să auzi |
-|---|---|---|
-| A-01 | `14:00`, `ora 2:00`, `1:00` | „ora paisprezece”, „ora două”, „ora unu” |
-| A-02 | `Bilet CFR la STB și RATB` | „Bilet ce fe re la se te be și ra te be” |
-| A-03 | `Declarația la ANAF, CNP-ul meu` | „Declarația la Anaf, ce ne pe-ul meu” |
-
-**Tastatura numerică:**
-
-| ID | Ce faci | Ce trebuie să auzi |
-|---|---|---|
-| N-01 | În Test pronunție, cu Num Lock pornit, apeși 1, 2, 3 de pe tastatura numerică | „1”, „2”, „3” (se scriu cifre) |
-| N-02 | Oprești Num Lock | „Tastatura numerică: navigare.” |
-| N-03 | Cu Num Lock oprit, apeși 8 de pe tastatura numerică | „Textul scris: …” |
-| N-04 | Pornești Num Lock | „Tastatura numerică: cifre.” |
-| N-05 | În meniu, cu Num Lock pornit, apeși 2 și 8 de pe tastatura numerică; apoi Num Lock | navigare, ca înainte; Num Lock nu spune nimic |
-
-**Motoarele de voce:**
-
-| ID | Cum pornești / ce faci | Ce trebuie să auzi |
-|---|---|---|
-| V-01 | fără opțiuni noi | Paul, ca până acum |
-| V-02 | `--engine onecore` | Andrei prin OneCore. Compară cu Paul oprirea vorbirii la apăsarea unei taste. |
-| V-03 | `--test-voice-failure`, apoi săgeata jos de 3–4 ori | „Vocea Paul nu mai funcționează. Folosesc vocea Microsoft Andrei.” și ultimul mesaj, repetat cu Andrei; apoi totul continuă normal |
-| V-04 | după V-03, F2 | ultimul mesaj, cu Andrei |
-| V-05 | `--engine onecore --rate -3` | Andrei vorbește mai rar |
+- **Deciziile tale:**
+  - **Clear → Enter:** tasta 5 de pe tastatura numerică, cu Num Lock oprit, funcționează acum ca Enter. Insert rămâne nelegat.
+  - **Dicționarul de genuri MULTEXT-East 4.0:** 109.550 de forme, în `src\Hasi.Text.Ro\Data\substantive.txt`, cu atribuirea în „Despre HASI” și în THIRD-PARTY-NOTICES.
+  - **Fișierul tău** `src\Hasi.Text.Ro\Data\genuri.txt` (`formă => m | f | n`) are prioritate. Editează-l în `src`, nu în `bin`: la compilare, fișierul din `bin` e suprascris.
+  - **Strategia de rezervă:** toți pașii din ADR 0005, cum ai ales („păstrează doi”). Riscul acceptat: „Pagina 2 goală” devine „Pagina două goală”. Genurile ghicite care schimbă cuvintele ajung în jurnal ca `LEXICON? cuvânt`.
+  - **P-13** rămâne „unu din patru”.
+- **Motorul `RhVoiceDllEngine`:** sintetizează pe un fir separat și rămâne cel mult 3 secunde înaintea redării, ca o citire lungă să nu umple memoria. SAPI rămâne implicit și rămâne în lanțul de rezervă.
+- **Biblioteca audio: NAudio 3.1.0** (licență MIT, compatibilă cu GPL-3.0). Am ales-o pentru că playerul ei WASAPI poate **urma dispozitivul implicit**: Windows însuși mută sunetul pe dispozitivul nou când scoți căștile, același mecanism ca la sunetele sistemului. Am luat 3.1.0 și nu 3.3.0, care are doar patru zile.
+- **Oprirea:** un fade-out de 8 ms, ca să nu pocnească, apoi coada se golește, iar RHVoice primește semnalul de oprire.
+- **Căștile Bluetooth:** fluxul audio stă deschis permanent și redă liniște între mesaje, deci dispozitivul nu adoarme și prima silabă nu se taie. Dacă fluxul trebuie redeschis, se adaugă întâi 150 ms de liniște.
+- **Schimbarea dispozitivului și revenirea din repaus:** le preia Windows, prin rutarea fluxului. Dacă fluxul se oprește totuși cu eroare, HASI îl reface o dată; dacă nu reușește, trece la vocea următoare.
+- **Formatul sunetului.** Paul are 24 kHz, mono. HASI îl reeșantionează la frecvența dispozitivului (la tine, 48 kHz) și îl trimite pe ambele canale din față. Dispozitivul tău raportează 8 canale, iar fără această conversie vocea s-ar fi putut auzi doar din difuzorul central.
+- **Pozițiile cuvintelor** apar în jurnal ca rânduri `WORD`. Am corectat o problemă: RHVoice dă pozițiile în octeți UTF-8, nu în caractere. Nu am construit nimic peste ele.
+- **Jurnalul de diagnostic**, pentru ambele motoare, are acum rândurile:
+  - `LATENCY … first-sound` (primul sunet) și `LATENCY … stop` (oprirea);
+  - `PERF` (procesor și memorie după fiecare mesaj);
+  - `RHVOICE` (DLL-ul, datele și dispozitivul audio).
+- **Ecranul „Comparare voci”** (Setări → Diagnostic): cinci fraze fixe (numere, diacritice, frază lungă, întrebare, dată și oră), rostite pe rând prin „Paul prin SAPI” și „Paul prin RHVoice direct”. Săgeata stânga redă doar prima variantă, săgeata dreapta doar a doua, iar orice tastă oprește.
 
 ---
 
-## 8. Ce nu e făcut sau nu e testat
+## 3. Măsurătorile (și în ADR 0004)
+
+Le-am făcut cu `spikes\SpeechBench`: fiecare motor în propriul proces, aceleași texte, redare reală la volum 25, pe calculatorul tău. Testul a însemnat 5 fraze scurte, o citire lungă de aproximativ 40 de secunde și 5 opriri în mijlocul vorbirii.
+
+| | SAPI (Paul) | RHVoice.dll (Paul) |
+|---|---|---|
+| Primul sunet (mediană) | 14 ms | 12 ms |
+| Oprire (mediană) | 33 ms | **5 ms** |
+| Procesor, în timpul citirii lungi | 0,35% din toate nucleele | 0,35% |
+| Memorie maximă în timpul citirii | 90 MB | **70 MB** |
+
+Cum se citesc cifrele:
+- Ambele variante exclud memoria tampon a plăcii de sunet. La DLL, aceasta adaugă cel mult 40 ms.
+- În HASI, primul mesaj după pornire include și încărcarea vocii: 280–400 ms la DLL.
+
+**Recomandarea mea (ADR 0004):** DLL-ul e cel puțin la fel de bun ca SAPI la toate măsurătorile, iar câștigul principal rămâne installer-ul unic. Recomand **trecerea la RHVoice direct ca variantă implicită**, cu SAPI și OneCore ca rezerve. Condiția: ascultarea ta (R-01…R-08) să nu găsească pocnituri, silabe tăiate pe Bluetooth sau blocaje la schimbarea dispozitivului. Compilarea DLL-ului în CI, dintr-un commit fixat, e descrisă în ADR **doar ca plan**; nu am implementat-o.
+
+---
+
+## 4. Scenariile R-xx (și în `docs/manual-tests/faza-0.md`)
+
+| ID | Ce faci | Ce urmărești |
+|---|---|---|
+| R-01 | Navighezi 2–3 minute cu B, apoi la fel cu A | aceeași voce Paul. Notează orice diferență de timbru, volum, viteză sau claritate. |
+| R-02 | Setări → Diagnostic → Comparare voci; Enter pe fiecare frază; săgețile stânga și dreapta | „Varianta unu, Paul prin SAPI. …”, apoi „Varianta doi, Paul prin RHVoice direct. …”; orice tastă oprește |
+| R-03 | Cu B: F1, apoi săgeata jos în timpul vorbirii; de 10 ori | oprire imediată |
+| R-04 | Cu B: Control de mai multe ori în timpul vorbirii; asculți și începutul mesajelor | nicio pocnitură, nicio silabă tăiată |
+| R-05 | Căști Bluetooth ca dispozitiv implicit; B, 30 de secunde de liniște, apoi săgeata jos | prima silabă („Î” din „Învață tastele”) se aude întreagă. Repetă cu A. |
+| R-06 | Cu B, în timpul unui mesaj lung, scoți căștile sau schimbi dispozitivul implicit | vorbirea continuă pe dispozitivul nou, fără blocaj |
+| R-07 | Cu B deschis: repaus, trezire, apoi săgeata jos | HASI vorbește normal |
+| R-08 | B cu `--rate -5`, `--rate 5`, `--pitch 3`, `--volume 50` | se schimbă viteza, tonul și volumul. Cu A se schimbă doar viteza și volumul. |
+| R-09 | B cu `--rhvoice-path C:\nu-exista` | „Motorul de voce cerut nu a pornit. Folosesc vocea Paul. Detaliile sunt în jurnalul de diagnostic.” |
+| R-10 | După o sesiune cu B, deschizi jurnalul de diagnostic | rânduri `LATENCY`, `WORD` și `PERF`. Trimite-mi-l. |
+| R-11 | Cu Num Lock oprit, în meniu, tasta 5 de pe tastatura numerică | același efect ca Enter |
+| R-12 | Test pronunție: `2 autobuze`, apoi `2 smartfoane` | „două autobuze”; „doi smartfoane” (gen ghicit, greșit) și `LEXICON? smartfoane` în jurnal. Adaugi `smartfoane => f` în `genuri.txt`, repornești și auzi „două smartfoane”. |
+
+---
+
+## 5. Ce nu am putut testa singur
 
 | Ce | De ce |
 |---|---|
-| Vocea, viteza, volumul și tonul din Setări (cu salvare) | etapa 0.6. Până atunci, doar `--voice`, `--rate` și `--engine`. |
-| Redarea audio proprie pentru RHVoice.dll | depinde de decizia ta (ADR 0004) |
-| Integrarea dicționarului de genuri | depinde de decizia ta (ADR 0005) |
-| Clear → Enter pe tastatura numerică | depinde de acordul tău (secțiunea 3.2) |
-| Trecerea la altă voce, testată pe o defecțiune reală (de exemplu o voce dezinstalată în timpul rulării) | testată doar cu `--test-voice-failure` și cu teste automate |
-| Tastarea cifrelor de pe tastatura numerică în fereastra reală | logica e testată automat; tastarea reală e testul tău (N-01…N-05), pentru că regula interzice inputul simulat |
+| Calitatea sunetului, pocniturile | trebuie judecate după ureche (R-01…R-04) |
+| Căștile Bluetooth | nu am un dispozitiv Bluetooth conectat (R-05) |
+| Scoaterea căștilor și revenirea din repaus | cer acțiuni fizice (R-06, R-07) |
+| Tastarea și tastele în fereastra reală | regula interzice inputul simulat. Rularea mea a fost fără taste: am pornit HASI de două ori, câte 6–8 secunde, iar `SpeechBench` a redat sunet real, la volum 25, aproximativ un minut pentru fiecare motor. |
+| Comparația cu motorul OneCore | nu am cerut-o; OneCore rămâne în lanț |
 
-În toată runda asta nu am trimis nicio tastă. Am pornit HASI de două ori, câte 6 secunde, fără input: o dată cu SAPI și o dată cu `--engine onecore`.
+---
+
+## 6. Adresa de e-mail în git
+
+Am setat adresa noreply GitHub **doar pentru acest depozit** (`12409211+AllxCucu@users.noreply.github.com`), cum ai ales. Commit-urile din această rundă o folosesc deja. Configurarea ta globală a rămas neschimbată.
+
+**Pentru commit-urile deja publicate** (primele 20, cu adresa Gmail), ai patru opțiuni. Nu am făcut nimic fără acordul tău.
+
+1. **Le lași așa.** Adresa e deja publică, iar orice clonă sau copie o păstrează. Nu costă nimic.
+2. **Rescrii istoricul** (`git filter-repo` cu un fișier mailmap care înlocuiește adresa în toate commit-urile), apoi `git push --force`.
+   - Toate commit-urile primesc alte identificatoare. Linkurile vechi către commit-uri și rulările CI nu mai corespund.
+   - Clonele existente trebuie refăcute.
+   - GitHub poate păstra o vreme commit-urile vechi, accesibile după identificator, iar ce a fost deja copiat de alții nu dispare.
+   - În același pas se poate scoate și calea locală din versiunea veche a fișierului `raspuns.md`.
+3. **Setări GitHub, recomandat oricum:** Settings → Emails → „Keep my email addresses private” și „Block command line pushes that expose my email”. Asta blochează pe viitor orice push cu adresa Gmail, dar nu schimbă trecutul.
+4. **Ștergi și recreezi depozitul**, cu istoricul rescris. E cea mai radicală variantă și pierde CI-ul și eventualele stele. Nici ea nu șterge copiile făcute între timp.
+
+Recomandarea mea: **3 acum**. Plus **2**, doar dacă vrei neapărat ca adresa să dispară din istoric. Atunci spune-mi explicit, iar eu pregătesc rescrierea și ți-o arăt înainte de `push --force`.
