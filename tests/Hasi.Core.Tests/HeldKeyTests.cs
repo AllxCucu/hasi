@@ -11,7 +11,25 @@ public class HeldKeyTests
     {
         var h = new ShellHarness().Start(TestScreens.Fruits());
 
-        Assert.Equal(["Pară, 2 din 3.", "Prună, 3 din 3.", "Sfârșitul listei. Prună, 3 din 3."], h.Hold(Key.Down, 2));
+        Assert.Equal(["Pară, 2 din 3.", "Prună, 3 din 3."], h.Hold(Key.Down, 1));
+    }
+
+    [Fact]
+    public void Holding_down_at_the_end_says_end_of_list_only_once()
+    {
+        // Found in the tester's diagnostic log of 2026-10-23: 12 repetitions in 0.4 seconds.
+        var h = new ShellHarness().Start(TestScreens.Fruits());
+        h.Press(Key.End);
+
+        Assert.Equal(["Sfârșitul listei. Prună, 3 din 3."], h.Hold(Key.Down, 12));
+    }
+
+    [Fact]
+    public void Holding_down_through_the_end_stops_quietly_there()
+    {
+        var h = new ShellHarness().Start(TestScreens.Fruits());
+
+        Assert.Equal(["Pară, 2 din 3.", "Prună, 3 din 3."], h.Hold(Key.Down, 10));
     }
 
     [Fact]

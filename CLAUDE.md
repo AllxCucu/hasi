@@ -11,6 +11,11 @@ The voice output is the source of truth; visuals are secondary.
 
 - **Do not copy code** from WinGuido/GuidoAusili (proprietary) or from NVDA. Reuse concepts only.
 - **No code before the user approves the architecture** for a new phase or major component.
+- **Never send keystrokes or simulated input to the real desktop** (SendInput, SendKeys, keybd_event,
+  UI Automation, focus-stealing tricks) without asking the user for approval **for each run**.
+  Automated tests use `ShellHarness` only; ear-testing is done by the user.
+- **Ask before changing the plan.** Moving anything from one milestone to another, or changing scope,
+  needs the user's approval first, not a notice afterwards.
 - When unsure about a data source or its license: **verify and report**, never assume.
 - No telemetry. User data stays local. Passwords only in Windows Credential Manager.
 
@@ -117,4 +122,4 @@ dotnet run --project src/Hasi.App                       # add: -- --diagnostic -
   (`> key`, `< expected text`, `[sunet]` = earcon, `! exit`). The tester may edit them;
   a failing transcript then means `ro.json` must follow the tester's wording.
 - When launching HASI from an agent/background process, Windows does not give it the keyboard.
-  Never send keystrokes without first checking that HASI is the foreground window.
+  Sending keystrokes to it requires the user's approval for that run (see Non-negotiables).

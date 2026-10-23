@@ -40,8 +40,8 @@ public class MenuScreen(
         if (Items.Count == 0) return ScreenResult.Unhandled;
         return input.Command switch
         {
-            Command.Next => Move(+1, context),
-            Command.Previous => Move(-1, context),
+            Command.Next => Move(+1, input.IsRepeat, context),
+            Command.Previous => Move(-1, input.IsRepeat, context),
             Command.First => MoveTo(0, context),
             Command.Last => MoveTo(Items.Count - 1, context),
             Command.Activate => Selected!.Activate is { } activate
@@ -57,10 +57,13 @@ public class MenuScreen(
         return help is null ? text : text.Then(help);
     }
 
-    private ScreenResult Move(int delta, IScreenContext context)
+    private ScreenResult Move(int delta, bool isRepeat, IScreenContext context)
     {
         var target = SelectedIndex + delta;
         if (target >= 0 && target < Items.Count) return MoveTo(target, context);
+
+        // Holding an arrow at the edge: say "end of list" once, not dozens of times per second.
+        if (isRepeat) return ScreenResult.Handled;
 
         if (context.Options.WrapLists && Items.Count > 1)
         {
