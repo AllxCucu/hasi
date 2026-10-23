@@ -40,14 +40,20 @@ public partial class ShellWindow : Window
     /// <summary>Raised for each character typed, in the user's keyboard layout (ă, î, â, ș, ț included).</summary>
     public event EventHandler<char>? CharacterTyped;
 
-    /// <summary>Whether a chord is bound to a HASI command. Bound keys never type characters.</summary>
-    public Func<KeyChord, bool> IsCommandKey { get; set; } = _ => true;
+    /// <summary>Whether a key press should type a character instead of being a command (see TextRouting).</summary>
+    public Func<KeyChord, bool> ProducesText { get; set; } = _ => false;
+
+    /// <summary>Raised after Num Lock is switched, with its new state.</summary>
+    public event EventHandler<bool>? NumLockChanged;
+
+    /// <summary>Current Num Lock state.</summary>
+    public static bool NumLockOn => Keyboard.IsKeyToggled(System.Windows.Input.Key.NumLock);
 
     protected override void OnPreviewKeyDown(KeyEventArgs e)
     {
         ArgumentNullException.ThrowIfNull(e);
         var chord = KeyTranslator.Translate(e);
-        if (!IsCommandKey(chord) && KeyTranslator.MayTypeCharacter(chord))
+        if (ProducesText(chord))
         {
             // Left unhandled so Windows turns it into a character in the current keyboard layout.
             TextKeyPressed?.Invoke(this, chord);
@@ -57,6 +63,13 @@ public partial class ShellWindow : Window
         // A handled key also produces no character (WPF skips TranslateMessage), so NumPad 8 never types "8".
         e.Handled = true;
         KeyPressed?.Invoke(this, new KeyPress(chord, e.IsRepeat));
+    }
+
+    protected override void OnPreviewKeyUp(KeyEventArgs e)
+    {
+        ArgumentNullException.ThrowIfNull(e);
+        // The toggle state is read on key up, when Windows has certainly updated it.
+        if (e.Key == System.Windows.Input.Key.NumLock) NumLockChanged?.Invoke(this, NumLockOn);
     }
 
     protected override void OnPreviewTextInput(TextCompositionEventArgs e)

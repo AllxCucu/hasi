@@ -78,7 +78,11 @@ public partial class App : Application, ISystemActions
         var context = new ModuleContext(localizer, _shell, new ApplicationInfo(version), normalizer);
 
         _shell.ScreenChanged += (_, _) => _window.ShowTitle(_shell.Current.Title);
-        _window.IsCommandKey = chord => _keyMap.Resolve(chord) != Command.None;
+        _window.ProducesText = chord => TextRouting.ProducesText(chord, _keyMap, _shell.IsTextEntryActive, ShellWindow.NumLockOn);
+        _window.NumLockChanged += (_, on) =>
+        {
+            if (!_exiting) _shell.NumericKeypadModeChanged(on);
+        };
         _window.KeyPressed += (_, key) => OnKey(key.Chord, key.IsRepeat);
         _window.TextKeyPressed += (_, chord) =>
         {

@@ -34,6 +34,9 @@ public interface IScreenContext
 /// One screen of the interface. Screens are pure logic: they get commands and return what should
 /// happen. They never touch the window or the speech engine.
 /// </summary>
+/// <summary>A screen where the user types text. While one is active, Num Lock on makes the numeric keypad type digits.</summary>
+public interface ITextEntry;
+
 public interface IScreen
 {
     /// <summary>Name used in announcements and by "where am I".</summary>

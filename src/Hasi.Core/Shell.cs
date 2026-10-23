@@ -58,7 +58,8 @@ public sealed class Shell : IShellServices, IScreenContext
 
         // Any key interrupts speech. A modifier pressed alone does nothing else.
         _announcer.Silence();
-        if (input.Command == Command.StopSpeech || (input.Command == Command.None && input.Key.Key.IsModifier()))
+        if (input.Command == Command.StopSpeech
+            || (input.Command == Command.None && input.Character is null && (input.Key.Key.IsModifier() || input.Key.Key.IsToggle())))
         {
             return;
         }
@@ -98,6 +99,20 @@ public sealed class Shell : IShellServices, IScreenContext
     {
         _log.Write("KEY", key.ToString());
         _announcer.Silence();
+    }
+
+    /// <summary>True while the current screen is a text field.</summary>
+    public bool IsTextEntryActive => _stack.Count > 0 && Current is ITextEntry;
+
+    /// <summary>
+    /// Num Lock was switched. In a text field this changes what the keypad does, so it is announced;
+    /// elsewhere the keypad always navigates and nothing is said.
+    /// </summary>
+    public void NumericKeypadModeChanged(bool numLockOn)
+    {
+        _log.Write("NUMPAD", numLockOn ? "digits" : "navigation");
+        if (!IsTextEntryActive) return;
+        _announcer.Say(Localizer.Get(numLockOn ? "numpad.digits" : "numpad.navigation"));
     }
 
     /// <summary>Another window took the keyboard: say so, otherwise keys silently go elsewhere.</summary>

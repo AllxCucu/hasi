@@ -39,6 +39,9 @@
   "textInput.readBack": "Textul scris: {text}",
   "textInput.help": "Ajutor pentru {title}. Scrieți cu tastatura; fiecare caracter este rostit. Tasta Backspace șterge ultimul caracter. Săgeata sus sau jos citește tot textul scris. Enter trimite textul, iar Escape vă întoarce.",
 
+  "numpad.digits": "Tastatura numerică: cifre.",
+  "numpad.navigation": "Tastatura numerică: navigare.",
+
   "char.space": "spațiu",
   "char.comma": "virgulă",
   "char.period": "punct",

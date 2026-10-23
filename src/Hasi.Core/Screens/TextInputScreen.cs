@@ -12,7 +12,7 @@ namespace Hasi.Core.Screens;
 public sealed class TextInputScreen(
     string title,
     string prompt,
-    Func<string, IScreenContext, ScreenResult> submit) : IScreen
+    Func<string, IScreenContext, ScreenResult> submit) : IScreen, ITextEntry
 {
     private static readonly Dictionary<char, string> CharacterKeys = new()
     {

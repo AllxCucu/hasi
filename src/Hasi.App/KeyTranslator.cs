@@ -1,4 +1,4 @@
-using System.Windows.Input;
+﻿using System.Windows.Input;
 using Hasi.Core.Input;
 using HasiKey = Hasi.Core.Input.Key;
 using WpfKey = System.Windows.Input.Key;
@@ -51,24 +51,15 @@ internal static class KeyTranslator
         WpfKey.RightAlt => HasiKey.RightAlt,
         WpfKey.LWin => HasiKey.LWin,
         WpfKey.RWin => HasiKey.RWin,
+        WpfKey.NumLock => HasiKey.NumLock,
+        WpfKey.CapsLock => HasiKey.CapsLock,
+        WpfKey.Scroll => HasiKey.ScrollLock,
         >= WpfKey.A and <= WpfKey.Z => HasiKey.A + (key - WpfKey.A),
         >= WpfKey.D0 and <= WpfKey.D9 => HasiKey.D0 + (key - WpfKey.D0),
         >= WpfKey.F1 and <= WpfKey.F12 => HasiKey.F1 + (key - WpfKey.F1),
         >= WpfKey.NumPad0 and <= WpfKey.NumPad9 => HasiKey.NumPad0 + (key - WpfKey.NumPad0),
         _ => HasiKey.Other,
     };
-
-    /// <summary>
-    /// Letters, digits, space and punctuation, alone, with Shift, or with AltGr (Ctrl+Alt) as used by
-    /// some Romanian layouts for ș and ț.
-    /// </summary>
-    internal static bool MayTypeCharacter(KeyChord chord)
-    {
-        var plainOrShift = (chord.Modifiers & ~KeyModifiers.Shift) == KeyModifiers.None;
-        var altGr = chord.Modifiers.HasFlag(KeyModifiers.Ctrl) && chord.Modifiers.HasFlag(KeyModifiers.Alt);
-        return (plainOrShift || altGr) && chord.Key is
-            (>= HasiKey.A and <= HasiKey.Z) or (>= HasiKey.D0 and <= HasiKey.D9) or HasiKey.Space or HasiKey.Other;
-    }
 
     /// <summary>Held modifiers, without the modifier being pressed itself (Ctrl alone is plain LeftCtrl).</summary>
     internal static KeyModifiers Modifiers(ModifierKeys held, HasiKey pressed)

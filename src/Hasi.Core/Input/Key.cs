@@ -19,6 +19,8 @@ public enum Key
 
     LeftCtrl, RightCtrl, LeftShift, RightShift, LeftAlt, RightAlt, LWin, RWin,
 
+    NumLock, CapsLock, ScrollLock,
+
     A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z,
     D0, D1, D2, D3, D4, D5, D6, D7, D8, D9,
 
@@ -33,4 +35,9 @@ public static class KeyExtensions
         Key.LeftAlt or Key.RightAlt or Key.LWin or Key.RWin;
 
     public static bool IsCtrl(this Key key) => key is Key.LeftCtrl or Key.RightCtrl;
+
+    /// <summary>Lock keys: they change a keyboard state and have no command of their own.</summary>
+    public static bool IsToggle(this Key key) => key is Key.NumLock or Key.CapsLock or Key.ScrollLock;
+
+    public static bool IsNumPadDigit(this Key key) => key is >= Key.NumPad0 and <= Key.NumPad9;
 }
