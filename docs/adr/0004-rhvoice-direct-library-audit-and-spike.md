@@ -1,6 +1,6 @@
-# ADR 0004 – RHVoice.dll directly: license audit and spike
+﻿# ADR 0004 – RHVoice.dll directly: license audit and spike
 
-- Status: **Proposed** – waiting for the project owner's decision (do not switch from SAPI before it)
+- Status: **Proposed** – second experiment done (2026-10-23); waiting for the owner's listening tests and decision. Do not switch from SAPI before it.
 - Date: 2026-10-23
 - Follows: ADR 0002 (RHVoice through SAPI in phase 0)
 
@@ -89,4 +89,82 @@ own audio player, so the tester can judge stop latency and sound by ear against 
 prefers it, the switch plus the CI build of RHVoice before the installer milestone (0.11), where the
 single-installer gain matters. Until then HASI stays on SAPI (option A).
 
-**Decision:** pending – the owner decides whether to proceed with step (1).
+**Decision (2026-10-23):** step (1) approved. No definitive switch yet: after the second experiment the owner
+listens and decides.
+
+## Second experiment: HASI's own audio output (2026-10-23)
+
+### What was built
+
+- `RhVoiceDllEngine` (`src/Hasi.Speech/RhVoice`), an `ISpeechEngine`, selected with `--engine rhvoice-dll`
+  and `--rhvoice-path <folder>`. SAPI stays the default and stays in the fallback chain behind it.
+- **Binaries:** the official `RHVoice.dll` 1.18.2 (from `RHVoice-1.18.201.nvda-addon`) and Paul's data, copied
+  outside the repository to `%LOCALAPPDATA%\HASI\rhvoice-test`. Nothing binary is in git.
+- **Architecture:** HASI is built and runs as **x64** (`PlatformTarget x64`). The add-on contains both an x86
+  and an x64 `RHVoice.dll`; HASI reads the PE header and loads only the one matching its own process
+  (x64, machine type 0x8664); a mismatch is reported in the log and the next voice is used.
+- **Audio library: NAudio 3.1.0** (`NAudio.Core` + `NAudio.Wasapi`, MIT, compatible with GPL-3.0-or-later).
+  Chosen because its `WasapiPlayer` supports *default-device stream routing*: Windows itself moves the stream
+  when the default device changes or is unplugged, the same mechanism system sounds use. 3.1.0 rather than
+  the four-day-old 3.3.0. Alternatives: NAudio 2.x (device changes would have to be handled by hand),
+  WinRT `AudioGraph` (no dependency, but rebuilding the graph on device loss is ours too).
+- **Stop without clicks:** 8 ms linear fade-out, then the queue is dropped and RHVoice is told to stop
+  (the audio callback returns 0).
+- **Bluetooth first syllable:** the stream is opened once and plays silence between messages, so the
+  device never sleeps; if the stream has to be rebuilt, 150 ms of silence precede the next speech.
+- **Device change / resume:** handled by stream routing; if the stream still stops with an error, it is
+  rebuilt once, then the fallback chain takes over.
+- **Format:** Paul is 24 kHz mono; HASI resamples to the device mix rate (48 kHz here) and duplicates mono to
+  stereo (this machine reports an 8-channel mix; without this, mono might come only from the centre).
+- **Rate, pitch, volume:** one scale for all engines (`--rate`/`--pitch` -10..10, `--volume` 0..100):
+  RHVoice `absolute_rate`/`absolute_pitch` = value/10; volume is a linear gain in HASI's output.
+  SAPI has no pitch setting (ignored there); OneCore maps all three.
+- **Word positions:** RHVoice reports them in UTF-8 bytes of the message; HASI converts them to characters
+  and logs `WORD` lines (nothing is built on them yet).
+- **Diagnostic log:** `LATENCY first-sound`, `LATENCY stop`, `WORD`, and `PERF` (CPU and memory after
+  each message) for both engines; `RHVOICE` lines describe the DLL, the data and the audio device.
+- **Diagnostic → Comparare voci:** five fixed phrases (numbers, diacritics, a long text, a question, date and
+  time), each played through Paul/SAPI and Paul/DLL in turn, or only one with the left/right arrows.
+
+### Measurements
+
+`spikes/SpeechBench`, each engine in its own process, same texts, real playback at volume 25, owner's PC
+(16 logical cores, default device 48 kHz). Five short phrases, one long reading (≈ 40 s), five stops
+1.5 s into speech.
+
+| Measurement | SAPI5 (Paul) | RHVoice.dll (Paul) |
+|---|---|---|
+| Time to first sound, median (min–max) | 14.1 ms (13.0–14.9) | 12.4 ms (4.7–13.5) |
+| Stop, median (min–max) | 33.1 ms (29.4–34.9) | **5.1 ms** (2.0–10.0) |
+| CPU during the long reading | 0.35 % of all cores (5.7 % of one core) | 0.35 % (5.5 % of one core) |
+| Peak working set / private memory during the reading | 90 MB / 47 MB | **70 MB / 41 MB** |
+| Memory after loading the engine | 54 MB / 16 MB | 34 MB / 9 MB |
+
+How to read them: SAPI's "first sound" is its first word event and its "stop" is the cancellation event;
+the DLL's are measured where samples are handed to the sound card. Both exclude the device buffer, which
+adds up to 40 ms for the DLL output (SAPI's own buffer is not visible). Inside HASI the first message after
+start also includes loading the voice (≈ 280–400 ms for the DLL).
+
+Not measured by me (needs the owner's ears and devices): sound quality, clicks, Bluetooth wake-up,
+unplugging headphones, resume from sleep.
+
+### CI build of RHVoice.dll – plan only (not implemented)
+
+1. Add RHVoice as a git submodule pinned to a release tag (e.g. 1.18.4) and its commit hash.
+2. A GitHub Actions job on `windows-latest` (MSVC available) builds only the library (`RHVoice_core`,
+   `libhts_engine`, `RHVoice`) for x64 with CMake, Release, and uploads `RHVoice.dll` as an artifact.
+3. Paul's data comes from the pinned `paul-ron` release, checked by SHA-256.
+4. The installer (phase 0.11) ships the DLL and data, with the RHVoice license texts, the exact source commit
+   and a link to the corresponding source (our submodule), as GPL requires. `THIRD-PARTY-NOTICES.md` and
+   "Despre HASI" list RHVoice as shipped.
+5. SignPath: our binaries are signed; `RHVoice.dll` is included unsigned (allowed for upstream binaries).
+
+### Recommendation
+
+The direct library is at least as good as SAPI on every measurement: same first-sound time and CPU, a stop
+about six times faster, less memory. Its main gain stays the single installer. I recommend **option B**
+(direct library by default, SAPI and OneCore as fallbacks) **if the owner's listening tests (R-01…R-08)
+find no click, no cut first syllable on Bluetooth and no freeze on device changes**, with the CI build above
+done before the installer milestone. If any of those fails, stay on SAPI and fix it first.
+
+**Decision:** pending – the owner listens and decides.
