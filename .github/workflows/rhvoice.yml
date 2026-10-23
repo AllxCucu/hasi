@@ -57,9 +57,10 @@ jobs:
         working-directory: rhvoice-src
         shell: pwsh
         run: |
-          # With WiX on the runner, SCons would also read upstream's installer scripts, which we do not build.
-          Remove-Item Env:WIX, Env:WIXTOOLPATH -ErrorAction SilentlyContinue
-          scons -j4 languages=romanian build/windows/x86_64/lib/RHVoice.dll
+          # SCons reads upstream's installer scripts even when only the library is asked for. Without
+          # sapi_dev_core they stop with an error; the flag only changes upstream's SAPI installers, never
+          # RHVoice.dll. Only the DLL target is built.
+          scons -j4 languages=romanian sapi_dev_core=true build/windows/x86_64/lib/RHVoice.dll
           if ($LASTEXITCODE -ne 0) { exit 1 }
 
       - name: Show what was built
