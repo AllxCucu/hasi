@@ -168,3 +168,16 @@ Pornire: `dotnet run --project src\Hasi.App -- --diagnostic` (pentru E-04, adaug
 | E-07 | Pe „Repornește calculatorul”, ții Enter apăsat câteva secunde | doar întrebarea de confirmare; calculatorul nu repornește |
 | D-01 | Despre HASI, rând cu rând | 9 rânduri; rândul 4: „Sinteza vocală RHVoice, de Olga Yakovleva și colaboratorii. Biblioteca e sub licența GNU GPL, versiunea 2 sau ulterioară, cu părți sub GNU LGPL, versiunea 2.1 sau ulterioară”; rândul 6: „Datele limbii române pentru RHVoice, de Stefan Moisei, sub licența GNU LGPL” |
 | H-01 | Setări → Viteză (ecranul valorii): F3, apoi F2 | „Sunteți în: Meniu principal, Setări, Viteză.”, apoi același mesaj repetat |
+
+## Plan modificat (24 octombrie 2026): etapa 0.9 scoasă
+
+Etapa 0.9 (coexistența cu cititoarele de ecran) a fost scoasă din Faza 0, la decizia testerului. Cu NVDA pornit și repornit, fără modul de somn, cu tastatura numerică în aspectul desktop și cu ecoul tastării în „Test pronunție”, s-a auzit o singură voce, a HASI, iar tastele au ajuns la HASI (ADR 0003, acum „înlocuit”).
+
+- Scenariile M0-25 (NVDA cu add-on) și M0-26 (NVDA fără add-on) sunt scoase: add-on-ul și trecerea prin NVDA nu se mai fac.
+- M0-27 (Naratorul) se mută la etapa 0.10, mai jos.
+
+## Etapa 0.10 – integrare în sistem (planificată)
+
+| ID | Ce faci | Ce trebuie să auzi |
+|---|---|---|
+| M0-27 | Pornești Naratorul (Control + tasta Windows + Enter), apoi HASI | după bun venit: „Naratorul Windows este pornit și va vorbi peste HASI. Pentru a-l opri, apăsați împreună Control, tasta Windows și Enter.” |

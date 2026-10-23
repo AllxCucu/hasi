@@ -1,7 +1,45 @@
 # ADR 0003 – Coexistence with NVDA, Narrator and JAWS
 
-- Status: Accepted (2026-10-21); implementation in phase 0.9, preceded by a spike
+- Status: **Superseded** (2026-10-24, owner's decision) – phase 0.9 is removed from Phase 0.
+  Only the Narrator detection remains, moved to phase 0.10. The original decision is kept below for history.
 - Deciders: project owner (tester), lead developer
+
+## Why it was superseded (2026-10-24)
+
+The owner tested HASI with NVDA running and heard **one voice only, HASI's**. Conditions of the test:
+- NVDA restarted, **without** sleep mode active for HASI (no add-on);
+- NVDA's **desktop** keyboard layout, using the numeric keypad in HASI;
+- key echo while typing in "Test pronunție".
+
+Everything worked: no double speech, and the keypad keys reached HASI. A likely reason, not verified
+in NVDA's code: the HASI window has no editable control and does not move the focus between controls,
+so NVDA has nothing of its own to announce; and the keys are handled by HASI's window. The spike planned
+in this ADR is therefore not needed now.
+
+**Dropped:** the "HASI pentru NVDA" add-on (`integrations/nvda-addon`), speaking through NVDA with the
+NVDA Controller Client (never added to the code, to THIRD-PARTY-NOTICES or to "Despre HASI"), UI Automation
+notifications for Narrator, and JAWS scripts.
+
+**Kept, moved to phase 0.10:** at startup, if Narrator is running (`Narrator.exe`), HASI says
+"Naratorul Windows este pornit și va vorbi peste HASI. Pentru a-l opri, apăsați împreună Control, tasta
+Windows și Enter." Narrator has no per-application sleep mode, so the user has to turn it off.
+
+### Risks still watched
+
+These stay in `docs/architecture.md` §3 so we know what to look for if the problem comes back:
+
+- **R1 – double speech.** A screen reader announces focus changes or echoes keys over HASI. Signs: two
+  voices at once, or NVDA repeating HASI's messages. Could appear with another NVDA version, other NVDA
+  settings (for example "speak typed characters" in a future editable HASI control), or another screen
+  reader (Narrator, JAWS).
+- **R2 – keys taken by the screen reader.** In NVDA's desktop layout the numeric keypad drives the review
+  cursor, and Insert/CapsLock are NVDA modifiers. Signs: a keypad key does nothing in HASI and NVDA says
+  something instead.
+
+If either appears, this ADR is reopened; the original options below (sleep-mode app module, speaking
+through NVDA, Narrator notifications) are the starting point.
+
+## Original decision (2026-10-21, superseded)
 
 ## Context
 

@@ -33,7 +33,8 @@ The voice output is the source of truth; visuals are secondary.
 - WPF for the shell window. xUnit for tests (no commercially licensed assertion libraries).
   Velopack for installer and auto-update; the update source is configuration, never hardcoded.
 - Speech: `ISpeechEngine` implementations: RHVoice (voice "Paul", default), SAPI5, OneCore,
-  ScreenReaderPassthrough (NVDA controller / UIA notifications), Null.
+  Null. No screen-reader integration: phase 0.9 was removed (ADR 0003 superseded) because HASI works with
+  NVDA with a single voice; only Narrator detection remains, in phase 0.10.
 
 ## Architecture rules
 

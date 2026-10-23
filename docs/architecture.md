@@ -1,6 +1,6 @@
-# HASI – Arhitectură și plan pentru Faza 0
+﻿# HASI – Arhitectură și plan pentru Faza 0
 
-> **Stare:** APROBAT pe 21 octombrie 2026, cu ajustările cerute (vezi §5).
+> **Stare:** APROBAT pe 21 octombrie 2026, cu ajustările cerute (vezi §5). Plan modificat pe 24 octombrie 2026: etapa 0.9 (cititoarele de ecran) a fost scoasă, iar detectarea Naratorului a trecut în 0.10 (§1.6, ADR 0003).
 > Deciziile importante sunt explicate și în `docs/adr/`.
 
 Cuprins:
@@ -21,7 +21,7 @@ Cuprins:
 | RHVoice – API C | `RHVoice.h` are antet **LGPL-2.1-or-later**. Expune `RHVoice_new_tts_engine`, `RHVoice_get_voices`, `RHVoice_new_message_w`, `RHVoice_speak` etc. (sinteză cu callback-uri audio). | github.com/RHVoice/RHVoice |
 | RHVoice – licența depozitului | **Atenție:** `LICENSE.md` din rădăcina depozitului conține textul **GPL-2.0**, iar distribuțiile Linux îl etichetează diferit (LGPL-2.1+, GPL-2.0, GPL-3.0+). Licența e deci mixtă pe fișiere. Înainte să legăm direct `RHVoice.dll`, trebuie verificat fișier cu fișier ce intră în DLL. | github.com/RHVoice/RHVoice, Arch, ALT Linux |
 | Vocea Paul | Depozit `RHVoice/paul-ron`, versiunea 4.2, licența **CC BY-SA 4.0**. Drepturi de autor: Stefan Moisei (pachetul de limbă), Paul Bogorin (vorbitorul), Zvonimir Stanecic (antrenarea vocii); egalizare: Tomasz Bilecki. Există **installer SAPI5 pentru Windows** și add-on NVDA. Datele de limbă română: LGPL-2.1 (după Arch). | rhvoice.org/ro-voices, github.com/RHVoice/paul-ron |
-| NVDA Controller Client | DLL sub **LGPL 2.1**: `nvdaController_testIfRunning`, `speakText`, `cancelSpeech`. NVDA vorbește și pe ecranul de blocare, deci nu trimitem prin el text sensibil când Windows e blocat. | github.com/nvaccess/nvda (extras/controllerClient) |
+| NVDA Controller Client | DLL sub **LGPL 2.1**: `nvdaController_testIfRunning`, `speakText`, `cancelSpeech`. NVDA vorbește și pe ecranul de blocare, deci nu trimitem prin el text sensibil când Windows e blocat. **Nu se mai folosește:** etapa 0.9 a fost scoasă (ADR 0003). | github.com/nvaccess/nvda (extras/controllerClient) |
 | Mediul tău | Inițial: .NET SDK 9.0.318, git 2.55, gh, fără Python. **.NET SDK 10.0.402 instalat** cu winget pe 21 octombrie 2026. | verificat local |
 
 ---
@@ -73,7 +73,7 @@ Cuprins:
         ▲ implementează IModule                         ▲ implementează ISpeechEngine / servicii
 ┌───────┴───────────────────┐       ┌──────────────────┴─────────────────────────────────────┐
 │ Hasi.Modules.*            │       │ Hasi.Speech: RHVoice, Sapi5, OneCore,                   │
-│ Settings, About, KeyTutor,│       │              ScreenReaderPassthrough, Null              │
+│ Settings, About, KeyTutor,│       │              ieșirea audio, Null                        │
 │ Exit … (Faza 1+: Clock,   │       │ Hasi.Text.Ro: normalizator românesc, plurale            │
 │ Editor, Agenda …)         │       │ Hasi.Platform.Windows: Credential Manager, autostart,   │
 └───────────────────────────┘       │   detectare cititoare de ecran, hotkey, rețea           │
@@ -191,23 +191,24 @@ Pe lângă asta, folosim **transcrieri de referință**: un fișier text cu „t
   Implementat în etapa 0.4, în `src/Hasi.Text.Ro`. Pe lângă etapele de mai sus mai sunt: adrese de e-mail și web, telefoane (citite cifră cu cifră, pe grupe), unități (km, kg, °C…), procente, ordinale („a 2-a”, „al 3-lea”), numere de versiune („0.1.0”) și coduri lungi (CNP, cifră cu cifră). Genul substantivelor numărate vine dintr-un mic lexicon (`Lexicon.cs`) și din terminațiile tipice de plural.
   Cazurile de test sunt în `tests/Hasi.Text.Ro.Tests/Cases/*.cases`, câte un rând de forma `scris => rostit`. Testerul poate adăuga rânduri direct acolo.
 
-### 1.6 Coexistența cu NVDA, Narator și JAWS
+### 1.6 Coexistența cu cititoarele de ecran
 
-**Detectare** (la pornire și la fiecare 2 secunde):
-- NVDA: `nvdaController_testIfRunning`;
-- Narator: procesul `Narrator.exe` plus indicatorul de sistem `SPI_GETSCREENREADER`;
-- JAWS: procesul `jfw.exe`.
+**Schimbare de plan (24 octombrie 2026, decizia testerului):** etapa 0.9 a fost scoasă din Faza 0. Motivul este un test făcut de tester cu NVDA pornit: s-a auzit o singură voce, a HASI. Condițiile testului:
+- NVDA repornit, fără modul de somn activ;
+- tastatura numerică în aspectul desktop al NVDA;
+- ecoul tastării în „Test pronunție”.
 
-**Politica implicită** (configurabilă în Setări → „Cititor de ecran”):
+Totul a funcționat corect. Detaliile sunt în ADR 0003, acum marcat „înlocuit”.
 
-| Situație | Ce face HASI |
-|---|---|
-| **NVDA + add-on-ul „HASI pentru NVDA”** (soluția principală) | Livrăm un mic add-on NVDA cu un *appModule* `hasi.py` care setează `sleepMode = True`. NVDA tace complet și lasă toate tastele să treacă (inclusiv tastatura numerică), dar **numai cât timp fereastra HASI e în prim-plan**. Dacă utilizatorul trece cu Alt+Tab în altă aplicație, NVDA revine automat. HASI vorbește cu vocea lui. |
-| NVDA fără add-on | HASI își oprește vocea proprie și trimite textul prin NVDA (`speakText`/`cancelSpeech`), deci se aude o singură voce, a NVDA. Apoi spune, prin NVDA: „Pentru a folosi vocea HASI, instalați suplimentul HASI pentru NVDA. Apăsați Enter pentru a-l instala.” |
-| Narator | Naratorul nu are mod de pauză per aplicație. HASI anunță: „Naratorul Windows este pornit și va vorbi peste HASI. Pentru a-l opri, apăsați împreună Control, tasta Windows și Enter.” Ca rezervă, HASI poate trimite textul prin Narator cu notificări UI Automation (`UiaRaiseNotificationEvent`). Varianta finală o alegem după experimentul de probă. |
-| JAWS | Doar detectare și mesaj în Faza 0. Scripturile JAWS rămân pentru mai târziu. |
+**Nu se mai fac:**
+- add-on-ul „HASI pentru NVDA”;
+- trimiterea textului prin NVDA (NVDA Controller Client);
+- notificările UI Automation pentru Narator;
+- scripturile JAWS.
 
-În toate cazurile, fereastra HASI expune către UI Automation un singur element, fără conținut redundant, ca un cititor de ecran să nu aibă ce citi dublu.
+**Rămâne doar detectarea Naratorului, mutată în etapa 0.10.** La pornire, dacă Naratorul e activ (procesul `Narrator.exe`), HASI spune: „Naratorul Windows este pornit și va vorbi peste HASI. Pentru a-l opri, apăsați împreună Control, tasta Windows și Enter.”
+
+Riscurile R1 și R2 (§3) rămân în listă, ca să știm ce urmărim dacă problema reapare.
 
 ### 1.7 Tastatura
 
@@ -258,7 +259,7 @@ Hasi/
 ├─ CLAUDE.md                       convenții pentru dezvoltare (în engleză)
 ├─ README.md
 ├─ LICENSE                         GPL-3.0-or-later (propunere, vezi §5)
-├─ THIRD-PARTY-NOTICES.md          RHVoice, Paul, NVDA Controller Client, Velopack …
+├─ THIRD-PARTY-NOTICES.md          RHVoice, Paul, NAudio, MULTEXT-East, Velopack …
 ├─ global.json                     fixează versiunea SDK .NET 10
 ├─ Directory.Build.props           nullable, avertismente tratate ca erori, analizoare
 ├─ Directory.Packages.props        versiunile pachetelor NuGet, centralizat
@@ -266,8 +267,8 @@ Hasi/
 ├─ src/
 │  ├─ Hasi.Core/                   Shell, ecrane, meniuri, comenzi, Announcer, OutputHub, interfețe
 │  ├─ Hasi.Text.Ro/                normalizator românesc, numere în litere, plurale
-│  ├─ Hasi.Speech/                 Sapi5, OneCore, RHVoice, ScreenReaderPassthrough, Null
-│  ├─ Hasi.Platform.Windows/       Credential Manager, autostart, detectare cititoare, hotkey, rețea
+│  ├─ Hasi.Speech/                 RHVoice (direct), Sapi5, OneCore, ieșirea audio, Null
+│  ├─ Hasi.Platform.Windows/       Credential Manager, autostart, detectarea Naratorului, hotkey, rețea
 │  ├─ Hasi.App/                    WPF: ShellWindow, KeyboardSource, VisualChannel, Bootstrapper
 │  │  └─ Resources/ro.json         toate textele interfeței
 │  └─ Modules/
@@ -282,8 +283,6 @@ Hasi/
 │  ├─ Hasi.Architecture.Tests/     verifică regulile de dependență
 │  ├─ Hasi.Transcripts.Tests/      transcrierile de referință (formulările validate de tester)
 │  └─ Hasi.Integration.Tests/      motoare de voce reale (rulate local)
-├─ integrations/
-│  └─ nvda-addon/                  add-on „HASI pentru NVDA” (Python, GPL-2.0, ca NVDA)
 ├─ installer/                      Velopack, scripturi de publicare și semnare
 ├─ docs/
 │  ├─ architecture.md              versiunea aprobată a acestui document
@@ -300,8 +299,8 @@ Hasi/
 
 | # | Risc | Impact | Măsuri |
 |---|---|---|---|
-| R1 | **Vorbire dublă cu NVDA/Narator.** Cititorul anunță focusul și face ecou tastelor peste HASI. | Mare | Add-on NVDA cu `sleepMode`; mod de trecere prin NVDA; mesaj și notificări UIA pentru Narator; fereastră „tăcută” pentru UIA. **Experiment de probă devreme în Faza 0.** |
-| R2 | **NVDA preia tastele.** În aspectul desktop, tastatura numerică comandă cursorul de examinare, iar Insert/CapsLock sunt modificatori NVDA. | Mare | `sleepMode` lasă tastele să treacă. Fără add-on, săgețile și Enter funcționează, iar HASI anunță că tastatura numerică e ocupată de NVDA. |
+| R1 | **Vorbire dublă cu NVDA/Narator.** Cititorul anunță focusul și face ecou tastelor peste HASI. | Mare → urmărit | **Observat pe 24 octombrie 2026:** cu NVDA pornit (fără modul de somn), testerul a auzit o singură voce, a HASI, inclusiv la tastarea în „Test pronunție”. Etapa 0.9 a fost scoasă (ADR 0003). Rămâne: mesajul pentru Narator, la pornire (etapa 0.10). Dacă vorbirea dublă reapare (altă versiune NVDA, alte setări, alt cititor), redeschidem ADR 0003. |
+| R2 | **NVDA preia tastele.** În aspectul desktop, tastatura numerică comandă cursorul de examinare, iar Insert/CapsLock sunt modificatori NVDA. | Mare → urmărit | **Observat pe 24 octombrie 2026:** tastatura numerică în aspectul desktop al NVDA a funcționat în HASI. Urmărim același lucru la fiecare test cu NVDA; dacă reapare, redeschidem ADR 0003. |
 | R3 | **Licența mixtă RHVoice:** antet LGPL-2.1+, dar `LICENSE.md` din rădăcină e GPL-2.0. | Mare, juridic | Faza 0 folosește SAPI (program separat, nemodificat). Legăm direct DLL-ul doar după audit pe fișiere. Dacă apare cod GPL-2.0-only în DLL, rămânem pe SAPI. |
 | R4 | **RHVoice prin SAPI:** installer-ul poate cere drepturi de administrator; oprirea prin SAPI e mai lentă; nu știm ce formă a diacriticelor așteaptă lexiconul lui Paul; numerele pot fi citite inconsecvent de motor. | Mediu | Test de oprire (țintă sub 50 ms). Test de pronunție pe o listă de cuvinte cu ș/ț (ambele forme). Normalizarea noastră trimite deja numerele scrise în litere. |
 | R5 | **Pierderea focusului:** notificări, UAC, Windows Update sau alte aplicații fură fereastra și utilizatorul „se pierde”. Pe desktopul securizat UAC, HASI nu poate nici vorbi, nici asculta. | Mare | Tastă globală de revenire; detectarea pierderii focusului și anunț; instalare per-utilizator, ca să evităm UAC; documentăm limita UAC. |
@@ -333,8 +332,8 @@ Fiecare etapă înseamnă commit-uri mici (Conventional Commits, în engleză) c
 | **0.6 Setări** | voce, viteză, volum, ton, ecoul tastelor, culori (seturi cu contrast ridicat), mărimea textului, persistență | salvare, reîncărcare, migrare |
 | **0.7 Ajutor și orientare** | F1, F2, F3, „Învață tastele”, „Despre HASI”, meniul de ieșire cu confirmări, Alt+F4 | un test pentru fiecare tastă globală, pe toate ecranele |
 | **0.8 Diagnostic și erori** | mod de diagnostic (fișier de sesiune), jurnal permanent de erori, la eroare gravă mesaj rostit și repornire automată | formatul jurnalului, mascare `Sensitive` |
-| **0.9 Coexistența cu cititoarele de ecran** | detectare NVDA/Narator/JAWS, add-on NVDA, trecere prin NVDA, mesaje pentru Narator | politicile, cu detectoare simulate |
-| **0.10 Integrare în sistem** | pornire automată (opțională), o singură instanță, tasta globală de revenire, detectarea pierderii focusului | – (manual) |
+| ~~0.9 Coexistența cu cititoarele de ecran~~ | **scoasă din Faza 0** pe 24 octombrie 2026 (decizia testerului, ADR 0003): cu NVDA, HASI funcționează cu o singură voce. Detectarea Naratorului trece în 0.10. | – |
+| **0.10 Integrare în sistem** | pornire automată (opțională), o singură instanță, tasta globală de revenire, detectarea pierderii focusului; **detectarea Naratorului** la pornire, cu mesajul din §1.6 | detectarea Naratorului cu un detector simulat; restul manual |
 | **0.11 Instalare și actualizare** | installer Velopack per-utilizator, actualizare cu anunț rostit; sursa e configurabilă (vezi §1.8); semnare prin SignPath Foundation, dacă proiectul e acceptat | publicare de test în CI |
 
 **Gata, pentru Faza 0, înseamnă:** toate scenariile M0-xx de mai jos trec la tine, pe Windows 11 și pe Windows 10, cu și fără NVDA pornit.
@@ -394,14 +393,12 @@ Formulările sunt propuneri; tu le validezi după ureche.
 | M0-17 | „Învață tastele”, apoi apeși F3 | „F3: spune unde vă aflați.” (fără să execute acțiunea); Escape de două ori ca să ieși |
 | M0-18 | Setări → Culori: alegi „galben pe negru”, apoi mărimea textului: „foarte mare” | ecranul se schimbă imediat; auzi numele culorilor și al mărimii |
 | M0-19 | Închizi și redeschizi HASI | setările de la M0-13, M0-14 și M0-18 sunt păstrate |
-| M0-20 | Meniu principal → Despre HASI | versiunea, autorul, licența, RHVoice (LGPL), vocea Paul (CC BY-SA 4.0, cu numele autorilor), NVDA Controller Client; navigabil rând cu rând cu ↑/↓ |
+| M0-20 | Meniu principal → Despre HASI | versiunea, licența, RHVoice, vocea Paul și datele limbii române (cu autorii), MULTEXT-East, NAudio, System.Speech; navigabil rând cu rând cu ↑/↓ |
 | M0-21 | Ieșire → Închide HASI | „Sigur doriți să închideți HASI? Enter pentru da, Escape pentru nu.” Escape te întoarce; Enter închide cu „La revedere.” |
 | M0-22 | Alt+F4 | aceeași confirmare ca la M0-21 |
 | M0-23 | Ieșire → Oprește calculatorul → Escape | confirmare, iar Escape anulează („Anulat.”) |
 | M0-24 | Pornești modul de diagnostic, faci 5 pași, alegi „Copiază jurnalul pe Desktop” | „Jurnalul a fost copiat pe Desktop.” Fișierul conține fiecare tastă și fiecare mesaj. |
-| M0-25 | Pornești NVDA, apoi HASI (cu add-on-ul instalat) | o singură voce (HASI); NVDA tace. Alt+Tab în Notepad → NVDA vorbește din nou; revii → tace iar. |
-| M0-26 | NVDA pornit, fără add-on | o singură voce (a NVDA), care citește mesajele HASI și oferta de instalare a add-on-ului |
-| M0-27 | Pornești Naratorul, apoi HASI | mesajul despre Narator și combinația de taste pentru oprirea lui |
+| M0-27 | (etapa 0.10) Pornești Naratorul, apoi HASI | „Naratorul Windows este pornit și va vorbi peste HASI. Pentru a-l opri, apăsați împreună Control, tasta Windows și Enter.” |
 | M0-28 | Deschizi o altă fereastră peste HASI, apoi Ctrl+Alt+H | „HASI nu mai este în prim-plan…”, apoi, după tasta de revenire, HASI anunță ecranul curent |
 | M0-29 | Pornești HASI a doua oară | nu se deschide a doua fereastră; cea existentă revine în față și anunță ecranul curent |
 | M0-30 | Setări → Pornire automată → Da, apoi repornești Windows | HASI pornește singur și vorbește după autentificare |
