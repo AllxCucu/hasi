@@ -48,6 +48,14 @@ documentation and in the `Velopack` 1.2.161 package (MIT, published 2026-09-29):
      applied after the speech (`ApplyUpdatesAndRestart`).
 6. **"Simulare oprire" is off by default** from now on (ADR 0006); files that saved it on keep it on.
 
+7. **No portable archive** (owner's decision, 2026-10-24). Velopack builds `HASI.App-win-Portable.zip` by
+   default; HASI never ships it, because a portable copy has no installer, no uninstall, no autostart path that
+   survives updates and no update flow. `vpk` 1.2.161 has `--noPortable` (checked with `vpk pack -H`), so
+   `installer/pack.ps1` passes it (from step 0 of Phase 1) and the archive is not produced at all. If a future `vpk` drops the option,
+   the archive may be produced but is never uploaded or published.
+8. **First public release postponed** (owner's decision, 2026-10-24): 0.1.0 is not published. Step 4 of
+   `docs/plan-0.11.md` stays ready and runs after the first Phase 1 modules (`docs/plan-faza-1.md`, §6).
+
 ## Consequences
 
 - `Shell.Show` applies results that arrive later (a check or a download), with an optional queued priority so

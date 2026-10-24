@@ -1,7 +1,10 @@
 # Planul etapei 0.11 – instalare și actualizare
 
-> **Stare:** pasul 1 **APROBAT** (23 octombrie 2026), pentru că nu atinge programul. Pașii 2–4 sunt încă
-> **PROPUNERE**: îi aprobi după rezultatele regresiei (`docs/manual-tests/regresie-faza-0.md`).
+> **Stare (24 octombrie 2026):** pașii 1–3 sunt **FĂCUȚI** și testați de tine (W-01…W-04, X-00…X-10, toate
+> trecute). **Pasul 4 rămâne pregătit, dar e AMÂNAT** până după primele module din Faza 1: 0.1.0 nu se mai
+> publică, iar prima versiune publică va fi una din Faza 1 (`docs/plan-faza-1.md`, §6). Corecturi rămase,
+> făcute înainte de modulul 1 din Faza 1: commitul RHVoice nu se mai rostește în „Despre HASI” (decizia 13);
+> arhiva portabilă nu se mai produce (decizia 14, ADR 0007).
 
 ## Decizii primite (23 octombrie 2026)
 
@@ -19,6 +22,9 @@
 | 10 | Opririle din 0.11 | Trei: după pasul 1, după pașii 2–3, înainte de publicarea 0.1.0. |
 | 11 | Întrebarea de actualizare | **O singură dată pentru fiecare versiune nouă.** După Escape, HASI nu mai întreabă la pornire pentru acea versiune; actualizarea rămâne în Setări → Actualizări. Dacă apare între timp o versiune și mai nouă, întreabă din nou, o dată. |
 | 12 | Dezinstalarea | Ștergere completă, confirmată: pornirea automată, `%LOCALAPPDATA%\HASI`, `%APPDATA%\HASI`. **Ghidul de instalare și README spun că dezinstalarea șterge toate setările și jurnalele.** |
+| 13 | „Despre HASI” (24 octombrie 2026) | Commitul RHVoice **nu se mai rostește**. Vorbirea spune doar „RHVoice versiunea 1.18.4”, licența și „Sursa exactă este indicată în fișierul de licențe.” Pe ecran, commitul poate rămâne. |
+| 14 | Arhiva portabilă (24 octombrie 2026) | Nu o producem: `vpk pack --noPortable` (opțiunea există în `vpk` 1.2.161). |
+| 15 | Publicarea (24 octombrie 2026) | 0.1.0 **nu se publică**. Pasul 4 rămâne pregătit și se amână până după primele module din Faza 1. Faza 0 e încheiată pe Windows 11. |
 
 ## Ce am verificat pentru acest plan (nu presupun)
 
@@ -125,7 +131,10 @@
 
 **Oprire după pașii 2–3:** instalare, pornire automată, actualizare din folder local, dezinstalare.
 
-### Pasul 4 – CI și prima versiune
+### Pasul 4 – CI și prima versiune – **AMÂNAT** (24 octombrie 2026) până după primele module din Faza 1
+
+> Ce scrie mai jos rămâne valabil, cu o singură schimbare: prima versiune publică nu mai e 0.1.0, ci cea
+> stabilită în `docs/plan-faza-1.md`, §6.
 
 1. **La fiecare push:** build, teste, publicare self-contained, `vpk pack`. Rezultatul (`Setup.exe` și pachetele) rămâne **artifact CI**, nepublicat. Aceasta e „publicarea de test”.
 2. **Publicarea 0.1.0:** un tag `v0.1.0` declanșează `vpk upload github`. Fac asta **numai după aprobarea ta explicită**, fiindcă e o publicare. Prima versiune e **nesemnată**.

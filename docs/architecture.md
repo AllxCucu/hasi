@@ -1,6 +1,7 @@
 ﻿# HASI – Arhitectură și plan pentru Faza 0
 
 > **Stare:** APROBAT pe 21 octombrie 2026, cu ajustările cerute (vezi §5). Plan modificat pe 23 octombrie 2026: etapa 0.9 (cititoarele de ecran) a fost scoasă, iar detectarea Naratorului a trecut în 0.10 (§1.6, ADR 0003).
+> **24 octombrie 2026: Faza 0 este încheiată** pe Windows 11 (scenariile X-00…X-10 au trecut); Windows 10 rămâne suportat, netestat. Publicarea 0.1.0 **nu se mai face**: prima publicare va fi după primele module din Faza 1 (§4, §6).
 > Deciziile importante sunt explicate și în `docs/adr/`.
 
 Cuprins:
@@ -10,6 +11,7 @@ Cuprins:
 3. Riscuri tehnice
 4. Planul Fazei 0 și scenariile de testare manuală
 5. Decizii aprobate
+6. Faza 1
 
 ---
 
@@ -334,9 +336,11 @@ Fiecare etapă înseamnă commit-uri mici (Conventional Commits, în engleză) c
 | **0.8 Diagnostic și erori** | mod de diagnostic (fișier de sesiune), jurnal permanent de erori, la eroare gravă mesaj rostit și repornire automată | formatul jurnalului, mascare `Sensitive` |
 | ~~0.9 Coexistența cu cititoarele de ecran~~ | **scoasă din Faza 0** pe 23 octombrie 2026 (decizia testerului, ADR 0003): cu NVDA, HASI funcționează cu o singură voce. Detectarea Naratorului trece în 0.10. | – |
 | **0.10 Integrare în sistem** | pornire automată (opțională), o singură instanță, tasta globală de revenire, detectarea pierderii focusului; **detectarea Naratorului** la pornire, cu mesajul din §1.6 | detectarea Naratorului cu un detector simulat; restul manual |
-| **0.11 Instalare și actualizare** | installer Velopack per-utilizator, actualizare cu anunț rostit; sursa e configurabilă (vezi §1.8); semnare prin SignPath Foundation, dacă proiectul e acceptat. **Înainte de 0.11:** „Simulare oprire” (Setări → Diagnostic) devine implicit **oprită**; acum e pornită implicit, doar pe durata dezvoltării (ADR 0006). Tot înainte de 0.11: construirea RHVoice.dll în CI (ADR 0004). În 0.11, „Pornire automată” trebuie să indice executabilul instalat de Velopack (acum indică `hasi.exe` din folderul de build) | publicare de test în CI |
+| **0.11 Instalare și actualizare** | installer Velopack per-utilizator, actualizare cu anunț rostit; sursa e configurabilă (vezi §1.8); semnare prin SignPath Foundation, dacă proiectul e acceptat. **Înainte de 0.11:** „Simulare oprire” (Setări → Diagnostic) devine implicit **oprită**; acum e pornită implicit, doar pe durata dezvoltării (ADR 0006). Tot înainte de 0.11: construirea RHVoice.dll în CI (ADR 0004). În 0.11, „Pornire automată” trebuie să indice executabilul instalat de Velopack (acum indică `hasi.exe` din folderul de build). **Făcut** (pașii 1–3, ADR 0007); pasul 4 (publicarea) **amânat** pe 24 octombrie 2026 până după primele module din Faza 1 | publicare de test în CI |
 
 **Gata, pentru Faza 0, înseamnă:** toate scenariile M0-xx de mai jos trec la tine, pe Windows 11 și pe Windows 10, cu și fără NVDA pornit. **Windows 10** (decizia din 23 octombrie 2026): **suportat, netestat**, până când testerul are acces la un calculator cu Windows 10; testul pe Windows 10 se face atunci.
+
+**Încheiere (24 octombrie 2026):** Faza 0 se consideră încheiată pe Windows 11, după regresie și scenariile de instalare și actualizare X-00…X-10, toate trecute. Windows 10: suportat, netestat. Pasul 4 din etapa 0.11 (CI de publicare, prima versiune publică, README, SignPath) rămâne pregătit, dar **se amână** până după primele module din Faza 1; versiunea 0.1.0 nu se mai publică.
 
 ### 4.1 Formatul jurnalului de diagnostic
 
@@ -451,9 +455,19 @@ Condițiile sunt cele din termenii publicați pe signpath.org/terms (pagina e ma
 **Ce ai tu de făcut, în ordine:**
 1. Activezi MFA pe contul GitHub, dacă nu e deja activ.
 2. Îmi spui numele contului sau al organizației GitHub. Eu creez depozitul public, dar numai după confirmarea ta, pentru că e o publicare.
-3. După etapa 0.11 publicăm prima versiune **nesemnată** (de exemplu 0.1.0) în GitHub Releases. Fără o versiune publicată, cererea nu e acceptată.
+3. Publicăm prima versiune **nesemnată** în GitHub Releases. Fără o versiune publicată, cererea nu e acceptată. **Schimbare din 24 octombrie 2026:** nu mai e 0.1.0, după etapa 0.11, ci prima versiune din Faza 1 (§6).
 4. Completezi formularul de pe signpath.org/apply. Formularul se încarcă dinamic și nu i-am putut citi câmpurile, deci le verificăm împreună atunci.
 5. După acceptare, eu integrez semnarea în GitHub Actions, iar tu aprobi manual fiecare cerere de semnare.
+
+---
+
+## 6. Faza 1 – MVP util zilnic
+
+> **Stare:** PROPUNERE (24 octombrie 2026), detaliată în `docs/plan-faza-1.md`. Secțiunea devine parte din arhitectura aprobată după aprobarea ta.
+
+Module, în ordinea propusă de tester: ceas, dată și calendar (cu sărbătorile legale din Codul muncii, art. 139); editor de text simplu (.txt, .docx); citire documente (.txt, .docx, .pdf cu text, .epub); calculator vorbit; agendă (contacte, programări cu memento rostit); manager de fișiere simplificat (copiere, mutare, ștergere, stick USB). Fiecare modul înseamnă o oprire pentru testul după ureche și câțiva pași noi în lista de regresie.
+
+Înainte de modulul 1 se fac și corecturile rămase din 0.11: în „Despre HASI”, commitul RHVoice nu se mai rostește (rămâne doar pe ecran), iar installer-ul nu mai produce arhiva portabilă (ADR 0007).
 
 ## Surse
 
