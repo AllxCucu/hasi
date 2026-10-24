@@ -70,8 +70,8 @@ public class TimeCommandTests
         h.Press(Key.Down, Key.Enter);
         var tutor = h.Shell.Current;
         Assert.Equal(["Control plus litera T: spune ora."], h.Press(SayTime));
-        Assert.Equal(["Page Down: trece la luna următoare în calendar."], h.Press(Key.PageDown));
-        Assert.Equal(["Page Up: trece la luna anterioară în calendar."], h.Press(Key.PageUp));
+        Assert.Equal(["Page Down: trece la luna următoare în calendar, sau la pagina ori capitolul următor într-un document."], h.Press(Key.PageDown));
+        Assert.Equal(["Page Up: trece la luna anterioară în calendar, sau la pagina ori capitolul anterior într-un document."], h.Press(Key.PageUp));
         Assert.Same(tutor, h.Shell.Current);
         Assert.Empty(h.Localizer.MissingKeys);
     }

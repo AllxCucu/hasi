@@ -2,13 +2,15 @@
 # Pentru a ieși: Escape de două ori la rând.
 
 > start
-< Bun venit în HASI. Meniu principal. 6 opțiuni. Selectat: Ceas și calendar, 1 din 6.
+< Bun venit în HASI. Meniu principal. 7 opțiuni. Selectat: Ceas și calendar, 1 din 7.
 > Down
-< Editor de text, 2 din 6.
+< Editor de text, 2 din 7.
 > Down
-< Setări, 3 din 6.
+< Citire documente, 3 din 7.
 > Down
-< Învață tastele, 4 din 6.
+< Setări, 4 din 7.
+> Down
+< Învață tastele, 5 din 7.
 > Enter
 < Învață tastele. Apăsați orice tastă ca să aflați ce face; nimic nu se execută. Pe orice tastatură, și pe laptop: Control H pentru ajutor, Control R pentru a repeta, Control U pentru a afla unde sunteți, săgețile pentru a vă deplasa, Enter pentru a alege și Escape pentru a vă întoarce. Ca să ieșiți de aici, apăsați Escape de două ori.
 
@@ -34,13 +36,13 @@
 > Ctrl+T
 < Control plus litera T: spune ora.
 > PageDown
-< Page Down: trece la luna următoare în calendar.
+< Page Down: trece la luna următoare în calendar, sau la pagina ori capitolul următor într-un document.
 > PageUp
-< Page Up: trece la luna anterioară în calendar.
+< Page Up: trece la luna anterioară în calendar, sau la pagina ori capitolul anterior într-un document.
 > NumPad3
-< Tasta 3 de pe tastatura numerică: trece la luna următoare în calendar.
+< Tasta 3 de pe tastatura numerică: trece la luna următoare în calendar, sau la pagina ori capitolul următor într-un document.
 > NumPad9
-< Tasta 9 de pe tastatura numerică: trece la luna anterioară în calendar.
+< Tasta 9 de pe tastatura numerică: trece la luna anterioară în calendar, sau la pagina ori capitolul anterior într-un document.
 > LeftCtrl
 < Control din stânga: oprește vorbirea.
 > Alt+F4
@@ -71,4 +73,4 @@
 > Escape
 < Escape: înapoi la ecranul anterior. Apăsați încă o dată Escape ca să ieșiți din Învață tastele.
 > Escape
-< Meniu principal. Selectat: Învață tastele, 4 din 6.
+< Meniu principal. Selectat: Învață tastele, 5 din 7.

@@ -241,6 +241,29 @@ public class TextReaderScreenTests
     }
 
     [Fact]
+    public void Going_to_a_page_of_a_pdf_says_it_as_page_down_does()
+    {
+        var (h, reader) = Open(Pdf());
+
+        var said = Assert.IsType<SayResult>(reader.GoToPage(3, h.Shell)).Utterance;
+        Assert.Equal(("Pagina 3 din 3. A treia pagină.", true), (said.Text, said.Sensitive));
+        Assert.Equal(new ReadingPosition(2, 0), reader.CurrentPosition);
+        Assert.Equal("Pagina 2 este o imagine scanată. HASI nu poate citi încă imagini.",
+            Assert.IsType<SayResult>(reader.GoToPage(2, h.Shell)).Utterance.Text);
+        Assert.Equal("Pagina 1 din 3. Prima pagină. Are două propoziții.",
+            Assert.IsType<SayResult>(reader.GoToPage(0, h.Shell)).Utterance.Text);
+    }
+
+    [Fact]
+    public void Going_to_a_page_of_a_document_without_pages_is_not_possible()
+    {
+        var (h, reader) = Open(Text("unu", "doi"));
+
+        Assert.Same(ScreenResult.Unhandled, reader.GoToPage(2, h.Shell));
+        Assert.Equal(ReadingPosition.Beginning, reader.CurrentPosition);
+    }
+
+    [Fact]
     public void Page_down_on_an_epub_goes_to_the_next_chapter()
     {
         var (h, reader) = Open(Epub());

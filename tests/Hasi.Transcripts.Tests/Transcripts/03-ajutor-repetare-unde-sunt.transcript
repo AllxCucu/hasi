@@ -1,11 +1,13 @@
 ﻿# M0-08 ... M0-10: ajutor (F1 / Control H), repetare (F2 / Control R), unde sunt (F3 / Control U).
 
 > start
-< Bun venit în HASI. Meniu principal. 6 opțiuni. Selectat: Ceas și calendar, 1 din 6.
+< Bun venit în HASI. Meniu principal. 7 opțiuni. Selectat: Ceas și calendar, 1 din 7.
 > Down
-< Editor de text, 2 din 6.
+< Editor de text, 2 din 7.
 > Down
-< Setări, 3 din 6.
+< Citire documente, 3 din 7.
+> Down
+< Setări, 4 din 7.
 > Enter
 < Setări. 12 opțiuni. Selectat: Voce, 1 din 12.
 

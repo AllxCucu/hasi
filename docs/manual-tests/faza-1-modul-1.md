@@ -55,7 +55,7 @@ RHVoice direct” (copia de test stă acum în `%LOCALAPPDATA%\HASI.Dev\rhvoice`
 | # | Ce apăs | Ce trebuie să aud |
 |---|---|---|
 | C1-22 | Control + T în meniul principal, în Setări, în Test pronunție (după ce scrii ceva), în întrebarea de la Alt + F4 | de fiecare dată doar „Este ora …”; nu se schimbă ecranul, selecția sau textul scris; Alt + F4 rămâne neconfirmat (Escape îl anulează) |
-| C1-23 | Învață tastele: Control + T, Page Down, Page Up | „Control plus litera T: spune ora.”, „Page Down: trece la luna următoare în calendar.”, „Page Up: trece la luna anterioară în calendar.”; nu se execută nimic |
+| C1-23 | Învață tastele: Control + T, Page Down, Page Up | „Control plus litera T: spune ora.”, „Page Down: trece la luna următoare în calendar, sau la pagina ori capitolul următor într-un document.”, „Page Up: trece la luna anterioară în calendar, sau la pagina ori capitolul anterior într-un document.”; nu se execută nimic |
 | C1-24 | Setări: „Ora fixă rostită”, Enter | „Ora fixă rostită. 2 opțiuni. Selectat: Nu, actual, 2 din 2.” (oprită implicit). F1 explică setarea. |
 | C1-25 | Alegi „Da”; aștepți următoarea oră fixă, cu HASI deschis | „Ora fixă rostită: Da. …”; la ora fixă, o singură dată „Este ora …” (de exemplu „Este ora șaisprezece.”), după mesajul care se aude atunci, fără să se schimbe ecranul. Nu schimba ceasul Windows pentru test. |
 | C1-26 | Pui la loc „Nu” | la următoarea oră fixă nu se mai aude nimic; Control + T merge în continuare |

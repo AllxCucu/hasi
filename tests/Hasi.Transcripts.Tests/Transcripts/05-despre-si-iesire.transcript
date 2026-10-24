@@ -1,16 +1,18 @@
 ﻿# Despre HASI (M0-20) și Ieșire (M0-21 … M0-23), etapa 0.7.
 
 > start
-< Bun venit în HASI. Meniu principal. 6 opțiuni. Selectat: Ceas și calendar, 1 din 6.
+< Bun venit în HASI. Meniu principal. 7 opțiuni. Selectat: Ceas și calendar, 1 din 7.
 > Down
-< Editor de text, 2 din 6.
+< Editor de text, 2 din 7.
 > Down
-< Setări, 3 din 6.
+< Citire documente, 3 din 7.
+> Down
+< Setări, 4 din 7.
 
 > Down
-< Învață tastele, 4 din 6.
+< Învață tastele, 5 din 7.
 > Down
-< Despre HASI, 5 din 6.
+< Despre HASI, 6 din 7.
 > Enter
 < Despre HASI. 15 rânduri. Selectat: HASI, Human Assisted Information, versiunea 0.1.0, 1 din 15.
 > Down
@@ -38,11 +40,11 @@
 > Up
 < Citirea și scrierea documentelor Word, cu Open XML SDK, de la .NET Foundation, sub licența MIT, 12 din 15.
 > Escape
-< Meniu principal. Selectat: Despre HASI, 5 din 6.
+< Meniu principal. Selectat: Despre HASI, 6 din 7.
 
 # M0-21 Ieșire, apoi renunț
 > Down
-< Ieșire, 6 din 6.
+< Ieșire, 7 din 7.
 > Enter
 < Ieșire. 3 opțiuni. Selectat: Închide HASI, 1 din 3.
 > F1

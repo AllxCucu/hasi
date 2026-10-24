@@ -25,11 +25,48 @@ public sealed class FakeDocumentFormats : IDocumentFormats
     /// <summary>Adds a document; its lines become paragraphs. Word documents are "made by another program" unless said.</summary>
     public FakeDocumentFormats Add(string path, string text, bool madeByHasi = false)
     {
-        var format = FormatOf(path) ?? throw new ArgumentException("Only .txt and .docx.", nameof(path));
+        var format = FormatOf(path) is { } known and (DocumentFormat.Text or DocumentFormat.Word)
+            ? known
+            : throw new ArgumentException("Only .txt and .docx; add PDF and EPUB documents as a Document.", nameof(path));
         _documents[path] = new Document([.. text.Split('\n').Select(line => new DocumentParagraph(line))], format, madeByHasi);
         Files?.AddFile(path, text.Length);
         return this;
     }
+
+    /// <summary>
+    /// Adds a document built by the test, of any format: a PDF with its pages (<see cref="Document.PageCount"/>,
+    /// <see cref="Document.ScannedPages"/>, <see cref="Document.LooksGarbled"/>) or an EPUB with its chapters.
+    /// </summary>
+    public FakeDocumentFormats Add(string path, Document document)
+    {
+        ArgumentNullException.ThrowIfNull(document);
+        _documents[path] = document;
+        Files?.AddFile(path, document.Paragraphs.Sum(p => p.Text.Length));
+        return this;
+    }
+
+    /// <summary>
+    /// A PDF in memory: each item is a page, its paragraphs separated by '\n'; null is a scanned page (no text).
+    /// </summary>
+    public static Document Pdf(params string?[] pages) => new(
+        [.. pages.SelectMany((text, i) => text is null
+            ? []
+            : text.Split('\n').Select(paragraph => new DocumentParagraph(paragraph, Page: i + 1)))],
+        DocumentFormat.Pdf, MadeByHasi: false)
+    {
+        PageCount = pages.Length,
+        ScannedPages = [.. pages.Select((text, i) => text is null ? i + 1 : 0).Where(page => page > 0)],
+    };
+
+    /// <summary>An EPUB in memory: each chapter starts with its title, as a heading, then its paragraphs.</summary>
+    public static Document Epub(params (string Title, string[] Paragraphs)[] chapters) => new(
+        [.. chapters.SelectMany((chapter, i) => chapter.Paragraphs
+            .Select(text => new DocumentParagraph(text, Chapter: i + 1))
+            .Prepend(new DocumentParagraph(chapter.Title, HeadingLevel: 1, Chapter: i + 1)))],
+        DocumentFormat.Epub, MadeByHasi: false)
+    {
+        ChapterTitles = [.. chapters.Select(c => c.Title)],
+    };
 
     public Document? Get(string path) => _documents.GetValueOrDefault(path);
 
@@ -40,13 +77,25 @@ public sealed class FakeDocumentFormats : IDocumentFormats
     {
         ".TXT" => DocumentFormat.Text,
         ".DOCX" => DocumentFormat.Word,
+        ".PDF" => DocumentFormat.Pdf,
+        ".EPUB" => DocumentFormat.Epub,
         _ => null,
     };
 
-    public string Extension(DocumentFormat format) => format == DocumentFormat.Text ? ".txt" : ".docx";
+    public string Extension(DocumentFormat format) => format switch
+    {
+        DocumentFormat.Text => ".txt",
+        DocumentFormat.Pdf => ".pdf",
+        DocumentFormat.Epub => ".epub",
+        _ => ".docx",
+    };
+
+    /// <summary>How many times <see cref="Load"/> was called.</summary>
+    public int Loads { get; private set; }
 
     public DocumentLoadResult Load(string path)
     {
+        Loads++;
         if (LoadProblems.TryGetValue(path, out var problem)) return new DocumentLoadResult(null, problem);
         return _documents.TryGetValue(path, out var document)
             ? new DocumentLoadResult(document)

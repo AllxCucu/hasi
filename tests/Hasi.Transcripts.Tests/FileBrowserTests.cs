@@ -51,6 +51,25 @@ public class FileBrowserTests
     }
 
     [Fact]
+    public void Choosing_a_file_can_know_the_level_that_shows_it()
+    {
+        var h = new ShellHarness();
+        AddKnownFolders(h.Files);
+        AddDocuments(h.Files);
+        List<IScreen> levels = [];
+        h.Start(new FileBrowserScreen("Deschide un document", h.Files, [".txt"], (entry, level, _) =>
+        {
+            levels.Add(level);
+            return ScreenResult.Handled;
+        }));
+
+        h.Press(Key.Enter, Key.Down, Key.Enter, Key.Enter);
+
+        Assert.Equal([h.Shell.Current], levels);
+        Assert.Equal(@$"{Documents}\Scrisori", Assert.IsType<FileBrowserScreen>(levels[0]).Folder);
+    }
+
+    [Fact]
     public void First_level_lists_the_known_folders()
     {
         var (h, _) = Opened(AddKnownFolders);

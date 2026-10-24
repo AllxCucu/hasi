@@ -23,7 +23,7 @@ public sealed class FileBrowserScreen : IScreen, ISensitiveScreen
 
     private readonly IFileSystem _files;
     private readonly HashSet<string> _extensions;
-    private readonly Func<FileEntry, IScreenContext, ScreenResult> _onChoose;
+    private readonly Func<FileEntry, FileBrowserScreen, IScreenContext, ScreenResult> _onChoose;
     private readonly ListLevel _level;
 
     /// <param name="title">The first level's title, e.g. "Deschide un document".</param>
@@ -31,6 +31,16 @@ public sealed class FileBrowserScreen : IScreen, ISensitiveScreen
     /// <param name="onChoose">Runs on Enter on a file.</param>
     public FileBrowserScreen(string title, IFileSystem files, IEnumerable<string> extensions,
         Func<FileEntry, IScreenContext, ScreenResult> onChoose)
+        : this(title, files, extensions, Ignoring(onChoose))
+    {
+    }
+
+    /// <param name="onChoose">
+    /// Runs on Enter on a file, with the level that shows it (the current screen), for work that belongs to that level,
+    /// such as opening the document in the background.
+    /// </param>
+    public FileBrowserScreen(string title, IFileSystem files, IEnumerable<string> extensions,
+        Func<FileEntry, FileBrowserScreen, IScreenContext, ScreenResult> onChoose)
         : this(title, folder: null, files,
             new HashSet<string>(extensions.Select(e => e.StartsWith('.') ? e : "." + e), StringComparer.OrdinalIgnoreCase),
             onChoose)
@@ -38,7 +48,7 @@ public sealed class FileBrowserScreen : IScreen, ISensitiveScreen
     }
 
     private FileBrowserScreen(string title, string? folder, IFileSystem files, HashSet<string> extensions,
-        Func<FileEntry, IScreenContext, ScreenResult> onChoose)
+        Func<FileEntry, FileBrowserScreen, IScreenContext, ScreenResult> onChoose)
     {
         ArgumentNullException.ThrowIfNull(files);
         ArgumentNullException.ThrowIfNull(onChoose);
@@ -79,11 +89,18 @@ public sealed class FileBrowserScreen : IScreen, ISensitiveScreen
             l.Get("files.item.folder", ("name", entry.Name)),
             _ => ScreenResult.Push(Deeper(entry.Name, entry.Path))));
         var documents = entries.Where(e => !e.IsFolder && _extensions.Contains(Path.GetExtension(e.Name))).Select(entry =>
-            new MenuItem(FileLabel(entry, l), c => _onChoose(entry, c)));
+            new MenuItem(FileLabel(entry, l), c => _onChoose(entry, this, c)));
         return [.. folders, .. documents];
     }
 
     private FileBrowserScreen Deeper(string title, string folder) => new(title, folder, _files, _extensions, _onChoose);
+
+    private static Func<FileEntry, FileBrowserScreen, IScreenContext, ScreenResult> Ignoring(
+        Func<FileEntry, IScreenContext, ScreenResult> onChoose)
+    {
+        ArgumentNullException.ThrowIfNull(onChoose);
+        return (entry, _, context) => onChoose(entry, context);
+    }
 
     /// <summary>"Scrisoare, document Word": the name without its extension, then the type in words.</summary>
     private static string FileLabel(FileEntry entry, ILocalizer l)

@@ -1,11 +1,13 @@
 ﻿# M0-05 ... M0-07: intrarea într-un ecran și întoarcerea cu Escape.
 
 > start
-< Bun venit în HASI. Meniu principal. 6 opțiuni. Selectat: Ceas și calendar, 1 din 6.
+< Bun venit în HASI. Meniu principal. 7 opțiuni. Selectat: Ceas și calendar, 1 din 7.
 > Down
-< Editor de text, 2 din 6.
+< Editor de text, 2 din 7.
 > Down
-< Setări, 3 din 6.
+< Citire documente, 3 din 7.
+> Down
+< Setări, 4 din 7.
 
 # M0-05 Enter pe Setări
 > Enter
@@ -43,7 +45,7 @@
 
 # M0-06 Escape din Setări
 > Escape
-< Meniu principal. Selectat: Setări, 3 din 6.
+< Meniu principal. Selectat: Setări, 4 din 7.
 
 # M0-07 Escape în meniul principal: HASI nu se închide
 > Escape
@@ -53,6 +55,6 @@
 > NumPad5
 < Setări. 12 opțiuni. Selectat: Voce, 1 din 12.
 > NumPad0
-< Meniu principal. Selectat: Setări, 3 din 6.
+< Meniu principal. Selectat: Setări, 4 din 7.
 
 # Învață tastele: vezi 07-invata-tastele.transcript

@@ -3,9 +3,9 @@
 
 # Meniul editorului
 > start
-< Bun venit în HASI. Meniu principal. 6 opțiuni. Selectat: Ceas și calendar, 1 din 6.
+< Bun venit în HASI. Meniu principal. 7 opțiuni. Selectat: Ceas și calendar, 1 din 7.
 > Down
-< Editor de text, 2 din 6.
+< Editor de text, 2 din 7.
 > Enter
 < Editor de text. 3 opțiuni. Selectat: Document nou, 1 din 3.
 > F1
@@ -66,4 +66,4 @@
 > Enter
 < Documentul a fost salvat. Editor de text. Selectat: Documente recente, 3 din 3.
 > Escape
-< Meniu principal. Selectat: Editor de text, 2 din 6.
+< Meniu principal. Selectat: Editor de text, 2 din 7.

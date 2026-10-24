@@ -220,14 +220,30 @@ public sealed class TextReaderScreen : IScreen, IHasKeyProfile, ISensitiveScreen
         _ => Heading(direction, context),
     };
 
+    /// <summary>
+    /// Goes to page <paramref name="page"/> of a PDF (clamped to its pages) and says it, as Page Down does: "Pagina 4
+    /// din 20. …", or that the page is scanned or has no text. Unhandled for documents without pages.
+    /// </summary>
+    public ScreenResult GoToPage(int page, IScreenContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        if (_document.Format != DocumentFormat.Pdf || _document.PageCount <= 0) return ScreenResult.Unhandled;
+        return PdfPageAt(Math.Clamp(page, 1, _document.PageCount), context);
+    }
+
     private ScreenResult PdfPage(int direction, IScreenContext context)
     {
         var l = context.Localizer;
-        var pages = _document.PageCount;
         var target = CurrentPage + direction;
         if (target < 1) return Say(l.Get("reader.page.first"), Earcon.EdgeOfList);
-        if (target > pages) return Say(l.Get("reader.page.last"), Earcon.EdgeOfList);
+        if (target > _document.PageCount) return Say(l.Get("reader.page.last"), Earcon.EdgeOfList);
+        return PdfPageAt(target, context);
+    }
 
+    private ScreenResult PdfPageAt(int target, IScreenContext context)
+    {
+        var l = context.Localizer;
+        var pages = _document.PageCount;
         var first = FindParagraph(p => p.Page == target);
         var scanned = _document.ScannedPages.Contains(target);
         if (first >= 0)

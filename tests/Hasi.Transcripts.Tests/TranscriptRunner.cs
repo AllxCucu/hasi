@@ -16,6 +16,10 @@ namespace Hasi.Transcripts.Tests;
 /// &lt; Învață tastele, 2 din 4.   what must be said after that key, in order
 /// &lt; [sunet] Sfârșitul ...  the message comes with a short sound
 /// > scrie: 12 lei          types text (the per-character echo is not checked)
+/// > document: Carte.txt = Rândul unu. | Rândul doi.
+///                          puts a document in Documente, said nothing; the parts separated by " | " are the
+///                          paragraphs of a .txt or .docx, the pages of a .pdf ("[scanată]" = a scanned page) or the
+///                          chapters of an .epub ("Titlu: text")
 /// > calendar: 2026-10-24   opens the generic date picker (test fixture only)
 /// > time: 2026-10-24T12:00:03Z sets the fake clock
 /// > tick                   checks hourly announcements
@@ -30,6 +34,12 @@ public static class TranscriptRunner
     /// <summary>"> scrie: text" types the text; the echo of each character is not checked.</summary>
     public const string TypePrefix = "scrie: ";
 
+    /// <summary>"> document: Name.ext = part | part" puts a document in <see cref="DocumentsFolder"/>.</summary>
+    public const string DocumentPrefix = "document: ";
+
+    /// <summary>A page of a PDF given to "> document:" that is a scanned image (no text).</summary>
+    public const string ScannedPage = "[scanată]";
+
     /// <summary>The Documents folder of the fake disk every transcript runs with.</summary>
     public const string DocumentsFolder = @"C:\Users\Ana\Documents";
 
@@ -38,6 +48,7 @@ public static class TranscriptRunner
         var failures = new List<string>();
         var lines = File.ReadAllLines(path);
         ShellHarness? harness = null;
+        FakeDocumentFormats? documents = null;
         var time = new ManualTimeProvider(new DateTimeOffset(2026, 10, 24, 11, 32, 0, TimeSpan.Zero),
             TimeZoneInfo.FindSystemTimeZoneById("Europe/Bucharest"));
         var lineNumber = 0;
@@ -76,7 +87,8 @@ public static class TranscriptRunner
                     var before = harness?.Output.Announcements.Count ?? 0;
                     if (body == "start")
                     {
-                        harness = new ShellHarness(time: time, documents: new FakeDocumentFormats());
+                        documents = new FakeDocumentFormats();
+                        harness = new ShellHarness(time: time, documents: documents);
                         // The editor saves new documents in Documente; nothing else is on the disk.
                         harness.Files.AddPlace(PlaceKind.Documents, DocumentsFolder);
                         harness.StartWithModules(modules());
@@ -87,6 +99,13 @@ public static class TranscriptRunner
                         if (harness is null) throw new FormatException($"{path}:{lineNumber}: '> start' must come first.");
                         harness.Type(body[TypePrefix.Length..]);
                         // The per-character echo is not checked here; TextInputTests cover it.
+                        step = null;
+                        continue;
+                    }
+                    else if (body.StartsWith(DocumentPrefix, StringComparison.Ordinal))
+                    {
+                        if (documents is null) throw new FormatException($"{path}:{lineNumber}: '> start' must come first.");
+                        AddDocument(documents, body[DocumentPrefix.Length..], $"{path}:{lineNumber}");
                         step = null;
                         continue;
                     }
@@ -129,6 +148,33 @@ public static class TranscriptRunner
             failures.AddRange(harness.Localizer.MissingKeys.Select(k => $"{Path.GetFileName(path)}: missing resource '{k}'"));
         }
         return failures;
+    }
+
+    /// <summary>"Carte.pdf = Prima pagină. | [scanată] | A treia." in Documente.</summary>
+    private static void AddDocument(FakeDocumentFormats documents, string spec, string where)
+    {
+        var equals = spec.IndexOf(" = ", StringComparison.Ordinal);
+        if (equals < 0) throw new FormatException($"{where}: expected '> document: Name.ext = text | text'.");
+        var name = spec[..equals].Trim();
+        var parts = spec[(equals + 3)..].Split(" | ").Select(part => part.Trim()).ToArray();
+        var file = Path.Combine(DocumentsFolder, name);
+        switch (documents.FormatOf(name))
+        {
+            case Hasi.Core.Documents.DocumentFormat.Pdf:
+                documents.Add(file, FakeDocumentFormats.Pdf([.. parts.Select(p => p == ScannedPage ? null : p)]));
+                break;
+            case Hasi.Core.Documents.DocumentFormat.Epub:
+                documents.Add(file, FakeDocumentFormats.Epub([.. parts.Select(part =>
+                {
+                    var colon = part.IndexOf(": ", StringComparison.Ordinal);
+                    if (colon < 0) throw new FormatException($"{where}: an EPUB chapter is 'Titlu: text'.");
+                    return (part[..colon], new[] { part[(colon + 2)..] });
+                })]));
+                break;
+            default:
+                documents.Add(file, string.Join('\n', parts));
+                break;
+        }
     }
 
     private static string Describe(Announcement announcement) =>

@@ -9,6 +9,7 @@
   <Folder Name="/src/Modules/">
     <Project Path="src/Modules/Hasi.Modules.About/Hasi.Modules.About.csproj" />
     <Project Path="src/Modules/Hasi.Modules.Clock/Hasi.Modules.Clock.csproj" />
+    <Project Path="src/Modules/Hasi.Modules.Documents/Hasi.Modules.Documents.csproj" />
     <Project Path="src/Modules/Hasi.Modules.Editor/Hasi.Modules.Editor.csproj" />
     <Project Path="src/Modules/Hasi.Modules.Exit/Hasi.Modules.Exit.csproj" />
     <Project Path="src/Modules/Hasi.Modules.KeyTutor/Hasi.Modules.KeyTutor.csproj" />
