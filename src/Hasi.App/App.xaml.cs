@@ -100,7 +100,7 @@ public partial class App : Application, ISystemActions
         var savedSettings = SettingsFile.Load(AppPaths.SettingsFile, out var settingsProblem);
         if (settingsProblem is not null) _log.Write("ERROR", $"settings file: {settingsProblem}");
         var effectiveSettings = AppSettingsService.Effective(savedSettings, options);
-        var speech = new SpeechSetup(options, effectiveSettings, _log, localizer);
+        var speech = new SpeechSetup(options, effectiveSettings, _log, localizer) { IsPrivate = () => _shell?.IsSensitive == true };
         var (engine, voiceNotice) = speech.CreateMainEngine(localizer);
         _engine = engine;
         _log.Write("ENGINE", $"{engine.Id} voice=\"{engine.CurrentVoiceName}\"");

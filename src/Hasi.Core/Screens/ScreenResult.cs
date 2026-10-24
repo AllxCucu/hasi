@@ -24,6 +24,14 @@ public abstract record ScreenResult
     public static ScreenResult Pop(Utterance? prefix = null, bool announce = true, ScreenResult? then = null) =>
         new PopResult(prefix, announce, then);
 
+    /// <summary>
+    /// Closes every screen above <paramref name="screen"/>, which becomes current again. With <paramref name="then"/>
+    /// that result is applied instead of the screen's announcement. Nothing is closed when the screen is not open.
+    /// </summary>
+    /// <param name="prefix">Said before the screen announces itself, for example "Documentul a fost salvat."</param>
+    public static ScreenResult PopTo(IScreen screen, Utterance? prefix = null, ScreenResult? then = null) =>
+        new PopToResult(screen, prefix, then);
+
     /// <summary>Asks a yes/no question; <paramref name="onYes"/> runs only after Enter.</summary>
     /// <param name="cancelled">Said after Escape instead of "Anulat."</param>
     public static ScreenResult Confirm(string question, Func<ScreenResult> onYes, Utterance? cancelled = null) =>
@@ -41,6 +49,8 @@ public sealed record PushResult(IScreen Screen) : ScreenResult;
 public sealed record ReplaceResult(IScreen Screen) : ScreenResult;
 
 public sealed record PopResult(Utterance? Prefix, bool Announce, ScreenResult? Then) : ScreenResult;
+
+public sealed record PopToResult(IScreen Screen, Utterance? Prefix, ScreenResult? Then) : ScreenResult;
 
 public sealed record ConfirmResult(string Question, Func<ScreenResult> OnYes, Utterance? Cancelled = null) : ScreenResult;
 

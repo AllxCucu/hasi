@@ -67,6 +67,9 @@ internal sealed class SpeechSetup
     /// <summary>Rate, pitch and volume used for every voice started from now on.</summary>
     public SpeechSettings Settings { get; set; }
 
+    /// <summary>True while private content is spoken (a document is open): spoken words are masked in the log.</summary>
+    public Func<bool> IsPrivate { get; set; } = () => false;
+
     /// <summary>The voice chosen in Settings ("engine:name"), used when the command line does not choose one.</summary>
     public string? SavedVoiceKey { get; set; }
 
@@ -254,7 +257,8 @@ internal sealed class SpeechSetup
         _log.Write("RHVOICE", $"{instance} created ({(_rhVoiceInstances == 1 ? "main voice" : "voice comparison")})");
         var engine = new RhVoiceDllEngine(library, output, RhVoiceProfile) { Settings = Settings };
         engine.Preload();
-        engine.WordStarted += (_, word) => _log.Write("WORD", $"engine={RhVoiceDllEngine.EngineId} {word.Position}+{word.Length} \"{word.Word}\"");
+        engine.WordStarted += (_, word) => _log.Write("WORD",
+            $"engine={RhVoiceDllEngine.EngineId} {word.Position}+{word.Length} \"{(IsPrivate() ? TextDiagnosticLog.Mask : word.Word)}\"");
         return engine;
     }
 
@@ -267,7 +271,7 @@ internal sealed class SpeechSetup
             switch (metric.Kind)
             {
                 case "word":
-                    _log.Write("WORD", $"engine={metric.Engine} {metric.Detail}");
+                    _log.Write("WORD", $"engine={metric.Engine} {(IsPrivate() ? TextDiagnosticLog.Mask : metric.Detail)}");
                     break;
                 case "finished":
                     _log.Write("LATENCY", $"engine={metric.Engine} finished after {metric.Milliseconds:F0} ms");

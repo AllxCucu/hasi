@@ -448,6 +448,25 @@ public sealed class Shell : IShellServices, IScreenContext
             case UnhandledResult:
                 Say(new Utterance(Localizer.Get("shell.keyUnavailable"), Earcon: Earcon.Unavailable));
                 break;
+            case PopToResult popTo:
+                var target = _stack.LastIndexOf(popTo.Screen);
+                if (target < 0)
+                {
+                    if (popTo.Then is not null) Apply(popTo.Then);
+                    break;
+                }
+                if (target < _stack.Count - 1)
+                {
+                    _stack.RemoveRange(target + 1, _stack.Count - target - 1);
+                    OnScreenChanged();
+                }
+                if (popTo.Then is not null) Apply(popTo.Then);
+                else
+                {
+                    var entry = Current.Enter(EnterReason.Return, this);
+                    Say(popTo.Prefix is null ? entry : popTo.Prefix.Then(entry));
+                }
+                break;
             case CloseResult close:
                 var index = _stack.LastIndexOf(close.Screen);
                 if (index <= 0) break; // Already closed; the main menu is never closed.
