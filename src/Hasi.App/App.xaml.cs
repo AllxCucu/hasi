@@ -147,7 +147,8 @@ public partial class App : Application, ISystemActions
             autostart, updates, _shell.Time, Documents: new DocumentFormats(), Files: new WindowsFileSystem());
 
         _shell.ScreenChanged += (_, _) => _window.ShowTitle(_shell.Current.Title);
-        _window.ProducesText = chord => TextRouting.ProducesText(chord, _keyMap, _shell.IsTextEntryActive, ShellWindow.NumLockOn);
+        _window.ProducesText = chord => TextRouting.ProducesText(chord, _keyMap, _shell.IsTextEntryActive, ShellWindow.NumLockOn,
+            _shell.ActiveKeyProfile);
         _window.NumLockChanged += (_, on) =>
         {
             if (!_exiting) _shell.NumericKeypadModeChanged(on);
@@ -311,7 +312,7 @@ public partial class App : Application, ISystemActions
     private void OnKey(KeyChord chord, bool isRepeat = false)
     {
         if (_exiting || _shell is null) return;
-        _shell.Dispatch(new InputEvent(_keyMap.Resolve(chord), chord, IsRepeat: isRepeat));
+        _shell.Dispatch(new InputEvent(_keyMap.Resolve(chord, _shell.ActiveKeyProfile), chord, IsRepeat: isRepeat));
         if (_exitRequested) _ = ExitAfterSpeechAsync();
     }
 

@@ -168,7 +168,7 @@ public sealed class ShellHarness
         var before = Output.Announcements.Count;
         foreach (var key in keys)
         {
-            Shell.Dispatch(new InputEvent(KeyMap.Resolve(key), key));
+            Shell.Dispatch(new InputEvent(KeyMap.Resolve(key, Shell.ActiveKeyProfile), key));
         }
         return [.. Output.Announcements.Skip(before).Select(a => a.Utterance.Text)];
     }
@@ -188,11 +188,10 @@ public sealed class ShellHarness
     public IReadOnlyList<string> Hold(KeyChord key, int repeats)
     {
         var before = Output.Announcements.Count;
-        var command = KeyMap.Resolve(key);
-        Shell.Dispatch(new InputEvent(command, key));
+        Shell.Dispatch(new InputEvent(KeyMap.Resolve(key, Shell.ActiveKeyProfile), key));
         for (var i = 0; i < repeats; i++)
         {
-            Shell.Dispatch(new InputEvent(command, key, IsRepeat: true));
+            Shell.Dispatch(new InputEvent(KeyMap.Resolve(key, Shell.ActiveKeyProfile), key, IsRepeat: true));
         }
         return [.. Output.Announcements.Skip(before).Select(a => a.Utterance.Text)];
     }

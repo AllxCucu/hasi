@@ -8,7 +8,9 @@ public static class TextRouting
     /// In a text field with Num Lock on, the numeric keypad types digits; everywhere else (and with
     /// Num Lock off) it keeps its approved navigation bindings. Its operator keys (/ * -) stay commands.
     /// </summary>
-    public static bool ProducesText(KeyChord chord, KeyMap keyMap, bool textEntryActive, bool numLockOn)
+    /// <param name="profile">The current screen's key profile (<c>Shell.ActiveKeyProfile</c>).</param>
+    public static bool ProducesText(KeyChord chord, KeyMap keyMap, bool textEntryActive, bool numLockOn,
+        KeyProfile profile = KeyProfile.Default)
     {
         ArgumentNullException.ThrowIfNull(keyMap);
         if (textEntryActive && numLockOn && chord.Modifiers == KeyModifiers.None
@@ -16,7 +18,7 @@ public static class TextRouting
         {
             return true;
         }
-        return keyMap.Resolve(chord) == Command.None && MayTypeCharacter(chord);
+        return keyMap.Resolve(chord, profile) == Command.None && MayTypeCharacter(chord);
     }
 
     /// <summary>

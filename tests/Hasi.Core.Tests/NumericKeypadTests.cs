@@ -52,6 +52,43 @@ public class NumericKeypadTests
         Assert.Equal(types, TextRouting.ProducesText(new KeyChord(key, modifiers), Map, textEntryActive: true, numLockOn: true));
     }
 
+    [Theory]
+    [InlineData(Key.NumPad4)]
+    [InlineData(Key.NumPad6)]
+    [InlineData(Key.NumPad7)]
+    [InlineData(Key.NumPad1)]
+    [InlineData(Key.NumPad5)]
+    [InlineData(Key.Decimal)]
+    public void In_the_editor_with_num_lock_on_the_keypad_types(Key key)
+    {
+        Assert.True(TextRouting.ProducesText(key, Map, textEntryActive: true, numLockOn: true, KeyProfile.TextEditing));
+    }
+
+    [Theory]
+    [InlineData(Key.Left, KeyModifiers.None)]       // keypad 4 with Num Lock off
+    [InlineData(Key.Home, KeyModifiers.None)]       // keypad 7 with Num Lock off
+    [InlineData(Key.Enter, KeyModifiers.None)]
+    [InlineData(Key.Delete, KeyModifiers.None)]
+    [InlineData(Key.S, KeyModifiers.Ctrl)]
+    [InlineData(Key.M, KeyModifiers.Ctrl)]
+    [InlineData(Key.H, KeyModifiers.Ctrl)]
+    [InlineData(Key.Divide, KeyModifiers.None)]
+    public void In_the_editor_commands_do_not_type(Key key, KeyModifiers modifiers)
+    {
+        Assert.False(TextRouting.ProducesText(new KeyChord(key, modifiers), Map, textEntryActive: true, numLockOn: false, KeyProfile.TextEditing));
+        Assert.False(TextRouting.ProducesText(new KeyChord(key, modifiers), Map, textEntryActive: true, numLockOn: true, KeyProfile.TextEditing));
+    }
+
+    [Theory]
+    [InlineData(Key.A, KeyModifiers.None)]
+    [InlineData(Key.S, KeyModifiers.Ctrl | KeyModifiers.Alt)] // AltGr+S = ș, not Ctrl+S
+    [InlineData(Key.Other, KeyModifiers.None)]
+    [InlineData(Key.Space, KeyModifiers.None)]
+    public void In_the_editor_letters_type(Key key, KeyModifiers modifiers)
+    {
+        Assert.True(TextRouting.ProducesText(new KeyChord(key, modifiers), Map, textEntryActive: true, numLockOn: false, KeyProfile.TextEditing));
+    }
+
     [Fact]
     public void Keypad_5_with_num_lock_off_arrives_as_clear_and_activates()
     {

@@ -133,6 +133,12 @@ public sealed class Shell : IShellServices, IScreenContext
     public bool IsTextEntryActive => _stack.Count > 0 && Current is ITextEntry;
 
     /// <summary>
+    /// The key profile chords are resolved with: the current screen's own (a text editor), or the default one. A
+    /// question or menu opened on top of an editor uses the default keys again.
+    /// </summary>
+    public KeyProfile ActiveKeyProfile => _stack.Count > 0 && Current is IHasKeyProfile screen ? screen.KeyProfile : KeyProfile.Default;
+
+    /// <summary>
     /// Num Lock was switched. In a text field this changes what the keypad does, so it is announced;
     /// elsewhere the keypad always navigates and nothing is said.
     /// </summary>

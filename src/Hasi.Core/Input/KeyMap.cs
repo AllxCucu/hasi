@@ -3,11 +3,15 @@
 /// <summary>
 /// Maps key chords to commands. Every global command has a binding that works without F keys,
 /// because many laptops need Fn for F1-F12 and have no numeric keypad.
+/// A <see cref="KeyProfile"/> adds a second layer of bindings that wins over the default ones on the screens
+/// that ask for it.
 /// </summary>
 public sealed class KeyMap
 {
     private readonly Dictionary<KeyChord, Command> _bindings = [];
+    private readonly Dictionary<KeyProfile, Dictionary<KeyChord, Command>> _profiles = [];
 
+    /// <summary>The default bindings, used on every screen.</summary>
     public IReadOnlyDictionary<KeyChord, Command> Bindings => _bindings;
 
     public KeyMap Bind(KeyChord chord, Command command)
@@ -16,10 +20,35 @@ public sealed class KeyMap
         return this;
     }
 
+    /// <summary>Binds <paramref name="chord"/> only on screens with <paramref name="profile"/>.</summary>
+    public KeyMap Bind(KeyChord chord, Command command, KeyProfile profile)
+    {
+        if (profile == KeyProfile.Default) return Bind(chord, command);
+        if (!_profiles.TryGetValue(profile, out var layer)) _profiles[profile] = layer = [];
+        layer[chord] = command;
+        return this;
+    }
+
     public bool Unbind(KeyChord chord) => _bindings.Remove(chord);
 
-    /// <summary>The command of <paramref name="chord"/> on a screen with <paramref name="profile"/>.</summary>
-    public Command Resolve(KeyChord chord, KeyProfile profile) => Resolve(chord); // Profiles: module 2 (WP1).
+    /// <summary>Removes a binding of <paramref name="profile"/>; the chord then falls back to its default command.</summary>
+    public bool Unbind(KeyChord chord, KeyProfile profile) =>
+        profile == KeyProfile.Default ? Unbind(chord) : _profiles.TryGetValue(profile, out var layer) && layer.Remove(chord);
+
+    /// <summary>The bindings <paramref name="profile"/> adds on top of the default ones.</summary>
+    public IReadOnlyDictionary<KeyChord, Command> ProfileBindings(KeyProfile profile) =>
+        profile == KeyProfile.Default ? _bindings
+        : _profiles.TryGetValue(profile, out var layer) ? layer
+        : new Dictionary<KeyChord, Command>();
+
+    /// <summary>
+    /// The command of <paramref name="chord"/> on a screen with <paramref name="profile"/>: the profile's own binding
+    /// first, then the default one.
+    /// </summary>
+    public Command Resolve(KeyChord chord, KeyProfile profile) =>
+        profile != KeyProfile.Default && _profiles.TryGetValue(profile, out var layer) && layer.TryGetValue(chord, out var command)
+            ? command
+            : Resolve(chord);
 
     public Command Resolve(KeyChord chord) =>
         _bindings.TryGetValue(chord, out var command) ? command : Command.None;
@@ -30,6 +59,7 @@ public sealed class KeyMap
     public static KeyMap CreateDefault()
     {
         const KeyModifiers ctrl = KeyModifiers.Ctrl;
+        const KeyProfile editing = KeyProfile.TextEditing;
         return new KeyMap()
             // Navigation
             .Bind(Key.Up, Command.Previous).Bind(Key.NumPad8, Command.Previous)
@@ -54,6 +84,18 @@ public sealed class KeyMap
             .Bind(Key.LeftCtrl, Command.StopSpeech).Bind(Key.RightCtrl, Command.StopSpeech)
             .Bind(new(Key.F4, KeyModifiers.Alt), Command.Exit)
             .Bind(new(Key.F12, ctrl | KeyModifiers.Shift), Command.ToggleDiagnostic)
-            .Bind(new(Key.D, ctrl | KeyModifiers.Shift), Command.ToggleDiagnostic);
+            .Bind(new(Key.D, ctrl | KeyModifiers.Shift), Command.ToggleDiagnostic)
+            // Text editing. Up/Down (previous/next line), Backspace, Escape and the global keys keep their default
+            // commands. With Num Lock off the keypad arrives as the arrows, Home and End, so it follows these too.
+            .Bind(Key.Left, Command.PreviousCharacter, editing).Bind(Key.Right, Command.NextCharacter, editing)
+            .Bind(new(Key.Left, ctrl), Command.PreviousWord, editing).Bind(new(Key.Right, ctrl), Command.NextWord, editing)
+            .Bind(Key.Home, Command.LineStart, editing).Bind(Key.End, Command.LineEnd, editing)
+            .Bind(new(Key.Home, ctrl), Command.DocumentStart, editing).Bind(new(Key.Up, ctrl), Command.DocumentStart, editing)
+            .Bind(new(Key.End, ctrl), Command.DocumentEnd, editing).Bind(new(Key.Down, ctrl), Command.DocumentEnd, editing)
+            .Bind(Key.Enter, Command.NewLine, editing)
+            .Bind(Key.Delete, Command.DeleteNext, editing)
+            .Bind(new(Key.S, ctrl), Command.Save, editing)
+            .Bind(new(Key.Z, ctrl), Command.Undo, editing).Bind(new(Key.Y, ctrl), Command.Redo, editing)
+            .Bind(Key.F10, Command.ScreenMenu, editing).Bind(new(Key.M, ctrl), Command.ScreenMenu, editing);
     }
 }
