@@ -22,6 +22,9 @@ public sealed class ShellOptions
     /// <summary>Jump from the last item to the first (and back). Off by default: beginners get lost.</summary>
     public bool WrapLists { get; set; }
 
+    /// <summary>Announce each full local hour, after the current message. Off by default.</summary>
+    public bool HourlyChime { get; set; }
+
     /// <summary>What is spoken while typing in text fields.</summary>
     public Settings.KeyEcho KeyEcho { get; set; } = Settings.KeyEcho.Character;
 

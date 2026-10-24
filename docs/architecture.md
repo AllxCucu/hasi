@@ -236,6 +236,7 @@ Pe laptopuri, tastele F1–F3, Home și End cer adesea tasta Fn, iar tastatura n
 | Ctrl (singur) | – | – | oprește vorbirea |
 | Alt+F4 | meniul Ieșire | – | închide HASI (cu confirmare) |
 | Ctrl+Alt+H | – | – | readuce HASI în prim-plan (global, etapa 0.10) |
+| Ctrl+T | – | – | spune ora (comandă globală) |
 | Ctrl+Shift+F12 | **Ctrl+Shift+D** | – | pornește / oprește modul de diagnostic (etapa 0.8) |
 | orice altă tastă | | | întrerupe vorbirea |
 

@@ -66,6 +66,25 @@ public sealed class SettingsFileTests : IDisposable
     }
 
     [Fact]
+    public void Hourly_chime_is_additive_in_schema_one_and_survives_saving()
+    {
+        Directory.CreateDirectory(_folder);
+        File.WriteAllText(Path_, """{ "SchemaVersion": 1, "Rate": 2 }""");
+
+        var loaded = SettingsFile.Load(Path_, out var problem);
+
+        Assert.Null(problem);
+        Assert.False(loaded.HourlyChime);
+        Assert.Equal(1, loaded.SchemaVersion);
+        SettingsFile.Save(Path_, loaded with { HourlyChime = true });
+        var saved = SettingsFile.Load(Path_, out problem);
+        Assert.Null(problem);
+        Assert.True(saved.HourlyChime);
+        Assert.Equal(2, saved.Rate);
+        Assert.Equal(1, saved.SchemaVersion);
+    }
+
+    [Fact]
     public void A_damaged_file_is_kept_aside_and_the_defaults_are_used()
     {
         Directory.CreateDirectory(_folder);

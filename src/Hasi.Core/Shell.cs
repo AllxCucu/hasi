@@ -21,10 +21,12 @@ public sealed class Shell : IShellServices, IScreenContext
     private readonly IDiagnosticsService? _diagnostics;
     private readonly PowerWatch _power = new();
     private bool _focusLostWhilePowerPending;
+    private DateTimeOffset? _lastAnnouncedHour;
 
     public Shell(Announcer announcer, ILocalizer localizer, ShellOptions options, ISystemActions system, IDiagnosticLog log,
-        IDiagnosticsService? diagnostics = null)
+        IDiagnosticsService? diagnostics = null, TimeProvider? time = null)
     {
+        Time = time ?? TimeProvider.System;
         _diagnostics = diagnostics;
         _announcer = announcer;
         Localizer = localizer;
@@ -36,6 +38,8 @@ public sealed class Shell : IShellServices, IScreenContext
     public ILocalizer Localizer { get; }
 
     public ShellOptions Options { get; }
+
+    public TimeProvider Time { get; }
 
     public IReadOnlyList<IScreen> Stack => _stack;
 
@@ -80,6 +84,9 @@ public sealed class Shell : IShellServices, IScreenContext
 
         switch (input.Command)
         {
+            case Command.SayTime:
+                _announcer.Say(DateText.Time(Time.GetLocalNow(), Localizer));
+                return;
             case Command.Help:
                 _announcer.Say(Current.Help(this));
                 return;
@@ -167,6 +174,17 @@ public sealed class Shell : IShellServices, IScreenContext
         _log.Write("FOCUS", "regained");
         _focusLostWhilePowerPending = false;
         _announcer.Say(Current.Enter(EnterReason.Return, this));
+    }
+
+    /// <summary>Called on the shell's thread every few seconds; late ticks never announce a stale hour.</summary>
+    public void ClockTick()
+    {
+        if (_stack.Count == 0 || !Options.HourlyChime) return;
+        var now = Time.GetLocalNow();
+        var hour = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, 0, 0, now.Offset);
+        if (now - hour >= TimeSpan.FromMinutes(2) || _lastAnnouncedHour == hour) return;
+        _lastAnnouncedHour = hour;
+        _announcer.Say(new Utterance(DateText.Time(hour, Localizer), UtterancePriority.Queue));
     }
 
     public ScreenResult ConfirmExit() => ScreenResult.Confirm(

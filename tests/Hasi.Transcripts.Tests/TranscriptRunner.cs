@@ -1,6 +1,7 @@
 using Hasi.Core.Input;
 using Hasi.Core.Modules;
 using Hasi.Core.Output;
+using Hasi.Core.Screens;
 using Hasi.Testing;
 
 namespace Hasi.Transcripts.Tests;
@@ -14,6 +15,9 @@ namespace Hasi.Transcripts.Tests;
 /// &lt; Învață tastele, 2 din 4.   what must be said after that key, in order
 /// &lt; [sunet] Sfârșitul ...  the message comes with a short sound
 /// > scrie: 12 lei          types text (the per-character echo is not checked)
+/// > calendar: 2026-10-24   opens the generic date picker (test fixture only)
+/// > time: 2026-10-24T12:00:03Z sets the fake clock
+/// > tick                   checks hourly announcements
 /// ! exit                   HASI must have been asked to close
 /// </code>
 /// A key followed by no "&lt;" line must produce silence.
@@ -30,6 +34,8 @@ public static class TranscriptRunner
         var failures = new List<string>();
         var lines = File.ReadAllLines(path);
         ShellHarness? harness = null;
+        var time = new ManualTimeProvider(new DateTimeOffset(2026, 10, 24, 11, 32, 0, TimeSpan.Zero),
+            TimeZoneInfo.FindSystemTimeZoneById("Europe/Bucharest"));
         var lineNumber = 0;
 
         string? step = null;
@@ -66,7 +72,7 @@ public static class TranscriptRunner
                     var before = harness?.Output.Announcements.Count ?? 0;
                     if (body == "start")
                     {
-                        harness = new ShellHarness().StartWithModules(modules());
+                        harness = new ShellHarness(time: time).StartWithModules(modules());
                         before = 0;
                     }
                     else if (body.StartsWith(TypePrefix, StringComparison.Ordinal))
@@ -80,7 +86,19 @@ public static class TranscriptRunner
                     else
                     {
                         if (harness is null) throw new FormatException($"{path}:{lineNumber}: '> start' must come first.");
-                        harness.Press(KeyChord.Parse(body));
+                        if (body.StartsWith("calendar: ", StringComparison.Ordinal))
+                        {
+                            var date = DateOnly.ParseExact(body[10..], "yyyy-MM-dd");
+                            harness.Shell.Show(ScreenResult.Push(new DatePickerScreen("Calendar", date,
+                                new DateOnly(1900, 1, 1), new DateOnly(2099, 12, 31), _ => null,
+                                DateOnly.FromDateTime(time.GetLocalNow().DateTime))));
+                        }
+                        else if (body.StartsWith("time: ", StringComparison.Ordinal))
+                        {
+                            time.SetUtcNow(DateTimeOffset.Parse(body[6..], System.Globalization.CultureInfo.InvariantCulture));
+                        }
+                        else if (body == "tick") harness.Shell.ClockTick();
+                        else harness.Press(KeyChord.Parse(body));
                     }
                     actual = [.. harness.Output.Announcements.Skip(before).Select(Describe)];
                     break;

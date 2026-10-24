@@ -17,6 +17,7 @@ public sealed class ConfirmScreen(string question, Func<ScreenResult> onYes, str
 
     public ScreenResult Handle(InputEvent input, IScreenContext context) => input.Command switch
     {
+        Command.NextPage or Command.PreviousPage => ScreenResult.Unhandled,
         Command.Activate => ScreenResult.Pop(announce: false, then: onYes()),
         Command.Back => ScreenResult.Pop(prefix: cancelled ?? context.Localizer.Get("confirm.cancelled")),
         _ => ScreenResult.Say(Enter(EnterReason.Initial, context)),

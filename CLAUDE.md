@@ -70,6 +70,7 @@ The voice output is the source of truth; visuals are secondary.
     | Activate   | Enter          | –                  | 5      |
     | Back       | Escape         | –                  | 0      |
     | Diagnostic | Ctrl+Shift+F12 | Ctrl+Shift+D       | –      |
+    | SayTime (global) | Ctrl+T | – | – |
     | StopSpeech | Ctrl (alone)   | –                  | –      |
     | Bring HASI to front (global) | Ctrl+Alt+H | –     | –      |
 4b. Lists do not wrap by default: an earcon plus "Sfârșitul listei"/"Începutul listei".

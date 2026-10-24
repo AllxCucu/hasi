@@ -24,7 +24,7 @@ public class AutostartTests
         Assert.Equal(["Pornire automată. 2 opțiuni. Selectat: Nu, actual, 2 din 2."], h.Press(Key.Enter));
         h.Press(Key.Up);
         Assert.Equal(
-            ["Pornire automată: Da: HASI pornește singur după ce intrați în Windows. Setări. Selectat: Pornire automată, 9 din 11."],
+            ["Pornire automată: Da: HASI pornește singur după ce intrați în Windows. Setări. Selectat: Pornire automată, 10 din 12."],
             h.Press(Key.Enter));
         Assert.True(h.Autostart.IsEnabled);
     }

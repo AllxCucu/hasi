@@ -57,10 +57,11 @@ public sealed class ChoiceScreen(
     IReadOnlyList<string> options,
     int current,
     Func<int, IScreenContext, ScreenResult> choose,
-    string currentMarker) : MenuScreen(
+    string currentMarker,
+    string? help = null) : MenuScreen(
         title,
         [.. options.Select((label, index) => new MenuItem(index == current ? $"{label}{currentMarker}" : label))],
-        initialIndex: current)
+        help: help, initialIndex: current)
 {
     public override ScreenResult Handle(InputEvent input, IScreenContext context) =>
         input.Command == Command.Activate ? choose(SelectedIndex, context) : base.Handle(input, context);

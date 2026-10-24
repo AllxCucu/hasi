@@ -27,6 +27,16 @@
 < F2: repetă ultimul mesaj.
 > Ctrl+U
 < Control plus litera U: spune unde vă aflați.
+> Ctrl+T
+< Control plus litera T: spune ora.
+> PageDown
+< Page Down: trece la luna următoare în calendar.
+> PageUp
+< Page Up: trece la luna anterioară în calendar.
+> NumPad3
+< Tasta 3 de pe tastatura numerică: trece la luna următoare în calendar.
+> NumPad9
+< Tasta 9 de pe tastatura numerică: trece la luna anterioară în calendar.
 > LeftCtrl
 < Control din stânga: oprește vorbirea.
 > Alt+F4

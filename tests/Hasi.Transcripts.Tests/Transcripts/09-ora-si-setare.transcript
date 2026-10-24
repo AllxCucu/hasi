@@ -1,0 +1,48 @@
+# Ceasul testului pornește la 24 octombrie 2026, ora 14:32 în România.
+> start
+< Bun venit în HASI. Meniu principal. 4 opțiuni. Selectat: Setări, 1 din 4.
+> Ctrl+T
+< Este ora 14:32.
+> Enter
+< Setări. 12 opțiuni. Selectat: Voce, 1 din 12.
+> Ctrl+T
+< Este ora 14:32.
+> End
+< Actualizări, 12 din 12.
+> Up
+< Diagnostic, 11 din 12.
+> Up
+< Pornire automată, 10 din 12.
+> Up
+< Ora fixă rostită, 9 din 12.
+> Enter
+< Ora fixă rostită. 2 opțiuni. Selectat: Nu, actual, 2 din 2.
+> Home
+< Da, 1 din 2.
+> Enter
+< Ora fixă rostită: Da. Setări. Selectat: Ora fixă rostită, 9 din 12.
+> time: 2026-10-24T11:59:58Z
+> tick
+> time: 2026-10-24T12:00:03Z
+> tick
+< Este ora 15:00.
+> time: 2026-10-24T12:00:08Z
+> tick
+> Ctrl+T
+< Este ora 15:00.
+> F2
+< Este ora 15:00.
+> Enter
+< Ora fixă rostită. 2 opțiuni. Selectat: Da, actual, 1 din 2.
+> End
+< Nu, 2 din 2.
+> Enter
+< Ora fixă rostită: Nu. Setări. Selectat: Ora fixă rostită, 9 din 12.
+> time: 2026-10-24T13:00:03Z
+> tick
+> Alt+F4
+< Sigur doriți să închideți HASI? Apăsați Enter pentru da sau Escape pentru nu.
+> Ctrl+T
+< Este ora 16:00.
+> Escape
+< Anulat. Setări. Selectat: Ora fixă rostită, 9 din 12.

@@ -89,19 +89,21 @@ public sealed class FakeAutostartService : IAutostartService
 public sealed class ShellHarness
 {
     /// <param name="normalizer">Pass-through by default, so tests see the texts exactly as in ro.json.</param>
-    public ShellHarness(ShellOptions? options = null, ITextNormalizer? normalizer = null, IVoiceComparison? comparison = null, ISettingsService? settings = null)
+    public ShellHarness(ShellOptions? options = null, ITextNormalizer? normalizer = null, IVoiceComparison? comparison = null, ISettingsService? settings = null,
+        TimeProvider? time = null, IDiagnosticLog? diagnosticLog = null)
     {
         Localizer = JsonLocalizer.LoadRomanian(Path.Combine(AppContext.BaseDirectory, "Resources", "ro.json"));
         Output = new RecordingChannel();
         System = new FakeSystemActions();
         KeyMap = KeyMap.CreateDefault();
         Normalizer = normalizer ?? new PassThroughNormalizer();
-        var log = NullDiagnosticLog.Instance;
+        var log = diagnosticLog ?? NullDiagnosticLog.Instance;
         Announcer = new Announcer(new OutputHub([Output], log), Normalizer, log);
         Diagnostics = new FakeDiagnosticsService();
         Autostart = new FakeAutostartService();
-        Shell = new Shell(Announcer, Localizer, options ?? new ShellOptions(), System, log, Diagnostics);
+        Shell = new Shell(Announcer, Localizer, options ?? new ShellOptions(), System, log, Diagnostics, time);
         Settings = settings ?? new InMemorySettingsService();
+        Shell.Options.HourlyChime = options?.HourlyChime ?? Settings.Current.HourlyChime;
         System.Simulated = () => Settings.Current.SimulatePower;
         if (Settings is InMemorySettingsService memory)
         {
@@ -109,10 +111,11 @@ public sealed class ShellHarness
             memory.Changed += (_, s) =>
             {
                 Shell.Options.WrapLists = s.WrapLists;
+                Shell.Options.HourlyChime = s.HourlyChime;
                 Shell.Options.KeyEcho = s.KeyEcho;
             };
         }
-        ModuleContext = new ModuleContext(Localizer, Shell, new ApplicationInfo("0.1.0"), Normalizer, comparison, Settings, Diagnostics, Autostart);
+        ModuleContext = new ModuleContext(Localizer, Shell, new ApplicationInfo("0.1.0"), Normalizer, comparison, Settings, Diagnostics, Autostart, Time: Shell.Time);
     }
 
     public JsonLocalizer Localizer { get; }

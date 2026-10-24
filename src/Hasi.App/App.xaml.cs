@@ -46,6 +46,7 @@ public partial class App : Application, ISystemActions
     private StartupOptions _options = StartupOptions.Parse([]);
     private AppSettingsService? _settings;
     private DispatcherTimer? _powerTimer;
+    private DispatcherTimer? _clockTimer;
     private bool _exiting;
 
     protected override void OnStartup(StartupEventArgs e)
@@ -141,7 +142,7 @@ public partial class App : Application, ISystemActions
         var autostart = new RegistryAutostart(_log);
         var updates = new UpdateFlow(CreateUpdates(options, settings, version), settings, _shell, localizer, _log);
         var context = new ModuleContext(localizer, _shell, new ApplicationInfo(version), normalizer, comparison, settings, _diagnostics,
-            autostart, updates);
+            autostart, updates, _shell.Time);
 
         _shell.ScreenChanged += (_, _) => _window.ShowTitle(_shell.Current.Title);
         _window.ProducesText = chord => TextRouting.ProducesText(chord, _keyMap, _shell.IsTextEntryActive, ShellWindow.NumLockOn);
@@ -182,6 +183,12 @@ public partial class App : Application, ISystemActions
         _instance.Listen(() => Dispatcher.BeginInvoke(() => ComeForward("started again")));
 
         _shell.Start(MainMenu.Create(modules, context));
+        _clockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
+        _clockTimer.Tick += (_, _) =>
+        {
+            if (!_exiting) _shell.ClockTick();
+        };
+        _clockTimer.Start();
         if (voiceNotice is not null)
         {
             var earcon = engine.CurrentVoiceName is null ? Earcon.Error : Earcon.None;
@@ -291,6 +298,7 @@ public partial class App : Application, ISystemActions
 
     protected override void OnExit(ExitEventArgs e)
     {
+        _clockTimer?.Stop();
         _engine?.Dispose();
         foreach (var disposable in _disposables) disposable.Dispose();
         _diagnostics?.Dispose();

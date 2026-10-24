@@ -137,7 +137,7 @@ public class UpdateTests
         Assert.False(s.Updates.Applied);
     }
 
-    /// <summary>Setări (1) → Actualizări (11).</summary>
+    /// <summary>Setări (1) → Actualizări (12).</summary>
     private static Setup OnUpdates()
     {
         var s = new Setup();

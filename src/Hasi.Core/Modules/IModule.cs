@@ -28,6 +28,8 @@ public interface IModuleContext
 
     IShellServices Shell { get; }
 
+    TimeProvider Time { get; }
+
     ApplicationInfo Application { get; }
 
     /// <summary>The same normalizer speech uses, for screens that show what will be spoken.</summary>
@@ -97,7 +99,11 @@ public sealed record ModuleContext(
     ISettingsService? Settings = null,
     IDiagnosticsService? Diagnostics = null,
     IAutostartService? Autostart = null,
-    Updates.UpdateFlow? Updates = null) : IModuleContext;
+    Updates.UpdateFlow? Updates = null,
+    TimeProvider? Time = null) : IModuleContext
+{
+    public TimeProvider Time { get; init; } = Time ?? TimeProvider.System;
+}
 
 public static class MainMenu
 {

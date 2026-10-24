@@ -29,19 +29,19 @@
 > NumPad8
 < Setări, 1 din 4.
 > Clear
-< Setări. 11 opțiuni. Selectat: Voce, 1 din 11.
+< Setări. 12 opțiuni. Selectat: Voce, 1 din 12.
 > NumPad0
 < Meniu principal. Selectat: Setări, 1 din 4.
 # 6
 > Enter
-< Setări. 11 opțiuni. Selectat: Voce, 1 din 11.
+< Setări. 12 opțiuni. Selectat: Voce, 1 din 12.
 > Ctrl+H
 < Ajutor pentru Setări. Folosiți săgețile sus și jos pentru a alege o opțiune. Apăsați Enter pentru a o deschide și Escape pentru a vă întoarce. F2 sau Control R repetă ultimul mesaj. F3 sau Control U vă spune unde vă aflați. Tasta Control oprește vorbirea. Aici schimbați vocea, viteza vorbirii, culorile și alte preferințe. Fiecare schimbare se salvează imediat.
 # 7
 > Down
-< Viteză, 2 din 11.
+< Viteză, 2 din 12.
 > Ctrl+R
-< Viteză, 2 din 11.
+< Viteză, 2 din 12.
 > Ctrl+U
 < Sunteți în: Meniu principal, Setări.
 # 11
@@ -56,51 +56,51 @@
 > Left
 < 50, viteza normală
 > Escape
-< Setări. Selectat: Viteză, 2 din 11.
+< Setări. Selectat: Viteză, 2 din 12.
 # 13
 > Down
-< Volum, 3 din 11.
+< Volum, 3 din 12.
 > Down
-< Ton, 4 din 11.
+< Ton, 4 din 12.
 > Down
-< Ecoul tastelor, 5 din 11.
+< Ecoul tastelor, 5 din 12.
 > Down
-< Culori, 6 din 11.
+< Culori, 6 din 12.
 > Enter
 < Culori. 4 opțiuni. Selectat: Galben pe negru, actual, 1 din 4.
 > End
 < Negru pe galben, 4 din 4.
 > Enter
-< Culori: Negru pe galben. Setări. Selectat: Culori, 6 din 11.
+< Culori: Negru pe galben. Setări. Selectat: Culori, 6 din 12.
 # 14
 > Down
-< Mărimea textului, 7 din 11.
+< Mărimea textului, 7 din 12.
 > Down
-< Capătul listei, 8 din 11.
+< Capătul listei, 8 din 12.
 > Enter
 < Capătul listei. 2 opțiuni. Selectat: Oprire la capăt, cu sunet, actual, 1 din 2.
 > Down
 < Salt la celălalt capăt, 2 din 2.
 > Enter
-< Capătul listei: Salt la celălalt capăt. Setări. Selectat: Capătul listei, 8 din 11.
+< Capătul listei: Salt la celălalt capăt. Setări. Selectat: Capătul listei, 8 din 12.
 # 15
 > Up
-< Mărimea textului, 7 din 11.
+< Mărimea textului, 7 din 12.
 > Up
-< Culori, 6 din 11.
+< Culori, 6 din 12.
 > Up
-< Ecoul tastelor, 5 din 11.
+< Ecoul tastelor, 5 din 12.
 > Enter
 < Ecoul tastelor. 3 opțiuni. Selectat: Fiecare caracter, actual, 1 din 3.
 > Down
 < Fiecare cuvânt, 2 din 3.
 > Enter
-< Ecoul tastelor: Fiecare cuvânt. Setări. Selectat: Ecoul tastelor, 5 din 11.
+< Ecoul tastelor: Fiecare cuvânt. Setări. Selectat: Ecoul tastelor, 5 din 12.
 # 16
 > End
-< Actualizări, 11 din 11.
+< Actualizări, 12 din 12.
 > Up
-< Diagnostic, 10 din 11.
+< Diagnostic, 11 din 12.
 > Enter
 < Diagnostic. 5 opțiuni. Selectat: Test pronunție, 1 din 5.
 # 17
@@ -124,7 +124,7 @@
 < Diagnostic. Selectat: Simulare oprire, 5 din 5.
 # 30
 > Escape
-< Setări. Selectat: Diagnostic, 10 din 11.
+< Setări. Selectat: Diagnostic, 11 din 12.
 > Escape
 < Meniu principal. Selectat: Setări, 1 din 4.
 > End

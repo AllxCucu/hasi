@@ -5,37 +5,37 @@
 
 # M0-05 Enter pe Setări
 > Enter
-< Setări. 11 opțiuni. Selectat: Voce, 1 din 11.
+< Setări. 12 opțiuni. Selectat: Voce, 1 din 12.
 > Down
-< Viteză, 2 din 11.
+< Viteză, 2 din 12.
 
 # Viteza (etapa 0.6): Enter deschide valoarea, Escape se întoarce
 > Enter
 < Viteză. 50, viteza normală. Săgețile stânga și dreapta schimbă valoarea. Enter sau Escape vă întoarce.
 > Escape
-< Setări. Selectat: Viteză, 2 din 11.
+< Setări. Selectat: Viteză, 2 din 12.
 
 # O setare încă neimplementată (actualizările vin în etapa 0.11)
 > End
-< Actualizări, 11 din 11.
+< Actualizări, 12 din 12.
 > Enter
 < Actualizări. Această funcție va fi disponibilă într-o versiune următoare. Apăsați Escape pentru a vă întoarce.
 > Enter
 < Această funcție va fi disponibilă într-o versiune următoare. Apăsați Escape pentru a vă întoarce.
 > Escape
-< Setări. Selectat: Actualizări, 11 din 11.
+< Setări. Selectat: Actualizări, 12 din 12.
 
 # Pornirea automată (etapa 0.10): Da sau Nu
 > Up
-< Diagnostic, 10 din 11.
+< Diagnostic, 11 din 12.
 > Up
-< Pornire automată, 9 din 11.
+< Pornire automată, 10 din 12.
 > Enter
 < Pornire automată. 2 opțiuni. Selectat: Nu, actual, 2 din 2.
 > Escape
-< Setări. Selectat: Pornire automată, 9 din 11.
+< Setări. Selectat: Pornire automată, 10 din 12.
 > Home
-< Voce, 1 din 11.
+< Voce, 1 din 12.
 
 # M0-06 Escape din Setări
 > Escape
@@ -47,7 +47,7 @@
 
 # Tastatura numerică: 5 alege, 0 înapoi
 > NumPad5
-< Setări. 11 opțiuni. Selectat: Voce, 1 din 11.
+< Setări. 12 opțiuni. Selectat: Voce, 1 din 12.
 > NumPad0
 < Meniu principal. Selectat: Setări, 1 din 4.
 

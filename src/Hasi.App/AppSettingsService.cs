@@ -89,6 +89,7 @@ internal sealed class AppSettingsService : ISettingsService
     private void ApplyNonSpeech(UserSettings settings)
     {
         _shellOptions.WrapLists = settings.WrapLists;
+        _shellOptions.HourlyChime = settings.HourlyChime;
         _shellOptions.KeyEcho = settings.KeyEcho;
         _window.ApplyAppearance(settings.Colors, settings.TextSize);
     }

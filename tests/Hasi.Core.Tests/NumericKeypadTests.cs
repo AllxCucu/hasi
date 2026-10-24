@@ -12,6 +12,8 @@ public class NumericKeypadTests
     [InlineData(Key.NumPad8)]
     [InlineData(Key.NumPad0)]
     [InlineData(Key.NumPad5)]
+    [InlineData(Key.NumPad3)]
+    [InlineData(Key.NumPad9)]
     [InlineData(Key.Decimal)]
     public void In_a_text_field_with_num_lock_on_the_keypad_types(Key key)
     {
@@ -41,6 +43,7 @@ public class NumericKeypadTests
     [InlineData(Key.A, KeyModifiers.Shift, true)]
     [InlineData(Key.S, KeyModifiers.Ctrl | KeyModifiers.Alt, true)]   // AltGr+S = ș on some layouts
     [InlineData(Key.Other, KeyModifiers.None, true)]                  // ș ț ă î â on the Romanian layout
+    [InlineData(Key.T, KeyModifiers.Ctrl, false)]
     [InlineData(Key.H, KeyModifiers.Ctrl, false)]                     // Ctrl+H is help
     [InlineData(Key.Enter, KeyModifiers.None, false)]
     [InlineData(Key.F1, KeyModifiers.None, false)]

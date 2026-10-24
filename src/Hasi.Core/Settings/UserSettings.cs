@@ -57,6 +57,8 @@ public sealed record UserSettings
 
     public bool WrapLists { get; init; }
 
+    public bool HourlyChime { get; init; }
+
     /// <summary>Close the audio stream after this many seconds without speech; 0 = keep it open.</summary>
     public int AudioIdleSeconds { get; init; } = 60;
 

@@ -41,6 +41,8 @@ public sealed class SettingsModule : IModule
                 (int)s!.Current.TextSize, i => s.Update(u => u with { TextSize = (TextSize)i }))),
             Item("settings.listEnd", () => Choice(context, "settings.listEnd", ["settings.listEnd.stop", "settings.listEnd.wrap"],
                 s!.Current.WrapLists ? 1 : 0, i => s.Update(u => u with { WrapLists = i == 1 }))),
+            Item("settings.hourlyChime", () => Choice(context, "settings.hourlyChime", ["settings.hourlyChime.on", "settings.hourlyChime.off"],
+                s!.Current.HourlyChime ? 0 : 1, i => s.Update(u => u with { HourlyChime = i == 0 }), l.Get("settings.hourlyChime.help"))),
             context.Autostart is { } autostart
                 ? new MenuItem(l.Get("settings.autostart"), _ => ScreenResult.Push(Autostart(context, autostart)))
                 : NotYetAvailable(l.Get("settings.autostart"), context),
@@ -133,7 +135,7 @@ public sealed class SettingsModule : IModule
             l.Get("settings.choice.current"));
     }
 
-    private static ChoiceScreen Choice(IModuleContext context, string titleKey, string[] optionKeys, int current, Action<int> apply)
+    private static ChoiceScreen Choice(IModuleContext context, string titleKey, string[] optionKeys, int current, Action<int> apply, string? help = null)
     {
         var l = context.Localizer;
         var title = l.Get(titleKey);
@@ -142,7 +144,7 @@ public sealed class SettingsModule : IModule
         {
             apply(index);
             return ScreenResult.Pop(prefix: l.Get("settings.choice.changed", ("title", title), ("option", labels[index])));
-        }, l.Get("settings.choice.current"));
+        }, l.Get("settings.choice.current"), help);
     }
 
     private static MenuScreen DiagnosticMenu(IModuleContext context)
