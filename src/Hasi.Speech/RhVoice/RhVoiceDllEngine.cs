@@ -24,7 +24,7 @@ public sealed class RhVoiceDllEngine : ISpeechEngine, ISpeechMetrics, ISpeechSet
     private readonly ISpeechAudioSink _sink;
     private readonly string _profile;
     private readonly SynchronizationContext? _context;
-    private readonly BlockingCollection<(int Id, string Text, int Generation)> _queue = new();
+    private readonly BlockingCollection<(int Id, long CallerId, string Text, int Generation)> _queue = new();
     private readonly Thread _worker;
     private readonly ConcurrentDictionary<int, Stopwatch> _clocks = new();
 
@@ -87,8 +87,11 @@ public sealed class RhVoiceDllEngine : ISpeechEngine, ISpeechMetrics, ISpeechSet
 
     public event EventHandler<SpeechMetric>? MetricReported;
 
-    /// <summary>A word starts being synthesized: position and length in the text, and the word itself.</summary>
-    public event EventHandler<(int Position, int Length, string Word)>? WordStarted;
+    /// <summary>
+    /// A word starts being synthesized: the caller's id of its message (to mask private ones even after they ended),
+    /// position and length in the text, and the word itself. Words of a message stopped meanwhile are not reported.
+    /// </summary>
+    public event EventHandler<(long Id, int Position, int Length, string Word)>? WordStarted;
 
     /// <summary>
     /// Loads the voice now, in the background, by synthesizing a word without playing it, so the first real
@@ -114,7 +117,7 @@ public sealed class RhVoiceDllEngine : ISpeechEngine, ISpeechMetrics, ISpeechSet
         _unreported[own] = id;
         // The message belongs to the generation it was queued in: a Stop() after this drops it even if the
         // synthesis thread takes it from the queue in the middle of that Stop().
-        _queue.Add((own, text, _generation));
+        _queue.Add((own, id, text, _generation));
     }
 
     public void Stop()
@@ -145,7 +148,7 @@ public sealed class RhVoiceDllEngine : ISpeechEngine, ISpeechMetrics, ISpeechSet
 
     private void Work()
     {
-        foreach (var (id, text, generation) in _queue.GetConsumingEnumerable())
+        foreach (var (id, callerId, text, generation) in _queue.GetConsumingEnumerable())
         {
             if (generation != _generation)
             {
@@ -168,7 +171,11 @@ public sealed class RhVoiceDllEngine : ISpeechEngine, ISpeechMetrics, ISpeechSet
                         while (_sink.Buffered > MaxAhead && generation == _generation) Thread.Sleep(20);
                         return generation == _generation;
                     },
-                    WordStarts = (position, length) => ReportWord(utf8, position, length),
+                    // RHVoice may still report words while it unwinds after a stop: those are dropped.
+                    WordStarts = (position, length) =>
+                    {
+                        if (generation == _generation) ReportWord(callerId, utf8, position, length, generation);
+                    },
                 };
                 _synthesizer.Synthesize(text, _profile, new RhVoiceProsody(settings.RhVoiceRate, settings.RhVoicePitch), callbacks);
                 if (generation == _generation) _sink.EndUtterance(id);
@@ -238,12 +245,16 @@ public sealed class RhVoiceDllEngine : ISpeechEngine, ISpeechMetrics, ISpeechSet
     }
 
     /// <summary>RHVoice reports positions in UTF-8 bytes of the message; HASI logs them as characters.</summary>
-    private void ReportWord(byte[] utf8, int position, int length)
+    private void ReportWord(long callerId, byte[] utf8, int position, int length, int generation)
     {
         if (position < 0 || length <= 0 || position + length > utf8.Length) return;
         var start = Encoding.UTF8.GetCharCount(utf8, 0, position);
         var word = Encoding.UTF8.GetString(utf8, position, length);
-        Post(() => WordStarted?.Invoke(this, (start, word.Length, word.Trim())));
+        // Checked again where it is raised: a Stop() may have come in between.
+        Post(() =>
+        {
+            if (generation == _generation) WordStarted?.Invoke(this, (callerId, start, word.Length, word.Trim()));
+        });
     }
 
     private void Report(string kind, double milliseconds, string? detail = null) =>

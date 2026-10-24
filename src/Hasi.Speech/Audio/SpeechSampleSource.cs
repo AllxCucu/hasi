@@ -22,6 +22,12 @@ public sealed class SpeechSampleSource : ISampleProvider
     private int _lastStartedUtterance = -1;
     private long _queuedSamples;
 
+    /// <summary>Samples handed to the output so far, silence included.</summary>
+    private long _handedOver;
+
+    /// <summary>Ends of utterances handed over but not heard yet: utterance id and the sample count where it ends.</summary>
+    private readonly Queue<(int Id, long End)> _endsNotHeard = new();
+
     /// <param name="fadeOut">Length of the fade when speech is stopped.</param>
     public SpeechSampleSource(int sampleRate, TimeSpan fadeOut)
     {
@@ -34,23 +40,32 @@ public sealed class SpeechSampleSource : ISampleProvider
     /// <summary>Linear gain applied to speech, 0 to 1 (the volume setting).</summary>
     public float Gain { get; set; } = 1f;
 
+    /// <summary>
+    /// How long the sound handed over before a <see cref="Read"/> still waits in the output (the device's buffer) before
+    /// it is heard; asked at the start of every read, on the audio thread. Null: sound counts as heard once handed over.
+    /// </summary>
+    public Func<TimeSpan>? OutputDelay { get; set; }
+
     /// <summary>Speech waiting to be played.</summary>
     public TimeSpan Buffered =>
         TimeSpan.FromSeconds(Interlocked.Read(ref _queuedSamples) / (double)WaveFormat.SampleRate);
 
-    /// <summary>True while there is speech queued, playing or fading out.</summary>
+    /// <summary>True while there is speech queued, playing or fading out, or handed over and not heard yet.</summary>
     public bool IsPlaying
     {
         get
         {
-            lock (_lock) return _current is not null || _segments.Count > 0;
+            lock (_lock) return _current is not null || _segments.Count > 0 || _endsNotHeard.Count > 0;
         }
     }
 
     /// <summary>The first sample of an utterance was handed to the sound card (argument: utterance id).</summary>
     public event Action<int>? FirstSoundPlayed;
 
-    /// <summary>The last sample of an utterance was handed to the sound card.</summary>
+    /// <summary>
+    /// The last sample of an utterance has been heard: handed to the sound card and, by <see cref="OutputDelay"/>, played.
+    /// Raised from a later read than the one that handed it over when the output buffers sound.
+    /// </summary>
     public event Action<int>? UtteranceFinished;
 
     /// <summary>A stop's fade-out has been played completely: from here on there is silence.</summary>
@@ -84,6 +99,7 @@ public sealed class SpeechSampleSource : ISampleProvider
         lock (_lock)
         {
             _segments.Clear();
+            _endsNotHeard.Clear(); // the engine reports these messages cancelled
             var left = _current is null ? 0 : _current.Samples.Length - _offset;
             if (left > 0 && _fadeRemaining == 0)
             {
@@ -103,6 +119,8 @@ public sealed class SpeechSampleSource : ISampleProvider
     public int Read(Span<float> buffer)
     {
         Action? raise = null;
+        // Asked before the lock and before this read adds to the output: what the device still holds right now.
+        var delay = OutputDelay?.Invoke();
         lock (_lock)
         {
             var written = 0;
@@ -139,7 +157,8 @@ public sealed class SpeechSampleSource : ISampleProvider
                     if (next.End)
                     {
                         var finished = next.UtteranceId;
-                        raise += () => UtteranceFinished?.Invoke(finished);
+                        if (delay is null) raise += () => UtteranceFinished?.Invoke(finished);
+                        else _endsNotHeard.Enqueue((finished, _handedOver + written));
                         _current = null;
                         continue;
                     }
@@ -163,6 +182,18 @@ public sealed class SpeechSampleSource : ISampleProvider
                 Interlocked.Add(ref _queuedSamples, -count);
             }
             buffer[written..].Clear();
+            _handedOver += buffer.Length;
+            if (delay is { } d)
+            {
+                // Not heard yet: what the device held before this read, and all of this read.
+                var heard = _handedOver - (long)(Math.Max(0, d.TotalSeconds) * WaveFormat.SampleRate) - buffer.Length;
+                while (_endsNotHeard.TryPeek(out var end) && end.End <= heard)
+                {
+                    _endsNotHeard.Dequeue();
+                    var finished = end.Id;
+                    raise += () => UtteranceFinished?.Invoke(finished);
+                }
+            }
         }
         raise?.Invoke();
         return buffer.Length;

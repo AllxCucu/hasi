@@ -70,6 +70,9 @@ internal sealed class SpeechSetup
     /// <summary>True while private content is spoken (a document is open): spoken words are masked in the log.</summary>
     public Func<bool> IsPrivate { get; set; } = () => false;
 
+    /// <summary>Whether a message (by announcement id) was private, even after it ended: its late words are masked.</summary>
+    public Func<long, bool> IsPrivateMessage { get; set; } = _ => false;
+
     /// <summary>The voice chosen in Settings ("engine:name"), used when the command line does not choose one.</summary>
     public string? SavedVoiceKey { get; set; }
 
@@ -258,7 +261,7 @@ internal sealed class SpeechSetup
         var engine = new RhVoiceDllEngine(library, output, RhVoiceProfile) { Settings = Settings };
         engine.Preload();
         engine.WordStarted += (_, word) => _log.Write("WORD",
-            $"engine={RhVoiceDllEngine.EngineId} {word.Position}+{word.Length} \"{(IsPrivate() ? TextDiagnosticLog.Mask : word.Word)}\"");
+            $"engine={RhVoiceDllEngine.EngineId} {word.Position}+{word.Length} \"{(IsPrivate() || IsPrivateMessage(word.Id) ? TextDiagnosticLog.Mask : word.Word)}\"");
         return engine;
     }
 

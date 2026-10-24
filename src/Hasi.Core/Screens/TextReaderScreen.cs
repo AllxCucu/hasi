@@ -254,9 +254,11 @@ public sealed class TextReaderScreen : IScreen, IHasKeyProfile, ISensitiveScreen
                 : l.Get("reader.page", ("page", target), ("pages", pages), ("line", _navigator.Line(context))));
         }
 
-        // No text on that page: the cursor waits on the text that follows it.
+        // No text on that page: the cursor waits on the text that follows it, or at the end of the document when no
+        // text follows (so reading on does not repeat what came before the page).
         var after = FindParagraph(p => p.Page > target);
         if (after >= 0) GoToParagraph(after);
+        else MoveTo(Buffer.Length);
         _pageWithoutText = target;
         return Say(scanned
             ? l.Get("reader.page.scanned", ("page", target))

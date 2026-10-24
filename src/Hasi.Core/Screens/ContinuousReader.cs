@@ -57,7 +57,15 @@ public sealed class ContinuousReader(Action<int> moveTo, Func<Utterance, Utteran
     /// <summary>
     /// Stops reading, if it was: the cursor goes to the start of the sentence being said. Returns whether it was reading.
     /// </summary>
-    public bool Stop() => Stop(0);
+    public bool Stop()
+    {
+        if (!IsReading) return false;
+        // Sentences heard are no longer queued, so the first one queued is the earliest not heard yet.
+        var start = _queued.Count > 0 ? _queued[0].Sentence.Start : (int?)null;
+        Finish();
+        if (start is { } s) _moveTo(s);
+        return true;
+    }
 
     /// <summary>What the screen answers to a report of its tracked speech.</summary>
     public ScreenResult SpeechFinished(long token, SpeechOutcome outcome, IScreenContext context)
@@ -68,13 +76,15 @@ public sealed class ContinuousReader(Action<int> moveTo, Func<Utterance, Utteran
         var position = _queued.FindIndex(q => q.Index == index);
         if (position < 0) return ScreenResult.Handled;
 
+        // A sentence that did not end well stops the reading at the earliest sentence not heard yet: the queued one may
+        // fail while the one before it is still being said.
         switch (outcome)
         {
             case SpeechOutcome.Cancelled:
-                Stop(position);
+                Stop();
                 return ScreenResult.Handled;
             case SpeechOutcome.Failed:
-                Stop(position);
+                Stop();
                 return ScreenResult.Say(_dress(new Utterance(context.Localizer.Get("reader.readAll.failed"), Earcon: Earcon.Error)));
         }
 
@@ -103,15 +113,6 @@ public sealed class ContinuousReader(Action<int> moveTo, Func<Utterance, Utteran
         _last = sentence;
         var priority = _queued.Count == 1 && index == 0 ? UtterancePriority.Interrupt : UtterancePriority.Queue;
         return new TrackedSpeech(_dress(new Utterance(sentence.Text, priority)), (_generation << 32) | (uint)index);
-    }
-
-    private bool Stop(int position)
-    {
-        if (!IsReading) return false;
-        var start = position < _queued.Count ? _queued[position].Sentence.Start : (int?)null;
-        Finish();
-        if (start is { } s) _moveTo(s);
-        return true;
     }
 
     private void Finish()

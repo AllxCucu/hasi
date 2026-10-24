@@ -32,6 +32,12 @@ public sealed class FallbackSpeechEngine : ISpeechEngine, ISpeechSettingsTarget
     private readonly List<long> _pending = [];
     private EventHandler<SpeechFinished>? _forward;
 
+    /// <summary>
+    /// Changes at every Attach and Detach (under <see cref="_lock"/>). A report raised by an engine already detached,
+    /// even one in flight on its thread while it was detached, carries an old generation and is ignored.
+    /// </summary>
+    private int _generation;
+
     private FallbackSpeechEngine(IEnumerable<SpeechCandidate> candidates)
     {
         _remaining = new Queue<SpeechCandidate>(candidates);
@@ -166,10 +172,15 @@ public sealed class FallbackSpeechEngine : ISpeechEngine, ISpeechSettingsTarget
     /// <summary>Forwards the reports of <paramref name="engine"/>, until <see cref="Detach"/>.</summary>
     private void Attach(ISpeechEngine engine)
     {
+        int generation;
+        lock (_lock) generation = ++_generation;
         _forward = (_, finished) =>
         {
-            // A late report from an engine already detached finds nothing: its messages were reported by Detach.
-            if (Forget(finished.Id)) Finished?.Invoke(this, finished);
+            // A late report from an engine already detached is stale: Detach reported its messages, and the same id
+            // may already belong to a message of the next voice. Checked and removed atomically.
+            bool reported;
+            lock (_lock) reported = generation == _generation && _pending.Remove(finished.Id);
+            if (reported) Finished?.Invoke(this, finished);
         };
         engine.Finished += _forward;
     }
@@ -182,6 +193,7 @@ public sealed class FallbackSpeechEngine : ISpeechEngine, ISpeechSettingsTarget
         long[] owed;
         lock (_lock)
         {
+            _generation++;
             owed = [.. _pending];
             _pending.Clear();
         }

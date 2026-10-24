@@ -26,6 +26,9 @@ public class RhVoiceDllEngineTests
 
         public bool StoppedEarly { get; private set; }
 
+        /// <summary>Reports one more word after a chunk was refused, as RHVoice may while it unwinds after a stop.</summary>
+        public bool WordWhileUnwinding { get; set; }
+
         public string Version => "fake";
 
         public IReadOnlyList<string> Voices => ["Paul"];
@@ -41,6 +44,7 @@ public class RhVoiceDllEngineTests
                 Hold.Wait(TimeSpan.FromSeconds(5));
                 if (!callbacks.Samples(new short[] { 1000, 1000 }))
                 {
+                    if (WordWhileUnwinding) callbacks.WordStarts?.Invoke(Word.Position, Word.Length);
                     StoppedEarly = true;
                     return;
                 }
@@ -309,6 +313,27 @@ public class RhVoiceDllEngineTests
         sink.Finish(1);
 
         Assert.Equal([new SpeechFinished(20, SpeechOutcome.Cancelled)], reports);
+    }
+
+    [Fact]
+    public void Words_carry_the_id_of_their_message_and_none_is_reported_after_a_stop()
+    {
+        var synth = new FakeSynthesizer { WordWhileUnwinding = true };
+        var sink = new FakeSink();
+        using var engine = Direct(synth, sink);
+        var words = new ConcurrentQueue<(long Id, string Word)>();
+        engine.WordStarted += (_, w) => words.Enqueue((w.Id, w.Word));
+        synth.Hold.Reset();
+        engine.Speak("Scrisoare secretă", 42);
+        synth.Started.Wait(TimeSpan.FromSeconds(5));
+        WaitFor(() => words.Count == 1);
+
+        engine.Stop();
+        synth.Hold.Set();
+        WaitFor(() => !engine.IsSpeaking);
+
+        Assert.True(synth.StoppedEarly);
+        Assert.Equal([(42L, "Scris")], words);
     }
 
     [Fact]

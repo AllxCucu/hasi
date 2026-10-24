@@ -16,7 +16,10 @@ public interface ISpeechAudioSink : IDisposable
 
     event Action<int>? FirstSoundPlayed;
 
-    /// <summary>The last sample of an utterance was handed to the device (raised on the audio thread).</summary>
+    /// <summary>
+    /// The last sample of an utterance has been played: handed to the device and out of its buffer (raised on the audio
+    /// thread). Not raised for an utterance cleared by <see cref="FadeOutAndClear"/>.
+    /// </summary>
     event Action<int>? UtteranceFinished;
 
     event Action? FadeOutCompleted;
@@ -80,6 +83,8 @@ public sealed class SpeechAudioOutput : ISpeechAudioSink
             UtteranceFinished?.Invoke(id);
         };
         _source.FadeOutCompleted += () => FadeOutCompleted?.Invoke();
+        // A message is reported finished when the device has played it, not when it was handed over.
+        _source.OutputDelay = DeviceDelay;
         player.PlaybackStopped += OnPlaybackStopped;
         _idleTimer = new Timer(_ => CloseIfIdle(), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
     }
@@ -156,6 +161,27 @@ public sealed class SpeechAudioOutput : ISpeechAudioSink
     }
 
     private void Touch() => Interlocked.Exchange(ref _lastSpeechTicks, Environment.TickCount64);
+
+    /// <summary>
+    /// On the audio thread, from inside a read: how long the sound already in the device's buffer takes to be heard
+    /// (WASAPI's current padding). Never takes <see cref="_lock"/>: the first read can happen while EnsureOpen holds it.
+    /// Without a player (being re-opened) or if asking fails, the configured latency is assumed.
+    /// </summary>
+    private TimeSpan DeviceDelay()
+    {
+        var player = Volatile.Read(ref _player);
+        if (player is null) return TimeSpan.FromMilliseconds(LatencyMilliseconds);
+        try
+        {
+            return player.CurrentLatency;
+        }
+#pragma warning disable CA1031 // A player closed meanwhile: the estimate is good enough for one read.
+        catch (Exception)
+#pragma warning restore CA1031
+        {
+            return TimeSpan.FromMilliseconds(LatencyMilliseconds);
+        }
+    }
 
     private void CloseIfIdle()
     {

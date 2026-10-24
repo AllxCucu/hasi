@@ -117,6 +117,47 @@ public class SpeechSampleSourceTests
     }
 
     [Fact]
+    public void With_an_output_delay_the_end_is_reported_only_when_the_device_has_played_it()
+    {
+        // The device holds 20 ms; each read hands over 10 ms more. The utterance ends at 5 ms.
+        var source = new SpeechSampleSource(Rate, Fade) { OutputDelay = () => TimeSpan.FromMilliseconds(20) };
+        var ended = new List<int>();
+        source.UtteranceFinished += ended.Add;
+        source.Write(1, Tone(5));
+        source.EndUtterance(1);
+
+        Read(source, 10); // handed over 0-10 ms: nothing heard yet
+        Read(source, 10);
+        Read(source, 10); // heard up to 0 ms
+        Assert.Empty(ended);
+        Assert.True(source.IsPlaying);
+
+        Read(source, 10); // heard up to 10 ms
+        Assert.Equal([1], ended);
+        Assert.False(source.IsPlaying);
+
+        Read(source, 10);
+        Assert.Equal([1], ended); // exactly once
+    }
+
+    [Fact]
+    public void A_stop_drops_an_end_not_heard_yet()
+    {
+        var source = new SpeechSampleSource(Rate, Fade) { OutputDelay = () => TimeSpan.FromMilliseconds(20) };
+        var ended = new List<int>();
+        source.UtteranceFinished += ended.Add;
+        source.Write(1, Tone(5));
+        source.EndUtterance(1);
+        Read(source, 10);
+
+        source.FadeOutAndClear();
+        for (var i = 0; i < 5; i++) Read(source, 10);
+
+        Assert.Empty(ended);
+        Assert.False(source.IsPlaying);
+    }
+
+    [Fact]
     public void Buffered_tells_how_much_speech_is_waiting()
     {
         var source = new SpeechSampleSource(Rate, Fade);

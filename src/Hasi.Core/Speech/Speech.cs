@@ -97,8 +97,20 @@ public sealed class SpeechOutputChannel : IOutputChannel
         };
     }
 
+    /// <summary>How many private announcement ids <see cref="IsPrivateMessage"/> remembers by name.</summary>
+    public const int RememberedPrivateMessages = 4096;
+
     /// <summary>Ids of private announcements (<see cref="Utterance.Sensitive"/>) not yet reported finished.</summary>
     private readonly HashSet<long> _private = [];
+
+    /// <summary>Ids of the latest private announcements, finished or not (guarded by <see cref="_private"/>).</summary>
+    private readonly HashSet<long> _privateIds = [];
+
+    /// <summary>The same ids, oldest first, to forget the oldest one.</summary>
+    private readonly Queue<long> _privateOrder = new();
+
+    /// <summary>The newest private id forgotten to keep the memory bounded: every id up to it counts as private.</summary>
+    private long _forgottenUpTo;
 
     /// <summary>
     /// True while a private announcement may still be heard. Engine callbacks about words come later than the screen
@@ -110,6 +122,16 @@ public sealed class SpeechOutputChannel : IOutputChannel
         {
             lock (_private) return _private.Count > 0;
         }
+    }
+
+    /// <summary>
+    /// Whether announcement <paramref name="id"/> was private, even long after it was reported finished: an engine may
+    /// still report words of a cancelled message while it unwinds. Ids older than the last
+    /// <see cref="RememberedPrivateMessages"/> private ones count as private (masking too much is safe). Any thread.
+    /// </summary>
+    public bool IsPrivateMessage(long id)
+    {
+        lock (_private) return id > 0 && (id <= _forgottenUpTo || _privateIds.Contains(id));
     }
 
     /// <summary>
@@ -135,10 +157,7 @@ public sealed class SpeechOutputChannel : IOutputChannel
             // The id matches the SPEECH line that reports how the message ended.
             _log.Write("SPEAK", $"engine={_engine.Id} text=\"{text}\" id={announcement.Id}");
         }
-        if (utterance.Sensitive)
-        {
-            lock (_private) _private.Add(announcement.Id);
-        }
+        if (utterance.Sensitive) RememberPrivate(announcement.Id);
         try
         {
             _engine.Speak(announcement.SpokenText, announcement.Id);
@@ -156,6 +175,20 @@ public sealed class SpeechOutputChannel : IOutputChannel
     {
         if (_engine.IsSpeaking) _log.Write("STOP", $"engine={_engine.Id}");
         _engine.Stop();
+    }
+
+    private void RememberPrivate(long id)
+    {
+        lock (_private)
+        {
+            _private.Add(id);
+            if (!_privateIds.Add(id)) return;
+            _privateOrder.Enqueue(id);
+            if (_privateOrder.Count <= RememberedPrivateMessages) return;
+            var forgotten = _privateOrder.Dequeue();
+            _privateIds.Remove(forgotten);
+            _forgottenUpTo = Math.Max(_forgottenUpTo, forgotten);
+        }
     }
 }
 

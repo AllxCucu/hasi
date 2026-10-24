@@ -277,8 +277,22 @@ public sealed class Shell : IShellServices, IScreenContext
         if (tracked.Owner is not ISpeechListener listener || !_stack.Contains(tracked.Owner)) return;
         var result = listener.SpeechFinished(tracked.Token, outcome, this);
         // No key was pressed, so "this key has no function" would make no sense.
-        if (result is not UnhandledResult) Apply(result);
+        if (result is UnhandledResult) return;
+        // What the listener queues in answer is its own, even when another screen covers it now (an update offer).
+        var previous = _speechOwner;
+        _speechOwner = tracked.Owner;
+        try
+        {
+            Apply(result);
+        }
+        finally
+        {
+            _speechOwner = previous;
+        }
     }
+
+    /// <summary>The listener whose report is being answered: it owns the tracked messages of its answer.</summary>
+    private IScreen? _speechOwner;
 
     public BackgroundJob RunInBackground<T>(IScreen owner, Func<CancellationToken, T> work, Func<T, IScreenContext, ScreenResult> onDone,
         Utterance? slowNotice = null) => _jobs.Run(owner, work, onDone, slowNotice);
@@ -495,8 +509,10 @@ public sealed class Shell : IShellServices, IScreenContext
                 Say(new Utterance(Localizer.Get("shell.keyUnavailable"), Earcon: Earcon.Unavailable));
                 break;
             case SayTrackedResult tracked:
-                // The owner is the screen current now; a screen that is not a listener gets the messages said only.
-                var owner = Current is ISpeechListener ? Current : null;
+                // The owner is the listener answering a report (while still open), else the screen current now; a
+                // screen that is not a listener gets the messages said only.
+                var owner = _speechOwner is { } answering && _stack.Contains(answering) ? answering
+                    : Current is ISpeechListener ? Current : null;
                 for (var i = 0; i < tracked.Items.Count; i++)
                 {
                     var item = tracked.Items[i];

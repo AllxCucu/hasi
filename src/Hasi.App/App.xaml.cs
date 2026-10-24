@@ -106,6 +106,7 @@ public partial class App : Application, ISystemActions
         var speech = new SpeechSetup(options, effectiveSettings, _log, localizer)
         {
             IsPrivate = () => _shell?.IsSensitive == true || speechChannelForPrivacy?.SpeakingPrivate == true,
+            IsPrivateMessage = id => speechChannelForPrivacy?.IsPrivateMessage(id) == true,
         };
         var (engine, voiceNotice) = speech.CreateMainEngine(localizer);
         _engine = engine;

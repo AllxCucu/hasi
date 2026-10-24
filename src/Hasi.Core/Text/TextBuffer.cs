@@ -40,7 +40,7 @@ public sealed class TextBuffer
         ArgumentOutOfRangeException.ThrowIfNegative(cursor);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(cursor, text.Length);
         _text = text;
-        _cursor = cursor;
+        _cursor = ElementStartAtOrBefore(cursor);
     }
 
     public string Text => _text;
@@ -202,7 +202,7 @@ public sealed class TextBuffer
         }
         var deleted = _text.Substring(_cursor, ElementLengthAt(_cursor));
         BeginStep();
-        Change(_text.Remove(_cursor, deleted.Length), _cursor);
+        Change(_text.Remove(_cursor, deleted.Length), _cursor, snapForward: false);
         return deleted;
     }
 
@@ -301,6 +301,7 @@ public sealed class TextBuffer
         var snapshot = from[^1];
         from.RemoveAt(from.Count - 1);
         (_text, _cursor, _version) = snapshot;
+        _cursor = ElementStartAtOrBefore(_cursor);
         return true;
     }
 
@@ -313,10 +314,16 @@ public sealed class TextBuffer
         _typingRun = false;
     }
 
-    private void Change(string text, int cursor)
+    /// <summary>
+    /// Takes the edited text. The characters on both sides of the cursor may now form one text element (a combining
+    /// mark after a deleted line break, a zero-width joiner typed between two emoji), so the cursor goes to that
+    /// element's end (<paramref name="snapForward"/>: after what was typed or what Backspace joined) or its start.
+    /// </summary>
+    private void Change(string text, int cursor, bool snapForward = true)
     {
         _text = text;
-        _cursor = cursor;
+        var start = ElementStartAtOrBefore(cursor);
+        _cursor = start == cursor || !snapForward ? start : start + ElementLengthAt(start);
         _version = ++_nextVersion;
         _desiredColumn = null;
     }
