@@ -4,42 +4,46 @@
 
 # M0-01 Pornire
 > start
-< Bun venit în HASI. Meniu principal. 5 opțiuni. Selectat: Ceas și calendar, 1 din 5.
+< Bun venit în HASI. Meniu principal. 6 opțiuni. Selectat: Ceas și calendar, 1 din 6.
 
-# M0-02 Săgeata jos de 4 ori
+# M0-02 Săgeata jos de 5 ori
 > Down
-< Setări, 2 din 5.
+< Editor de text, 2 din 6.
 > Down
-< Învață tastele, 3 din 5.
+< Setări, 3 din 6.
 > Down
-< Despre HASI, 4 din 5.
+< Învață tastele, 4 din 6.
 > Down
-< Ieșire, 5 din 5.
+< Despre HASI, 5 din 6.
+> Down
+< Ieșire, 6 din 6.
 
 # M0-03 Încă o dată jos pe ultima opțiune: lista nu sare la început
 > Down
-< [sunet] Sfârșitul listei. Ieșire, 5 din 5.
+< [sunet] Sfârșitul listei. Ieșire, 6 din 6.
 
 # M0-04 Home, apoi End
 > Home
-< Ceas și calendar, 1 din 5.
+< Ceas și calendar, 1 din 6.
 > Up
-< [sunet] Începutul listei. Ceas și calendar, 1 din 5.
+< [sunet] Începutul listei. Ceas și calendar, 1 din 6.
 > End
-< Ieșire, 5 din 5.
+< Ieșire, 6 din 6.
 
 # Alternativele pentru laptop: Control + săgeată sus / jos
 > Ctrl+Up
-< Ceas și calendar, 1 din 5.
+< Ceas și calendar, 1 din 6.
 > Ctrl+Down
-< Ieșire, 5 din 5.
+< Ieșire, 6 din 6.
 
 # Tastatura numerică: 8 sus, 2 jos, 7 prima, 1 ultima
 > NumPad8
-< Despre HASI, 4 din 5.
+< Despre HASI, 5 din 6.
 > NumPad7
-< Ceas și calendar, 1 din 5.
+< Ceas și calendar, 1 din 6.
 > NumPad2
-< Setări, 2 din 5.
+< Editor de text, 2 din 6.
+> NumPad2
+< Setări, 3 din 6.
 > NumPad1
-< Ieșire, 5 din 5.
+< Ieșire, 6 din 6.

@@ -3,39 +3,47 @@
 
 # 1
 > start
-< Bun venit în HASI. Meniu principal. 5 opțiuni. Selectat: Ceas și calendar, 1 din 5.
+< Bun venit în HASI. Meniu principal. 6 opțiuni. Selectat: Ceas și calendar, 1 din 6.
 # 2
 > Down
-< Setări, 2 din 5.
+< Editor de text, 2 din 6.
 > Down
-< Învață tastele, 3 din 5.
+< Setări, 3 din 6.
 > Down
-< Despre HASI, 4 din 5.
+< Învață tastele, 4 din 6.
 > Down
-< Ieșire, 5 din 5.
+< Despre HASI, 5 din 6.
 > Down
-< [sunet] Sfârșitul listei. Ieșire, 5 din 5.
+< Ieșire, 6 din 6.
+> Down
+< [sunet] Sfârșitul listei. Ieșire, 6 din 6.
 # 3
 > Ctrl+Up
-< Ceas și calendar, 1 din 5.
+< Ceas și calendar, 1 din 6.
 > Ctrl+Down
-< Ieșire, 5 din 5.
+< Ieșire, 6 din 6.
 # 4
 > Home
-< Ceas și calendar, 1 din 5.
+< Ceas și calendar, 1 din 6.
 > Escape
 < Sunteți în meniul principal. Pentru a închide HASI, alegeți Ieșire.
 # 5
 > NumPad2
-< Setări, 2 din 5.
-> NumPad8
-< Ceas și calendar, 1 din 5.
+< Editor de text, 2 din 6.
 > NumPad2
-< Setări, 2 din 5.
+< Setări, 3 din 6.
+> NumPad8
+< Editor de text, 2 din 6.
+> NumPad8
+< Ceas și calendar, 1 din 6.
+> NumPad2
+< Editor de text, 2 din 6.
+> NumPad2
+< Setări, 3 din 6.
 > Clear
 < Setări. 12 opțiuni. Selectat: Voce, 1 din 12.
 > NumPad0
-< Meniu principal. Selectat: Setări, 2 din 5.
+< Meniu principal. Selectat: Setări, 3 din 6.
 # 6
 > Enter
 < Setări. 12 opțiuni. Selectat: Voce, 1 din 12.
@@ -130,9 +138,9 @@
 > Escape
 < Setări. Selectat: Diagnostic, 11 din 12.
 > Escape
-< Meniu principal. Selectat: Setări, 2 din 5.
+< Meniu principal. Selectat: Setări, 3 din 6.
 > End
-< Ieșire, 5 din 5.
+< Ieșire, 6 din 6.
 > Enter
 < Ieșire. 3 opțiuni. Selectat: Închide HASI, 1 din 3.
 # 31 (fără alte programe în harness)

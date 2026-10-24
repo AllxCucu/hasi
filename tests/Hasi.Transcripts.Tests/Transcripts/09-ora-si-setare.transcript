@@ -1,8 +1,10 @@
 # Ceasul testului pornește la 24 octombrie 2026, ora 14:32 în România.
 > start
-< Bun venit în HASI. Meniu principal. 5 opțiuni. Selectat: Ceas și calendar, 1 din 5.
+< Bun venit în HASI. Meniu principal. 6 opțiuni. Selectat: Ceas și calendar, 1 din 6.
 > Down
-< Setări, 2 din 5.
+< Editor de text, 2 din 6.
+> Down
+< Setări, 3 din 6.
 > Ctrl+T
 < Este ora 14:32.
 > Enter

@@ -22,6 +22,7 @@
     <ProjectReference Include="..\Hasi.Speech\Hasi.Speech.csproj" />
     <ProjectReference Include="..\Hasi.Text.Ro\Hasi.Text.Ro.csproj" />
     <ProjectReference Include="..\Modules\Hasi.Modules.Clock\Hasi.Modules.Clock.csproj" />
+    <ProjectReference Include="..\Modules\Hasi.Modules.Editor\Hasi.Modules.Editor.csproj" />
     <ProjectReference Include="..\Modules\Hasi.Modules.Settings\Hasi.Modules.Settings.csproj" />
     <ProjectReference Include="..\Modules\Hasi.Modules.KeyTutor\Hasi.Modules.KeyTutor.csproj" />
     <ProjectReference Include="..\Modules\Hasi.Modules.About\Hasi.Modules.About.csproj" />

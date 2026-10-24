@@ -1,3 +1,4 @@
+using Hasi.Core.Files;
 using Hasi.Core.Input;
 using Hasi.Core.Modules;
 using Hasi.Core.Output;
@@ -28,6 +29,9 @@ public static class TranscriptRunner
 
     /// <summary>"> scrie: text" types the text; the echo of each character is not checked.</summary>
     public const string TypePrefix = "scrie: ";
+
+    /// <summary>The Documents folder of the fake disk every transcript runs with.</summary>
+    public const string DocumentsFolder = @"C:\Users\Ana\Documents";
 
     public static IReadOnlyList<string> Run(string path, Func<IModule[]> modules)
     {
@@ -72,7 +76,10 @@ public static class TranscriptRunner
                     var before = harness?.Output.Announcements.Count ?? 0;
                     if (body == "start")
                     {
-                        harness = new ShellHarness(time: time).StartWithModules(modules());
+                        harness = new ShellHarness(time: time, documents: new FakeDocumentFormats());
+                        // The editor saves new documents in Documente; nothing else is on the disk.
+                        harness.Files.AddPlace(PlaceKind.Documents, DocumentsFolder);
+                        harness.StartWithModules(modules());
                         before = 0;
                     }
                     else if (body.StartsWith(TypePrefix, StringComparison.Ordinal))

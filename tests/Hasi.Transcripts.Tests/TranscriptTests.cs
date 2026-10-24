@@ -1,6 +1,7 @@
 using Hasi.Core.Modules;
 using Hasi.Modules.About;
 using Hasi.Modules.Clock;
+using Hasi.Modules.Editor;
 using Hasi.Modules.Exit;
 using Hasi.Modules.KeyTutor;
 using Hasi.Modules.Settings;
@@ -13,7 +14,7 @@ public class TranscriptTests
 
     /// <summary>Main menu order. Keep in sync with src/Hasi.App/App.xaml.cs.</summary>
     private static IModule[] Modules() =>
-        [new ClockModule(), new SettingsModule(), new KeyTutorModule(), new AboutModule(), new ExitModule()];
+        [new ClockModule(), new EditorModule(), new SettingsModule(), new KeyTutorModule(), new AboutModule(), new ExitModule()];
 
     public static TheoryData<string> Files() =>
         new(Directory.GetFiles(Folder, "*.transcript").Select(Path.GetFileName).Order()!);

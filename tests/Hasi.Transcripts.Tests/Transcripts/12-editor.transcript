@@ -1,0 +1,67 @@
+# Modulul 2, Editor de text: un document nou, salvat cu numele propus, redeschis din Documente recente,
+# modificat și salvat la ieșire. Discul testului are doar folderul Documente, gol la început.
+
+# Meniul editorului
+> start
+< Bun venit în HASI. Meniu principal. 6 opțiuni. Selectat: Ceas și calendar, 1 din 6.
+> Down
+< Editor de text, 2 din 6.
+> Enter
+< Editor de text. 3 opțiuni. Selectat: Document nou, 1 din 3.
+> F1
+< Ajutor pentru Editor de text. Folosiți săgețile sus și jos pentru a alege o opțiune. Apăsați Enter pentru a o deschide și Escape pentru a vă întoarce. F2 sau Control R repetă ultimul mesaj. F3 sau Control U vă spune unde vă aflați. Tasta Control oprește vorbirea. Document nou deschide o pagină goală, în care puteți scrie. Deschide un document vă lasă să alegeți un document text sau Word din Documente, de pe Desktop, din Descărcări sau de pe un stick USB. Documente recente arată ultimele documente deschise sau salvate, cel mai nou primul.
+> End
+< Documente recente, 3 din 3.
+> Enter
+< Nu aveți documente recente.
+
+# Un document nou: două rânduri
+> Home
+< Document nou, 1 din 3.
+> Enter
+< Document nou. Documentul este gol.
+> scrie: Dragă Ana,
+> Enter
+< Rând nou
+> scrie: Ce mai faci?
+
+# Control S: HASI întreabă doar numele și propune primele cuvinte; Enter pe câmpul gol îl folosește
+> Ctrl+S
+< Numele documentului. Scrieți numele documentului și apăsați Enter. Dacă apăsați Enter fără să scrieți, se folosește numele propus: Dragă Ana.
+> Enter
+< Documentul a fost salvat: Dragă Ana.
+
+# Meniul documentului: poziția
+> F10
+< Meniul documentului. 4 opțiuni. Selectat: Salvează, 1 din 4.
+> Down
+< Salvează o copie, 2 din 4.
+> Down
+< Spune poziția, 3 din 4.
+> Enter
+< Rândul 2 din 2, coloana 13.
+> Ctrl+U
+< Sunteți în: Meniu principal, Editor de text, Dragă Ana.
+
+# Escape iese din documentul salvat fără nicio întrebare
+> Escape
+< Editor de text. Selectat: Document nou, 1 din 3.
+
+# Documente recente: documentul abia salvat
+> End
+< Documente recente, 3 din 3.
+> Enter
+< Documente recente. 1 document. Selectat: Dragă Ana, 1 din 1.
+> Enter
+< Dragă Ana. Dragă Ana,
+> Ctrl+End
+< Sfârșitul documentului.
+> scrie:  Pa!
+
+# Cu modificări nesalvate, Escape întreabă; Salvează și ieși salvează peste același document
+> Escape
+< Documentul are modificări nesalvate. Ce doriți să faceți? 3 opțiuni. Selectat: Salvează și ieși, 1 din 3.
+> Enter
+< Documentul a fost salvat. Editor de text. Selectat: Documente recente, 3 din 3.
+> Escape
+< Meniu principal. Selectat: Editor de text, 2 din 6.

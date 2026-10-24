@@ -18,7 +18,10 @@
     <ProjectReference Include="..\..\src\Hasi.Core\Hasi.Core.csproj" />
     <ProjectReference Include="..\Hasi.Testing\Hasi.Testing.csproj" />
     <ProjectReference Include="..\..\src\Hasi.Text.Ro\Hasi.Text.Ro.csproj" />
+    <!-- The real .txt and .docx files, for the editor's end-to-end test on a temporary folder. -->
+    <ProjectReference Include="..\..\src\Hasi.Documents\Hasi.Documents.csproj" />
     <ProjectReference Include="..\..\src\Modules\Hasi.Modules.Clock\Hasi.Modules.Clock.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Hasi.Modules.Editor\Hasi.Modules.Editor.csproj" />
     <ProjectReference Include="..\..\src\Modules\Hasi.Modules.Settings\Hasi.Modules.Settings.csproj" />
     <ProjectReference Include="..\..\src\Modules\Hasi.Modules.KeyTutor\Hasi.Modules.KeyTutor.csproj" />
     <ProjectReference Include="..\..\src\Modules\Hasi.Modules.About\Hasi.Modules.About.csproj" />

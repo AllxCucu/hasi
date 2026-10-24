@@ -1,5 +1,6 @@
 ﻿using Hasi.Core;
 using Hasi.Core.Diagnostics;
+using Hasi.Core.Documents;
 using Hasi.Core.Input;
 using Hasi.Core.Localization;
 using Hasi.Core.Modules;
@@ -90,7 +91,7 @@ public sealed class ShellHarness
 {
     /// <param name="normalizer">Pass-through by default, so tests see the texts exactly as in ro.json.</param>
     public ShellHarness(ShellOptions? options = null, ITextNormalizer? normalizer = null, IVoiceComparison? comparison = null, ISettingsService? settings = null,
-        TimeProvider? time = null, IDiagnosticLog? diagnosticLog = null)
+        TimeProvider? time = null, IDiagnosticLog? diagnosticLog = null, IDocumentFormats? documents = null)
     {
         Localizer = JsonLocalizer.LoadRomanian(Path.Combine(AppContext.BaseDirectory, "Resources", "ro.json"));
         Output = new RecordingChannel();
@@ -102,6 +103,8 @@ public sealed class ShellHarness
         Diagnostics = new FakeDiagnosticsService();
         Autostart = new FakeAutostartService();
         Files = new FakeFileSystem();
+        Documents = documents;
+        if (documents is FakeDocumentFormats fake) fake.Files ??= Files;
         Shell =new Shell(Announcer, Localizer, options ?? new ShellOptions(), System, log, Diagnostics, time);
         Settings = settings ?? new InMemorySettingsService();
         Shell.Options.HourlyChime = options?.HourlyChime ?? Settings.Current.HourlyChime;
@@ -117,7 +120,7 @@ public sealed class ShellHarness
             };
         }
         ModuleContext = new ModuleContext(Localizer, Shell, new ApplicationInfo("0.1.0"), Normalizer, comparison, Settings, Diagnostics, Autostart, Time: Shell.Time,
-            UserData: UserData, Files: Files);
+            UserData: UserData, Documents: Documents, Files: Files);
     }
 
     public JsonLocalizer Localizer { get; }
@@ -138,6 +141,9 @@ public sealed class ShellHarness
     public FakeFileSystem Files { get; }
 
     public FakeAutostartService Autostart { get; }
+
+    /// <summary>Reading and writing documents, as passed to the constructor (null: the host has none).</summary>
+    public IDocumentFormats? Documents { get; }
 
     /// <summary>The user's data (drafts, recent documents), in memory.</summary>
     public InMemoryUserDataStore UserData { get; } = new();

@@ -19,6 +19,7 @@ using Hasi.Core.Updates;
 using Hasi.Documents;
 using Hasi.Modules.About;
 using Hasi.Modules.Clock;
+using Hasi.Modules.Editor;
 using Hasi.Modules.Exit;
 using Hasi.Modules.KeyTutor;
 using Hasi.Modules.Settings;
@@ -142,7 +143,7 @@ public partial class App : Application, ISystemActions
         settings.SaveFailed += (_, _) => _announcer.Say(new Utterance(localizer.Get("settings.saveProblem"), UtterancePriority.Queue, Earcon.Error));
 
         // Main menu order. Keep in sync with tests/Hasi.Transcripts.Tests/TranscriptTests.cs.
-        IModule[] modules = [new ClockModule(), new SettingsModule(), new KeyTutorModule(), new AboutModule(), new ExitModule()];
+        IModule[] modules = [new ClockModule(), new EditorModule(), new SettingsModule(), new KeyTutorModule(), new AboutModule(), new ExitModule()];
         var autostart = new RegistryAutostart(_log);
         var updates = new UpdateFlow(CreateUpdates(options, settings, version), settings, _shell, localizer, _log);
         var context = new ModuleContext(localizer, _shell, new ApplicationInfo(version), normalizer, comparison, settings, _diagnostics,

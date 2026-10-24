@@ -3,7 +3,7 @@
 
 # Intrarea în modul și ora
 > start
-< Bun venit în HASI. Meniu principal. 5 opțiuni. Selectat: Ceas și calendar, 1 din 5.
+< Bun venit în HASI. Meniu principal. 6 opțiuni. Selectat: Ceas și calendar, 1 din 6.
 > Enter
 < Ceas și calendar. 4 opțiuni. Selectat: Ora, 1 din 4.
 > Enter
@@ -53,4 +53,4 @@
 > Ctrl+T
 < Este ora 14:32.
 > Escape
-< Meniu principal. Selectat: Ceas și calendar, 1 din 5.
+< Meniu principal. Selectat: Ceas și calendar, 1 din 6.
