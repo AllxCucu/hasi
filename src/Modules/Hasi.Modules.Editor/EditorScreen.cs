@@ -30,22 +30,26 @@ public sealed class EditorScreen : IScreen, ITextEntry, IHasKeyProfile, ISensiti
     /// <summary>The text whose changes the user chose to lose (<see cref="Discard"/>); typing makes it unsaved again.</summary>
     private string? _discardedText;
 
-    /// <summary>The stored draft is this document's, so saving, discarding or closing deletes it.</summary>
+    /// <summary>This document's draft among the stored ones; a recovered document keeps the id of its draft.</summary>
+    private readonly string _draftId;
+
+    /// <summary>A draft with <see cref="_draftId"/> is stored, so saving, discarding or closing deletes it.</summary>
     private bool _ownsDraft;
 
     private string? _draftText;
     private DateTimeOffset _draftTime;
 
     private EditorScreen(EditorServices services, string title, string text, string? path, DocumentFormat format, bool madeByHasi,
-        bool recovered = false)
+        string? recoveredDraftId = null)
     {
         _services = services;
         _edit = new TextEditScreen(title, new TextBuffer(text), OpenMenu, SaveKey, Back);
         FilePath = path;
         Format = format;
         MadeByHasi = madeByHasi;
+        _draftId = recoveredDraftId ?? EditorServices.NewDraftId();
         _draftTime = services.Context.Time.GetLocalNow();
-        if (recovered)
+        if (recoveredDraftId is not null)
         {
             _recovered = true;
             _ownsDraft = true;
@@ -77,7 +81,7 @@ public sealed class EditorScreen : IScreen, ITextEntry, IHasKeyProfile, ISensiti
             path, document.Format, document.MadeByHasi);
 
     internal static EditorScreen FromDraft(EditorServices services, EditorDraft draft) =>
-        new(services, draft.Title, draft.Text, draft.Path, draft.Format, draft.MadeByHasi, recovered: true);
+        new(services, draft.Title, draft.Text, draft.Path, draft.Format, draft.MadeByHasi, recoveredDraftId: draft.Id);
 
     public Utterance Enter(EnterReason reason, IScreenContext context) => _edit.Enter(reason, context);
 
@@ -117,7 +121,7 @@ public sealed class EditorScreen : IScreen, ITextEntry, IHasKeyProfile, ISensiti
     private void WriteDraft(DateTimeOffset now)
     {
         var text = Buffer.Text;
-        if (!_services.WriteDraft(new EditorDraft(Title, FilePath, Format, MadeByHasi, text, now))) return; // tried again at the next tick
+        if (!_services.WriteDraft(new EditorDraft(_draftId, Title, FilePath, Format, MadeByHasi, text, now))) return; // tried again at the next tick
         _ownsDraft = true;
         _draftText = text;
         _draftTime = now;
@@ -125,7 +129,7 @@ public sealed class EditorScreen : IScreen, ITextEntry, IHasKeyProfile, ISensiti
 
     private void ForgetDraft()
     {
-        if (_ownsDraft) _services.DeleteDraft();
+        if (_ownsDraft) _services.DeleteDraft(_draftId);
         _ownsDraft = false;
         _draftText = null;
     }

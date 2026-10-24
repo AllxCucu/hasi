@@ -1,3 +1,5 @@
+using System.Globalization;
+
 using Hasi.Core.Documents;
 using Hasi.Core.Files;
 using Hasi.Core.Localization;
@@ -14,14 +16,23 @@ internal sealed record RecentDocument(string Path, string Title, DateTimeOffset 
 /// The text of a document with unsaved changes, kept in the user's data so that a serious error or a power cut does
 /// not lose it. Deleted when the document is saved, its changes are discarded, or it is closed.
 /// </summary>
-internal sealed record EditorDraft(string Title, string? Path, DocumentFormat Format, bool MadeByHasi, string Text, DateTimeOffset SavedAt);
+/// <param name="Id">Stable for the document's whole life in the editor, also after it is recovered from the draft.</param>
+internal sealed record EditorDraft(
+    string Id, string Title, string? Path, DocumentFormat Format, bool MadeByHasi, string Text, DateTimeOffset SavedAt);
 
-/// <summary>What the editor's screens share: the module context, the recent documents, the draft and opening a document.</summary>
+/// <summary>What the editor's screens share: the module context, the recent documents, the drafts and opening a document.</summary>
 internal sealed class EditorServices(IModuleContext context)
 {
     public const string RecentName = "editor-recente";
-    public const string DraftName = "editor-ciorna";
+
+    /// <summary>One draft per unsaved document, at most <see cref="MaxDrafts"/>.</summary>
+    public const string DraftsName = "editor-ciorne";
+
+    /// <summary>The single draft kept by the first version of the editor; moved into the list on first read.</summary>
+    public const string OldDraftName = "editor-ciorna";
+
     public const int MaxRecent = 10;
+    public const int MaxDrafts = 10;
 
     public IModuleContext Context => context;
 
@@ -51,11 +62,94 @@ internal sealed class EditorServices(IModuleContext context)
     public void RemoveRecent(string path) =>
         context.UserData?.Write(RecentName, Recent().Where(r => !SamePath(r.Path, path)).ToList());
 
-    public EditorDraft? Draft() => context.UserData?.Read<EditorDraft>(DraftName) is { Text: not null, Title: not null } draft ? draft : null;
+    public static string NewDraftId() => Guid.NewGuid().ToString("N");
 
-    public bool WriteDraft(EditorDraft draft) => context.UserData?.Write(DraftName, draft) ?? false;
+    /// <summary>The drafts of all unsaved documents, newest first.</summary>
+    public IReadOnlyList<EditorDraft> Drafts() => [.. StoredDrafts().OrderByDescending(d => d.SavedAt)];
 
-    public void DeleteDraft() => context.UserData?.Delete(DraftName);
+    /// <summary>
+    /// Writes the document's draft over its previous one. A new draft beyond <see cref="MaxDrafts"/> takes the place of
+    /// the oldest, which is said (queued, after the current speech) once the write succeeded. False when it could not
+    /// be written; the caller tries again later.
+    /// </summary>
+    public bool WriteDraft(EditorDraft draft)
+    {
+        ArgumentNullException.ThrowIfNull(draft);
+        if (context.UserData is not { } data) return false;
+        var drafts = StoredDrafts();
+        var index = drafts.FindIndex(d => d.Id == draft.Id);
+        List<EditorDraft> dropped = [];
+        if (index >= 0)
+        {
+            drafts[index] = draft;
+        }
+        else
+        {
+            while (drafts.Count >= MaxDrafts)
+            {
+                var oldest = drafts.MinBy(d => d.SavedAt)!;
+                drafts.Remove(oldest);
+                dropped.Add(oldest);
+            }
+            drafts.Add(draft);
+        }
+        if (!data.Write(DraftsName, drafts)) return false;
+
+        // Said only after the write: a failed one is tried again at every tick and must not repeat the sentence.
+        foreach (var oldest in dropped)
+        {
+            var (date, time) = DraftMoment(oldest);
+            var said = Localizer.Get("editor.draft.limit",
+                ("count", MaxDrafts), ("words", DraftWords(oldest)), ("date", date), ("time", time));
+            context.Shell.Show(ScreenResult.Say(new Utterance(said, Sensitive: true)), UtterancePriority.Queue);
+        }
+        return true;
+    }
+
+    /// <summary>Deletes only this document's draft; the others stay.</summary>
+    public void DeleteDraft(string id)
+    {
+        if (context.UserData is not { } data) return;
+        var drafts = StoredDrafts();
+        if (drafts.RemoveAll(d => d.Id == id) == 0) return;
+        if (drafts.Count == 0) data.Delete(DraftsName);
+        else data.Write(DraftsName, drafts);
+    }
+
+    /// <summary>"Dragă Ana": the first words of the draft's text, or its title when it has none.</summary>
+    public static string DraftWords(EditorDraft draft) => DocumentNames.Words(draft.Text, draft.Title);
+
+    /// <summary>"Dragă Ana, din 23 octombrie 2026, ora 21:05".</summary>
+    public string DraftLabel(EditorDraft draft)
+    {
+        var (date, time) = DraftMoment(draft);
+        return Localizer.Get("editor.draft.item", ("words", DraftWords(draft)), ("date", date), ("time", time));
+    }
+
+    /// <summary>When the draft was written, in the user's time zone: "23 octombrie 2026" and "21:05".</summary>
+    public (string Date, string Time) DraftMoment(EditorDraft draft)
+    {
+        var saved = TimeZoneInfo.ConvertTime(draft.SavedAt, context.Time.LocalTimeZone);
+        var l = Localizer;
+        return (l.Get("editor.draft.date", ("day", saved.Day), ("month", DateText.Month(saved.Month, l)), ("year", saved.Year)),
+            saved.ToString("H:mm", CultureInfo.InvariantCulture));
+    }
+
+    /// <summary>The stored drafts, after moving the first version's single draft into the list.</summary>
+    private List<EditorDraft> StoredDrafts()
+    {
+        if (context.UserData is not { } data) return [];
+        var drafts = (data.Read<List<EditorDraft>>(DraftsName) ?? [])
+            .Where(d => d is { Id: not null, Title: not null, Text: not null })
+            .ToList();
+        if (data.Read<EditorDraft>(OldDraftName) is { Title: not null, Text: not null } old)
+        {
+            drafts.Add(old with { Id = NewDraftId() });
+            // Deleted only once the list holds it; until then it is offered again from the old entry.
+            if (data.Write(DraftsName, drafts)) data.Delete(OldDraftName);
+        }
+        return drafts;
+    }
 
     /// <summary>
     /// Opens the document in the editor, above the editor's menu: a problem is said and the user stays where they are.

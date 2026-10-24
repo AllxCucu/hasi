@@ -1,6 +1,3 @@
-using System.Globalization;
-
-using Hasi.Core.Localization;
 using Hasi.Core.Modules;
 using Hasi.Core.Screens;
 
@@ -35,24 +32,30 @@ public sealed class EditorModule : IModule
         return root;
     }
 
-    /// <summary>A document left unsaved by a serious error or a power cut: offered once HASI has started.</summary>
+    /// <summary>
+    /// Documents left unsaved by a serious error or a power cut, offered once HASI has started: one is asked about
+    /// directly, several are listed (<see cref="DraftsScreen"/>).
+    /// </summary>
     public ScreenResult? OnStartup(IModuleContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
         var services = new EditorServices(context);
-        if (services.Draft() is not { } draft) return null;
+        var drafts = services.Drafts();
+        if (drafts.Count == 0) return null;
+        if (drafts.Count > 1) return ScreenResult.Push(new DraftsScreen(services, drafts));
 
+        var draft = drafts[0];
         var l = context.Localizer;
-        var saved = TimeZoneInfo.ConvertTime(draft.SavedAt, context.Time.LocalTimeZone);
-        var date = l.Get("editor.draft.date", ("day", saved.Day), ("month", DateText.Month(saved.Month, l)), ("year", saved.Year));
-        var found = l.Get("editor.draft.found",
-            ("title", draft.Title), ("date", date), ("time", saved.ToString("H:mm", CultureInfo.InvariantCulture)));
+        var (date, time) = services.DraftMoment(draft);
+        // A document never saved is still called "Document nou": its first words say which one it is.
+        var title = draft.Title == l.Get("editor.newTitle") ? EditorServices.DraftWords(draft) : draft.Title;
+        var found = l.Get("editor.draft.found", ("title", title), ("date", date), ("time", time));
         return ScreenResult.Push(new QuestionScreen(l.Get("editor.draft.title"), found,
             [
                 new MenuItem(l.Get("editor.draft.open"), _ => ScreenResult.Replace(EditorScreen.FromDraft(services, draft))),
                 new MenuItem(l.Get("editor.draft.delete"), _ => ScreenResult.Confirm(l.Get("editor.draft.deleteConfirm"), () =>
                 {
-                    services.DeleteDraft();
+                    services.DeleteDraft(draft.Id);
                     return ScreenResult.Pop(prefix: l.Get("editor.draft.deleted"));
                 })),
                 new MenuItem(l.Get("editor.draft.later"), _ => ScreenResult.Pop()),

@@ -566,7 +566,7 @@ public class EditorModuleTests
         var (h, docs, editor) = NewDocument("Notă", time: time);
         time.Advance(TimeSpan.FromSeconds(30));
         h.Shell.ClockTick();
-        Assert.Contains(EditorDraftName, h.UserData.Names);
+        Assert.Contains(DraftsName, h.UserData.Names);
 
         Assert.Equal(
             ["Continuă fără să salvezi, 2 din 3.", "Modificările nesalvate se vor pierde. Apăsați Enter pentru da sau Escape pentru nu.",
@@ -574,7 +574,7 @@ public class EditorModuleTests
             h.Press(AltF4, Key.Down, Key.Enter, Key.Enter, Key.Enter).Skip(1));
         Assert.Empty(docs.Saved);
         Assert.False(editor.HasUnsavedChanges);
-        Assert.DoesNotContain(EditorDraftName, h.UserData.Names);
+        Assert.DoesNotContain(DraftsName, h.UserData.Names);
         Assert.True(h.System.ExitRequested);
     }
 
@@ -597,15 +597,28 @@ public class EditorModuleTests
 
         h.Shell.PowerSessionEnding();
 
-        Assert.Contains(EditorDraftName, h.UserData.Names);
+        Assert.Contains(DraftsName, h.UserData.Names);
     }
 
     // --- Drafts ---
 
-    private const string EditorDraftName = "editor-ciorna";
+    private const string DraftsName = "editor-ciorne";
+    private const string OldDraftName = "editor-ciorna";
 
-    /// <summary>The draft as stored, read through a type of the test's own (the module's record is internal).</summary>
-    private sealed record StoredDraft(string Title, string? Path, DocumentFormat Format, bool MadeByHasi, string Text, DateTimeOffset SavedAt);
+    /// <summary>A draft as stored, read through a type of the test's own (the module's record is internal).</summary>
+    private sealed record StoredDraft(
+        string Id, string Title, string? Path, DocumentFormat Format, bool MadeByHasi, string Text, DateTimeOffset SavedAt);
+
+    /// <summary>The single draft of the editor's first version, which had no id.</summary>
+    private sealed record OldDraft(string Title, string? Path, DocumentFormat Format, bool MadeByHasi, string Text, DateTimeOffset SavedAt);
+
+    private static List<StoredDraft> StoredDrafts(ShellHarness h) => h.UserData.Read<List<StoredDraft>>(DraftsName) ?? [];
+
+    private static void Tick(ShellHarness h, ManualTimeProvider time, TimeSpan after)
+    {
+        time.Advance(after);
+        h.Shell.ClockTick();
+    }
 
     [Fact]
     public void A_draft_is_written_after_thirty_seconds_of_unsaved_changes_and_never_speaks()
@@ -614,29 +627,25 @@ public class EditorModuleTests
         var (h, _, _) = NewDocument("Notă", time: time);
         var said = h.Output.Announcements.Count;
 
-        for (var i = 0; i < 5; i++)
-        {
-            time.Advance(TimeSpan.FromSeconds(5));
-            h.Shell.ClockTick();
-        }
-        Assert.DoesNotContain(EditorDraftName, h.UserData.Names);
+        for (var i = 0; i < 5; i++) Tick(h, time, TimeSpan.FromSeconds(5));
+        Assert.DoesNotContain(DraftsName, h.UserData.Names);
 
-        time.Advance(TimeSpan.FromSeconds(5));
-        h.Shell.ClockTick();
-        var draft = h.UserData.Read<StoredDraft>(EditorDraftName)!;
+        Tick(h, time, TimeSpan.FromSeconds(5));
+        var draft = Assert.Single(StoredDrafts(h));
         Assert.Equal(("Document nou", null, "Notă", time.GetUtcNow()), (draft.Title, draft.Path, draft.Text, draft.SavedAt.ToUniversalTime()));
+        Assert.False(string.IsNullOrEmpty(draft.Id));
         Assert.Equal(said, h.Output.Announcements.Count);
 
         // Unchanged text: not written again.
         var writes = h.UserData.Writes;
-        time.Advance(TimeSpan.FromMinutes(2));
-        h.Shell.ClockTick();
+        Tick(h, time, TimeSpan.FromMinutes(2));
         Assert.Equal(writes, h.UserData.Writes);
 
-        // Changed: written again once 30 seconds passed since the last draft.
+        // Changed: written again once 30 seconds passed since the last draft, over the same one.
         h.Type(" nouă");
         h.Shell.ClockTick();
-        Assert.Equal("Notă nouă", h.UserData.Read<StoredDraft>(EditorDraftName)!.Text);
+        var again = Assert.Single(StoredDrafts(h));
+        Assert.Equal((draft.Id, "Notă nouă"), (again.Id, again.Text));
     }
 
     [Fact]
@@ -644,12 +653,11 @@ public class EditorModuleTests
     {
         var time = Clock();
         var (h, _, _) = NewDocument("Notă", time: time);
-        time.Advance(TimeSpan.FromSeconds(30));
-        h.Shell.ClockTick();
+        Tick(h, time, TimeSpan.FromSeconds(30));
 
         h.Press(CtrlS, Key.Enter);
 
-        Assert.DoesNotContain(EditorDraftName, h.UserData.Names);
+        Assert.DoesNotContain(DraftsName, h.UserData.Names);
     }
 
     [Fact]
@@ -658,29 +666,49 @@ public class EditorModuleTests
         var time = Clock();
         var (h, _, _) = NewDocument("Notă", time: time);
         h.Press(CtrlS, Key.Enter);
-        time.Advance(TimeSpan.FromMinutes(1));
-        h.Shell.ClockTick();
+        Tick(h, time, TimeSpan.FromMinutes(1));
 
-        Assert.DoesNotContain(EditorDraftName, h.UserData.Names);
+        Assert.DoesNotContain(DraftsName, h.UserData.Names);
     }
 
     private static StoredDraft Draft(string? path = null, DocumentFormat format = DocumentFormat.Word) =>
-        new("Scrisoare", path, format, false, "Dragă Ana,\nCe faci?", new DateTimeOffset(2026, 10, 23, 18, 5, 0, TimeSpan.Zero));
+        new("a", "Scrisoare", path, format, false, "Dragă Ana,\nCe faci?", new DateTimeOffset(2026, 10, 23, 18, 5, 0, TimeSpan.Zero));
 
-    /// <summary>HASI started with a draft left in the user's data; the notice is open.</summary>
-    private static (ShellHarness H, FakeDocumentFormats Docs) StartedWithDraft(StoredDraft draft, Action<FakeDocumentFormats>? documents = null)
+    private static StoredDraft NewDocumentDraft(string id, string text, DateTimeOffset savedAt) =>
+        new(id, "Document nou", null, DocumentFormat.Word, false, text, savedAt);
+
+    /// <summary>Three drafts, stored out of order; newest first they are c, a, b.</summary>
+    private static StoredDraft[] ThreeDrafts() =>
+    [
+        NewDocumentDraft("b", "Programarea la medic, joi la ora 10", new DateTimeOffset(2026, 10, 22, 7, 30, 0, TimeSpan.Zero)),
+        Draft(),
+        NewDocumentDraft("c", "Rețetă de cozonac", new DateTimeOffset(2026, 10, 24, 6, 0, 0, TimeSpan.Zero)),
+    ];
+
+    private const string LabelA = "Dragă Ana, din 23 octombrie 2026, ora 21:05";
+    private const string LabelB = "Programarea la medic, joi la, din 22 octombrie 2026, ora 10:30";
+    private const string LabelC = "Rețetă de cozonac, din 24 octombrie 2026, ora 9:00";
+
+    /// <summary>HASI started with drafts left in the user's data; the notice or the list is open.</summary>
+    private static (ShellHarness H, FakeDocumentFormats Docs) StartedWithDrafts(
+        IEnumerable<StoredDraft> drafts, Action<FakeDocumentFormats>? documents = null, ManualTimeProvider? time = null)
     {
         var docs = new FakeDocumentFormats();
-        var h = new ShellHarness(time: Clock(), documents: docs);
+        var h = new ShellHarness(time: time ?? Clock(), documents: docs);
         h.Files.AddPlace(PlaceKind.Documents, Documents);
         documents?.Invoke(docs);
-        h.UserData.Write(EditorDraftName, draft);
+        h.UserData.Write(DraftsName, drafts.ToList());
         h.StartWithModules(new EditorModule(), new ExitModule());
         return (h, docs);
     }
 
+    private static (ShellHarness H, FakeDocumentFormats Docs) StartedWithDraft(StoredDraft draft, Action<FakeDocumentFormats>? documents = null) =>
+        StartedWithDrafts([draft], documents);
+
     private const string DraftNotice =
         "Am găsit un document nesalvat: Scrisoare, din 23 octombrie 2026, ora 21:05. Ce doriți să faceți? 3 opțiuni. Selectat: Deschide documentul, 1 din 3.";
+
+    private const string MainMenuReturn = "Meniu principal. Selectat: Editor de text, 1 din 2.";
 
     [Fact]
     public void At_startup_a_draft_is_offered_after_the_welcome()
@@ -691,6 +719,20 @@ public class EditorModuleTests
             h.Output.Announcements.Select(a => a.Utterance.Text));
         Assert.Equal(UtterancePriority.Queue, h.LastAnnouncement!.Utterance.Priority);
         Assert.IsAssignableFrom<ISensitiveScreen>(h.Shell.Current);
+    }
+
+    [Theory]
+    [InlineData("Dragă Ana,\nCe faci?", "Dragă Ana")]
+    [InlineData("\n  \nUnu doi trei patru cinci șase", "Unu doi trei patru cinci")]
+    [InlineData("Programarea la medicul specialist cardiolog dimineața", "Programarea la medicul specialist cardiolog")]
+    [InlineData("", "Document nou")]
+    public void A_new_document_draft_is_named_by_its_first_words(string text, string words)
+    {
+        var (h, _) = StartedWithDraft(NewDocumentDraft("a", text, new DateTimeOffset(2026, 10, 23, 18, 5, 0, TimeSpan.Zero)));
+
+        Assert.Equal(
+            $"Am găsit un document nesalvat: {words}, din 23 octombrie 2026, ora 21:05. Ce doriți să faceți? 3 opțiuni. Selectat: Deschide documentul, 1 din 3.",
+            h.LastSaid);
     }
 
     [Fact]
@@ -714,7 +756,7 @@ public class EditorModuleTests
 
         Assert.Equal(["Documentul a fost salvat."], h.Press(CtrlS));
         Assert.Equal("Dragă Ana,\nCe faci?", docs.TextOf(path));
-        Assert.DoesNotContain(EditorDraftName, h.UserData.Names);
+        Assert.DoesNotContain(DraftsName, h.UserData.Names);
     }
 
     [Fact]
@@ -724,8 +766,8 @@ public class EditorModuleTests
         h.Press(Key.Enter);
 
         Assert.Equal([LeaveQuestion], h.Press(Key.Escape));
-        Assert.Equal(["Meniu principal. Selectat: Editor de text, 1 din 2."], h.Press(Key.Down, Key.Enter, Key.Enter).Skip(2));
-        Assert.DoesNotContain(EditorDraftName, h.UserData.Names);
+        Assert.Equal([MainMenuReturn], h.Press(Key.Down, Key.Enter, Key.Enter).Skip(2));
+        Assert.DoesNotContain(DraftsName, h.UserData.Names);
     }
 
     [Fact]
@@ -735,9 +777,9 @@ public class EditorModuleTests
 
         Assert.Equal(["Șterge ciorna, 2 din 3.", "Documentul nesalvat se va pierde. Apăsați Enter pentru da sau Escape pentru nu."],
             h.Press(Key.Down, Key.Enter));
-        Assert.Contains(EditorDraftName, h.UserData.Names);
-        Assert.Equal(["Ciorna a fost ștearsă. Meniu principal. Selectat: Editor de text, 1 din 2."], h.Press(Key.Enter));
-        Assert.DoesNotContain(EditorDraftName, h.UserData.Names);
+        Assert.Contains(DraftsName, h.UserData.Names);
+        Assert.Equal(["Ciorna a fost ștearsă. " + MainMenuReturn], h.Press(Key.Enter));
+        Assert.DoesNotContain(DraftsName, h.UserData.Names);
     }
 
     [Fact]
@@ -745,9 +787,9 @@ public class EditorModuleTests
     {
         var (h, _) = StartedWithDraft(Draft());
 
-        Assert.Equal(["Mai târziu, 3 din 3.", "Meniu principal. Selectat: Editor de text, 1 din 2."], h.Press(Key.End, Key.Enter));
-        Assert.Contains(EditorDraftName, h.UserData.Names);
-        Assert.Equal(["Meniu principal. Selectat: Editor de text, 1 din 2."], h.Press(Key.Enter, Key.Escape).Skip(1));
+        Assert.Equal(["Mai târziu, 3 din 3.", MainMenuReturn], h.Press(Key.End, Key.Enter));
+        Assert.Contains(DraftsName, h.UserData.Names);
+        Assert.Equal([MainMenuReturn], h.Press(Key.Enter, Key.Escape).Skip(1));
     }
 
     [Fact]
@@ -756,7 +798,237 @@ public class EditorModuleTests
         var (h, _) = StartedWithDraft(Draft());
         h.Press(Key.Escape, Key.Enter, Key.Enter, Key.Escape);
 
-        Assert.Contains(EditorDraftName, h.UserData.Names);
+        Assert.Equal(["a"], StoredDrafts(h).Select(d => d.Id));
+    }
+
+    [Fact]
+    public void Two_unsaved_documents_keep_two_drafts_and_each_one_deletes_only_its_own()
+    {
+        var time = Clock();
+        var (h, _) = StartedWithDrafts([Draft()], time: time);
+        h.Press(Key.Escape, Key.Enter, Key.Enter); // later; the editor; a new document
+        h.Type("Notă");
+        Tick(h, time, TimeSpan.FromSeconds(30));
+
+        var drafts = StoredDrafts(h);
+        Assert.Equal(2, drafts.Count);
+        Assert.Contains(Draft(), drafts);
+        Assert.Contains(drafts, d => d.Text == "Notă" && d.Id != "a");
+
+        // Saving the new document deletes its draft only.
+        h.Press(CtrlS, Key.Enter);
+        Assert.Equal([Draft()], StoredDrafts(h));
+
+        // Leaving another one without saving, too.
+        h.Press(Key.Escape, Key.Enter);
+        h.Type("Altă notă");
+        Tick(h, time, TimeSpan.FromSeconds(30));
+        Assert.Equal(2, StoredDrafts(h).Count);
+        h.Press(Key.Escape, Key.Down, Key.Enter, Key.Enter);
+        Assert.Equal([Draft()], StoredDrafts(h));
+    }
+
+    // --- Several drafts at startup ---
+
+    [Fact]
+    public void At_startup_several_drafts_are_listed_newest_first()
+    {
+        var (h, _) = StartedWithDrafts(ThreeDrafts());
+
+        Assert.Equal(
+            ["Bun venit în HASI. Meniu principal. 2 opțiuni. Selectat: Editor de text, 1 din 2.",
+                $"Am găsit 3 documente nesalvate. Selectat: {LabelC}, 1 din 3."],
+            h.Output.Announcements.Select(a => a.Utterance.Text));
+        Assert.Equal(UtterancePriority.Queue, h.LastAnnouncement!.Utterance.Priority);
+        Assert.IsAssignableFrom<ISensitiveScreen>(h.Shell.Current);
+        Assert.Equal("Documente nesalvate", h.Shell.Current.Title);
+        Assert.Equal([$"{LabelA}, 2 din 3.", $"{LabelB}, 3 din 3.", $"Sfârșitul listei. {LabelB}, 3 din 3."], h.Press(Key.Down, Key.Down, Key.Down));
+    }
+
+    [Fact]
+    public void Escape_on_the_list_keeps_every_draft()
+    {
+        var (h, _) = StartedWithDrafts(ThreeDrafts());
+
+        Assert.Equal([MainMenuReturn], h.Press(Key.Escape));
+        Assert.Equal(["a", "b", "c"], StoredDrafts(h).Select(d => d.Id).Order());
+    }
+
+    [Fact]
+    public void Help_on_the_list_explains_it()
+    {
+        var (h, _) = StartedWithDrafts(ThreeDrafts());
+
+        Assert.EndsWith(
+            "Aici sunt documentele rămase nesalvate după o eroare sau o pană de curent, cel mai nou primul. Enter pe un document vă lasă să îl deschideți sau să ștergeți ciorna. Escape înseamnă mai târziu: toate ciornele sunt păstrate, iar HASI le oferă din nou la următoarea pornire. HASI păstrează cel mult 10 documente nesalvate; când apare al unsprezecelea, cel mai vechi se șterge.",
+            h.Press(Key.F1).Single(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Opening_a_draft_from_the_list_takes_it_out_of_the_list_only()
+    {
+        var time = Clock();
+        var (h, _) = StartedWithDrafts(ThreeDrafts(), time: time);
+
+        Assert.Equal([$"{LabelC}. Ce doriți să faceți? 2 opțiuni. Selectat: Deschide documentul, 1 din 2."], h.Press(Key.Enter));
+        Assert.Equal(["Document nou. Rețetă de cozonac"], h.Press(Key.Enter));
+        var editor = Assert.IsType<EditorScreen>(h.Shell.Current);
+        Assert.True(editor.HasUnsavedChanges);
+        Assert.Equal(["Meniu principal", "Documente nesalvate", "Document nou"], h.Shell.Stack.Select(s => s.Title));
+
+        // The recovered document writes over its own draft.
+        h.Press(CtrlEnd);
+        h.Type(" bun");
+        Tick(h, time, TimeSpan.FromSeconds(30));
+        var drafts = StoredDrafts(h);
+        Assert.Equal(["a", "b", "c"], drafts.Select(d => d.Id).Order());
+        Assert.Equal("Rețetă de cozonac bun", drafts.Single(d => d.Id == "c").Text);
+
+        // Leaving it without saving deletes that draft and goes back to the list, without it.
+        Assert.Equal([LeaveQuestion], h.Press(Key.Escape));
+        Assert.Equal([$"Documente nesalvate. Selectat: {LabelA}, 1 din 2."], h.Press(Key.Down, Key.Enter, Key.Enter).Skip(2));
+        Assert.Equal(["a", "b"], StoredDrafts(h).Select(d => d.Id).Order());
+    }
+
+    [Fact]
+    public void Opening_the_last_draft_of_the_list_replaces_the_list()
+    {
+        var (h, _) = StartedWithDrafts([Draft(), NewDocumentDraft("c", "Rețetă de cozonac", new DateTimeOffset(2026, 10, 24, 6, 0, 0, TimeSpan.Zero))]);
+        h.Press(Key.Enter, Key.Enter); // opens c, above the list
+        Assert.Equal(["Meniu principal", "Documente nesalvate", "Document nou"], h.Shell.Stack.Select(s => s.Title));
+        h.Press(Key.Escape, Key.Down, Key.Enter, Key.Enter); // leaves it without saving: the list has one draft left
+
+        Assert.Equal([$"{LabelA}. Ce doriți să faceți? 2 opțiuni. Selectat: Deschide documentul, 1 din 2."], h.Press(Key.Enter));
+        Assert.Equal(["Scrisoare. Dragă Ana,"], h.Press(Key.Enter));
+        Assert.Equal(["Meniu principal", "Scrisoare"], h.Shell.Stack.Select(s => s.Title));
+    }
+
+    [Fact]
+    public void Deleting_a_draft_from_the_list_asks_first_and_keeps_the_others()
+    {
+        var (h, _) = StartedWithDrafts(ThreeDrafts());
+        h.Press(Key.Down, Key.Enter);
+
+        Assert.Equal(["Șterge ciorna, 2 din 2.", "Documentul nesalvat se va pierde. Apăsați Enter pentru da sau Escape pentru nu."],
+            h.Press(Key.Down, Key.Enter));
+        Assert.Equal(["a", "b", "c"], StoredDrafts(h).Select(d => d.Id).Order());
+
+        Assert.Equal([$"Ciorna a fost ștearsă. Documente nesalvate. Selectat: {LabelB}, 2 din 2."], h.Press(Key.Enter));
+        Assert.Equal(["b", "c"], StoredDrafts(h).Select(d => d.Id).Order());
+    }
+
+    [Fact]
+    public void Escape_on_a_draft_goes_back_to_the_list()
+    {
+        var (h, _) = StartedWithDrafts(ThreeDrafts());
+        h.Press(Key.Enter);
+
+        Assert.EndsWith("Escape vă întoarce la lista documentelor nesalvate.", h.Press(Key.F1).Single(), StringComparison.Ordinal);
+        Assert.Equal([$"Documente nesalvate. Selectat: {LabelC}, 1 din 3."], h.Press(Key.Escape));
+    }
+
+    [Fact]
+    public void Deleting_the_last_draft_closes_the_list()
+    {
+        var (h, _) = StartedWithDrafts([Draft(), NewDocumentDraft("c", "Rețetă de cozonac", new DateTimeOffset(2026, 10, 24, 6, 0, 0, TimeSpan.Zero))]);
+
+        Assert.Equal([$"Ciorna a fost ștearsă. Documente nesalvate. Selectat: {LabelA}, 1 din 1."],
+            h.Press(Key.Enter, Key.Down, Key.Enter, Key.Enter).Skip(3));
+        Assert.Equal(["Ciorna a fost ștearsă. " + MainMenuReturn], h.Press(Key.Enter, Key.Down, Key.Enter, Key.Enter).Skip(3));
+        Assert.DoesNotContain(DraftsName, h.UserData.Names);
+    }
+
+    // --- At most ten drafts ---
+
+    [Fact]
+    public void An_eleventh_draft_says_so_and_takes_the_place_of_the_oldest()
+    {
+        var time = Clock();
+        var drafts = Enumerable.Range(0, 10).Select(i => NewDocumentDraft($"d{i}",
+            i == 0 ? "Lista de cumpărături pentru sâmbătă dimineața" : $"Notă {i}",
+            new DateTimeOffset(2026, 10, 14 + i, 8, 0, 0, TimeSpan.Zero)));
+        var (h, _) = StartedWithDrafts(drafts, time: time);
+        Assert.Equal("Am găsit 10 documente nesalvate. Selectat: Notă 9, din 23 octombrie 2026, ora 11:00, 1 din 10.", h.LastSaid);
+        h.Press(Key.Escape, Key.Enter, Key.Enter); // later; the editor; a new document
+        h.Type("A unsprezecea");
+        var said = h.Output.Announcements.Count;
+
+        Tick(h, time, TimeSpan.FromSeconds(30));
+
+        Assert.Equal(said + 1, h.Output.Announcements.Count);
+        var limit = h.LastAnnouncement!.Utterance;
+        Assert.Equal(
+            "Sunt deja 10 documente nesalvate păstrate. Cel mai vechi, Lista de cumpărături pentru sâmbătă, din 14 octombrie 2026, ora 11:00, se șterge.",
+            limit.Text);
+        Assert.Equal(UtterancePriority.Queue, limit.Priority);
+        Assert.True(limit.Sensitive);
+        var stored = StoredDrafts(h);
+        Assert.Equal(10, stored.Count);
+        Assert.DoesNotContain(stored, d => d.Id == "d0");
+        Assert.Contains(stored, d => d.Text == "A unsprezecea");
+
+        // The same document again: written over its own draft, nothing said, nothing else deleted.
+        h.Type("!");
+        said = h.Output.Announcements.Count;
+        Tick(h, time, TimeSpan.FromSeconds(30));
+        Assert.Equal(said, h.Output.Announcements.Count);
+        Assert.Equal(10, StoredDrafts(h).Count);
+        Assert.Contains(StoredDrafts(h), d => d.Id == "d1");
+    }
+
+    [Fact]
+    public void A_draft_that_cannot_be_written_deletes_nothing_and_says_nothing()
+    {
+        var time = Clock();
+        var drafts = Enumerable.Range(0, 10).Select(i =>
+            NewDocumentDraft($"d{i}", $"Notă {i}", new DateTimeOffset(2026, 10, 14 + i, 8, 0, 0, TimeSpan.Zero)));
+        var (h, _) = StartedWithDrafts(drafts, time: time);
+        h.Press(Key.Escape, Key.Enter, Key.Enter);
+        h.Type("A unsprezecea");
+        var said = h.Output.Announcements.Count;
+        h.UserData.FailWrites = true;
+
+        Tick(h, time, TimeSpan.FromSeconds(30));
+        Tick(h, time, TimeSpan.FromSeconds(30));
+
+        Assert.Equal(said, h.Output.Announcements.Count);
+        Assert.Contains(StoredDrafts(h), d => d.Id == "d0");
+    }
+
+    // --- The first version's single draft ---
+
+    private static OldDraft FirstVersionDraft() =>
+        new("Scrisoare", null, DocumentFormat.Word, false, "Dragă Ana,\nCe faci?", new DateTimeOffset(2026, 10, 23, 18, 5, 0, TimeSpan.Zero));
+
+    [Fact]
+    public void The_first_versions_draft_moves_into_the_list()
+    {
+        var h = new ShellHarness(time: Clock(), documents: new FakeDocumentFormats());
+        h.UserData.Write(OldDraftName, FirstVersionDraft());
+        h.StartWithModules(new EditorModule(), new ExitModule());
+
+        Assert.Equal(DraftNotice, h.LastSaid);
+        Assert.DoesNotContain(OldDraftName, h.UserData.Names);
+        var moved = Assert.Single(StoredDrafts(h));
+        Assert.False(string.IsNullOrEmpty(moved.Id));
+        Assert.Equal(("Scrisoare", "Dragă Ana,\nCe faci?"), (moved.Title, moved.Text));
+
+        // It is a draft like the others: deleting it removes it.
+        h.Press(Key.Down, Key.Enter, Key.Enter);
+        Assert.DoesNotContain(DraftsName, h.UserData.Names);
+    }
+
+    [Fact]
+    public void The_first_versions_draft_joins_the_drafts_already_in_the_list()
+    {
+        var h = new ShellHarness(time: Clock(), documents: new FakeDocumentFormats());
+        h.UserData.Write(DraftsName, new List<StoredDraft> { NewDocumentDraft("c", "Rețetă de cozonac", new DateTimeOffset(2026, 10, 24, 6, 0, 0, TimeSpan.Zero)) });
+        h.UserData.Write(OldDraftName, FirstVersionDraft());
+        h.StartWithModules(new EditorModule(), new ExitModule());
+
+        Assert.Equal($"Am găsit 2 documente nesalvate. Selectat: {LabelC}, 1 din 2.", h.LastSaid);
+        Assert.Equal(2, StoredDrafts(h).Count);
+        Assert.DoesNotContain(OldDraftName, h.UserData.Names);
     }
 
     // --- Privacy ---

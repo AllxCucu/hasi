@@ -68,6 +68,89 @@ internal sealed class NameFieldScreen(TextInputScreen textInput, string? introdu
     public Utterance Help(IScreenContext context) => textInput.Help(context);
 }
 
+/// <summary>
+/// Several documents left unsaved, offered at startup, newest first: "Am găsit 3 documente nesalvate. Selectat: …".
+/// Enter on one asks whether to open it or delete its draft; an opened or deleted one leaves the list, which closes
+/// when it is empty. Escape ("Mai târziu") keeps every draft for the next start. Their words are private.
+/// </summary>
+internal sealed class DraftsScreen : IScreen, ISensitiveScreen
+{
+    public const string CountKey = "editor.draft.count";
+
+    private readonly EditorServices _services;
+    private readonly List<EditorDraft> _drafts;
+    private MenuScreen _menu;
+
+    public DraftsScreen(EditorServices services, IReadOnlyList<EditorDraft> drafts)
+    {
+        _services = services;
+        _drafts = [.. drafts];
+        _menu = Build(0);
+    }
+
+    public string Title => _menu.Title;
+
+    public Utterance Enter(EnterReason reason, IScreenContext context)
+    {
+        if (reason == EnterReason.Return) return _menu.Enter(reason, context);
+        var l = context.Localizer;
+        return l.Get("editor.draft.foundMany",
+            ("count", l.Plural(CountKey, _menu.Items.Count)),
+            ("item", _menu.Selected!.Label),
+            ("index", _menu.SelectedIndex + 1),
+            ("total", _menu.Items.Count));
+    }
+
+    public ScreenResult Handle(InputEvent input, IScreenContext context) => _menu.Handle(input, context);
+
+    public Utterance Help(IScreenContext context) => _menu.Help(context);
+
+    private MenuScreen Build(int selected)
+    {
+        var l = _services.Localizer;
+        return new MenuScreen(l.Get("editor.draft.listTitle"),
+            [.. _drafts.Select(draft => new MenuItem(_services.DraftLabel(draft), _ => Choose(draft)))],
+            l.Get("editor.draft.listHelp"), CountKey, selected);
+    }
+
+    private ScreenResult Choose(EditorDraft draft)
+    {
+        var l = _services.Localizer;
+        return ScreenResult.Push(new QuestionScreen(EditorServices.DraftWords(draft),
+            l.Get("editor.draft.chosen", ("item", _services.DraftLabel(draft))),
+            [
+                new MenuItem(l.Get("editor.draft.open"), _ => Open(draft)),
+                new MenuItem(l.Get("editor.draft.delete"), _ => ScreenResult.Confirm(l.Get("editor.draft.deleteConfirm"), () => Delete(draft))),
+            ],
+            l.Get("editor.draft.itemHelp")));
+    }
+
+    /// <summary>The document opens above the list (or in its place, when it was the last one); its draft stays stored.</summary>
+    private ScreenResult Open(EditorDraft draft)
+    {
+        Remove(draft);
+        var editor = EditorScreen.FromDraft(_services, draft);
+        return ScreenResult.PopTo(this, then: _drafts.Count == 0 ? ScreenResult.Replace(editor) : ScreenResult.Push(editor));
+    }
+
+    private ScreenResult Delete(EditorDraft draft)
+    {
+        _services.DeleteDraft(draft.Id);
+        Remove(draft);
+        var deleted = _services.Localizer.Get("editor.draft.deleted");
+        return _drafts.Count == 0
+            ? ScreenResult.PopTo(this, then: ScreenResult.Pop(prefix: deleted))
+            : ScreenResult.PopTo(this, prefix: deleted);
+    }
+
+    private void Remove(EditorDraft draft)
+    {
+        var index = _drafts.IndexOf(draft);
+        _drafts.Remove(draft);
+        _menu = Build(Math.Min(index, _drafts.Count - 1));
+    }
+}
+
 /// <summary>The documents opened or saved lately, newest first. Their names are private.</summary>
 internal sealed class RecentDocumentsScreen : IScreen, ISensitiveScreen
 {

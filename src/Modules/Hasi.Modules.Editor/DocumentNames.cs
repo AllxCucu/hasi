@@ -18,7 +18,15 @@ internal static class DocumentNames
     /// at most <see cref="MaxProposalLength"/> characters (cut between words when possible), without punctuation at the
     /// end; <paramref name="fallback"/> when nothing is left.
     /// </summary>
-    public static string Proposal(string text, string fallback)
+    public static string Proposal(string text, string fallback) => FirstWords(text, fallback, MaxProposalLength);
+
+    /// <summary>
+    /// How a draft is named when it is offered: the first words as in <see cref="Proposal"/>, without the length cut;
+    /// <paramref name="fallback"/> (the document's title) when the text has none.
+    /// </summary>
+    public static string Words(string text, string fallback) => FirstWords(text, fallback, maxLength: null);
+
+    private static string FirstWords(string text, string fallback, int? maxLength)
     {
         ArgumentNullException.ThrowIfNull(text);
         var line = text.Split('\n').FirstOrDefault(l => !string.IsNullOrWhiteSpace(l)) ?? "";
@@ -28,10 +36,10 @@ internal static class DocumentNames
             .Where(word => word.Length > 0)
             .Take(ProposalWords);
         var name = string.Join(' ', words);
-        if (name.Length > MaxProposalLength)
+        if (maxLength is { } max && name.Length > max)
         {
-            var cut = name.LastIndexOf(' ', MaxProposalLength);
-            name = cut > 0 ? name[..cut] : name[..MaxProposalLength];
+            var cut = name.LastIndexOf(' ', max);
+            name = cut > 0 ? name[..cut] : name[..max];
         }
         // "Dragă Ana," is proposed as "Dragă Ana": punctuation at the end of a name only gets in the way.
         var end = name.Length;
