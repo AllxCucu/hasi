@@ -463,7 +463,7 @@ Condițiile sunt cele din termenii publicați pe signpath.org/terms (pagina e ma
 
 ## 6. Faza 1 – MVP util zilnic
 
-> **Stare:** PROPUNERE (24 octombrie 2026), detaliată în `docs/plan-faza-1.md`. Secțiunea devine parte din arhitectura aprobată după aprobarea ta.
+> **Stare:** APROBAT (24 octombrie 2026), detaliat în `docs/plan-faza-1.md`, cu deciziile testerului (§8 acolo): dezinstalarea șterge tot, inclusiv datele personale (`%LOCALAPPDATA%\HASI\userdata`); mementourile se aud doar cât HASI e deschis; 0.2.0 se publică după modulul 3; Ctrl+T („Ce oră este?”) devine comandă globală.
 
 Module, în ordinea propusă de tester: ceas, dată și calendar (cu sărbătorile legale din Codul muncii, art. 139); editor de text simplu (.txt, .docx); citire documente (.txt, .docx, .pdf cu text, .epub); calculator vorbit; agendă (contacte, programări cu memento rostit); manager de fișiere simplificat (copiere, mutare, ștergere, stick USB). Fiecare modul înseamnă o oprire pentru testul după ureche și câțiva pași noi în lista de regresie.
 

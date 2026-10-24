@@ -1,19 +1,20 @@
 # Planul Fazei 1 – MVP util zilnic
 
-> **Stare:** PROPUNERE (24 octombrie 2026), verificată independent cu Codex (§9). Nu scriu cod până nu aprobi
-> planul. Fiecare modul are propria oprire pentru testul tău după ureche, cu scenariile lui „ce apăs / ce trebuie
-> să aud” și câțiva pași noi în lista de regresie.
+> **Stare:** APROBAT (24 octombrie 2026), cu deciziile tale din §8; verificat independent cu Codex (§9).
+> Fiecare modul are propria oprire pentru testul tău după ureche, cu scenariile lui „ce apăs / ce trebuie
+> să aud” și câțiva pași noi în lista de regresie. Codul îl scriu agenți Codex; eu le dau sarcinile, verific
+> fiecare schimbare (build, teste, transcrieri, diff) și fac commit-urile.
 
 Cuprins:
 0. Ce am verificat (nu presupun)
 1. Ordinea modulelor
 2. Ce se adaugă în `Hasi.Core` și unde
 3. Modulele, unul câte unul
-4. Mementourile când HASI e închis sau calculatorul doarme
+4. Mementourile când HASI e închis sau calculatorul doarme (doar cât HASI e deschis)
 5. Datele utilizatorului și dezinstalarea
 6. Prima publicare (0.2.0)
 7. Riscuri
-8. Decizii pe care ți le cer
+8. Deciziile tale
 9. Ce s-a schimbat după verificarea cu Codex
 
 ---
@@ -74,7 +75,7 @@ interfețe din nucleu. Ecranele tot nu ating vorbirea sau fereastra.
 | **Progresul vorbirii:** fiecare mesaj primește un identificator și un „proprietar”; canalul de vorbire raportează **terminat** (sunetul s-a auzit tot, nu doar sinteza), **întrerupt** sau **eșuat**; raportul intră în bucla de evenimente și ajunge doar la proprietar, dacă mai există. Și `FallbackSpeechEngine`, la schimbarea vocii, raportează corect | Core + cele 4 motoare din `Hasi.Speech` | 3 | agendă, editor (citește tot) |
 | `TextReaderScreen` (doar citire, cu titluri, pagini, capitole) și „citește tot” | Core | 3 | editor (citește tot) |
 | **Profil de taste:** un ecran poate cere ca anumite taste să aibă alt sens la el (tastele operațiilor în calculator), restul tastelor globale rămânând neschimbate | Core | 4 | – (generic, dar mic) |
-| `Scheduler`: evenimente la o oră din calendar, calculate din ceas, nu temporizatoare care se pierd în repaus; aplicația îl „bate” la câteva secunde și îl anunță la revenirea din repaus și la schimbarea orei | Core; semnalele de repaus în aplicație | 5 | ceas (ora fixă, dacă o vrei) |
+| `Scheduler`: evenimente la o oră din calendar, calculate din ceas, nu temporizatoare care se pierd în repaus; aplicația îl „bate” la câteva secunde și îl anunță la revenirea din repaus și la schimbarea orei | Core; semnalele de repaus în aplicație | 5 | ceas (ora fixă: în modulul 1 are un „ceas care bate” mic, calculat tot din ora reală, pe care `Scheduler` îl preia în modulul 5) |
 | Prioritatea **`Notification`**: așteaptă finalul mesajului curent, apoi vorbește, cu un sunet propriu; Ctrl și orice tastă o opresc ca pe orice mesaj (regula de oprire rămâne), dar notificarea rămâne „în așteptare” | Core | 5 | actualizări |
 | `NotificationScreen`: vine peste orice ecran, se anunță ca orice ecran; când se închide, ecranul de dedesubt e exact cum era (cursorul din editor nu se mută) | Core | 5 | – |
 | `IUserDataStore`: fișier JSON scris atomic (fișier temporar, apoi înlocuire), cu copii de siguranță zilnice | Core (logica) + aplicație (căile) | 2 (ciorne, documente recente) | documente (poziția de citire), agendă |
@@ -104,6 +105,13 @@ le arăt la începutul fiecărui modul (în transcrierile de referință, unde l
   PageUp/PageDown = luna, Home/End și Ctrl+↑/↓ = prima/ultima zi a lunii. Fiecare zi: „Vineri, 1 mai 2026.
   Sărbătoare legală: Ziua Muncii.” Pe 1 iunie 2026 spune ambele sărbători.
 - **Sărbători legale:** lista pe anul curent, începând cu următoarea; ←/→ schimbă anul (1900–2099).
+- **Ctrl+T, „Ce oră este?”** (decizia ta 8): comandă globală nouă, oriunde în HASI, ca Ajutorul. Spune ora
+  exact ca ecranul Ora și nu schimbă ecranul. Intră în tabelul de taste din `CLAUDE.md`, în `KeyMap` (configurabilă)
+  și în „Învață tastele”. Ctrl+T nu e folosită în HASI; NVDA, în aspectul desktop, își ține comenzile pe Insert
+  sau Caps Lock, iar tasta ajunge la HASI doar cât fereastra HASI are focusul.
+- **Ora fixă rostită** (decizia ta 8): setare în Setări, **oprită implicit**. Pornită, la fiecare oră fixă HASI
+  spune „Este ora cincisprezece.” după mesajul curent, fără să-l taie și fără să schimbe ecranul. Ora se calculează
+  din ceasul real (nu dintr-un temporizator de o oră), deci după repaus nu spune o oră trecută.
 
 **În modul:** fișierul de date `sarbatori-legale.txt`, editabil ca `acronime.txt`, cu **reguli**, nu cu date:
 `fix 01-01`, `paste -2`, `paste +49`. Fiecare regulă are o **cheie de text** (numele rostit stă în `ro.json`, ca
@@ -245,82 +253,60 @@ Mementourile ratate în mai multe zile se adună într-o singură listă, nu în
 
 ## 4. Mementourile când HASI e închis sau calculatorul doarme
 
-**Problema:** un memento la ora 10 nu se aude dacă la ora 10 HASI e închis, utilizatorul nu e autentificat sau
-calculatorul e în repaus. Un memento de medicament pierdut în tăcere e cel mai rău caz.
+**Decizia ta (24 octombrie 2026): mementourile se anunță DOAR cât HASI este deschis.** Fără pornire programată de
+Windows (stratul 3 din propunere a fost scos, împreună cu experimentul din `spikes/`).
 
-**Ce pot promite cinstit:** mementourile sunt **„cel mai bine posibil”, dar niciunul nu se pierde în tăcere**.
-O spun și în ajutorul agendei și în ghid.
+**Ce rămâne, în modulul 5:**
 
-**Propunerea, în trei straturi:**
+1. **Recuperare.** La pornirea HASI și la revenirea din repaus, HASI verifică ce mementouri au trecut între timp
+   și le spune: „Cât timp HASI a fost închis, a trecut un memento: Pastila de tensiune, azi la ora 8.” Le pune în
+   „Mementouri ratate”, unde rămân până le confirmi.
+2. **Avertisment la închidere.** Pornirea automată e deja activă implicit. Dacă închizi HASI și există un memento
+   în următoarele 24 de ore, confirmarea închiderii îl spune și adaugă: „Aveți un memento azi la ora 18. Dacă
+   închideți HASI, nu îl veți auzi.”
 
-1. **Recuperare (sigur, în modulul 5).** La pornirea HASI și la revenirea din repaus, HASI verifică ce mementouri
-   au trecut între timp și le spune: „Cât timp calculatorul a fost oprit, a trecut un memento: Pastila de
-   tensiune, azi la ora 8.” Rămân în „Mementouri ratate” până le confirmi.
-2. **HASI pornit cât mai des (în modulul 5).** Pornirea automată e deja activă implicit. Dacă închizi HASI și ai
-   un memento în următoarele 24 de ore, confirmarea închiderii o spune: „Aveți un memento azi la ora 18.” și, fără
-   stratul 3, „Dacă închideți HASI, nu îl veți auzi.”
-3. **Pornire programată de Windows (de aprobat).** O sarcină în Programatorul de activități Windows, doar pentru
-   utilizatorul curent, **fără parolă și fără drepturi de administrator** (Microsoft documentează varianta asta:
-   rulare cu sesiunea utilizatorului autentificat, cu privilegii minime). Detaliile pe care le stabilesc dinainte:
-   - pornește `hasi.exe` (lansatorul stabil al Velopack) cu un minut înainte de următorul memento, într-un
-     **mod „memento”**: fără bun venit, fără întrebarea de actualizare; dacă HASI rulează deja, îi spune doar
-     „verifică mementourile”, fără să-l aducă în față;
-   - pornește și pe baterie (implicit, Windows nu pornește sarcinile pe baterie, deci o setez explicit), cu durată
-     scurtă de rulare pentru sarcină;
-   - se reprogramează după fiecare memento sunat, amânat sau confirmat și după fiecare schimbare din agendă;
-   - funcționează doar dacă utilizatorul e autentificat; se șterge la dezinstalare;
-   - îl verific întâi printr-un experiment în `spikes/` (crearea fără administrator, pornirea pe baterie,
-     comportamentul la un memento ratat), înainte de modulul 5.
+**Spus clar utilizatorului:** ajutorul agendei (F1) și ghidul de instalare spun că mementourile se aud doar cât
+HASI e deschis.
 
-**Ce NU propun:**
-- să trezim calculatorul din repaus: depinde de setarea „Permite temporizatoare de trezire”, des oprită pe
-  laptopuri sau pe baterie; laptopurile cu „Modern Standby” suspendă oricum programele obișnuite; un laptop trezit
-  în geantă se și încălzește;
-- o setare „Nu lăsa calculatorul să adoarmă”: ar împiedica doar adormirea automată, nu pe cea cerută de
-  utilizator sau de capac (după cum e configurat Windows), deci ar promite mai mult decât poate. O las deoparte.
+**Ce NU facem:**
+- pornirea programată de Windows (decizia ta);
+- trezirea calculatorului din repaus: depinde de setarea „Permite temporizatoare de trezire”, des oprită pe
+  laptopuri sau pe baterie; laptopurile cu „Modern Standby” suspendă oricum programele obișnuite;
+- o setare „Nu lăsa calculatorul să adoarmă”: ar promite mai mult decât poate Windows.
 
 ---
 
 ## 5. Datele utilizatorului și dezinstalarea
 
-**Problema pe care o văd:** acum dezinstalarea șterge tot `%APPDATA%\HASI` și `%LOCALAPPDATA%\HASI`, fără nicio
-întrebare. Dacă agenda, ciornele sau pozițiile de citire ar sta acolo, **o dezinstalare urmată de reinstalare**
-(exact ce face un ajutor binevoitor când „ceva nu merge”) ar șterge contactele și programările unui om care nu le
-are scrise în altă parte. Problema apare deja la **modulul 2** (ciornele), nu abia la agendă, deci decizia trebuie
-luată acum.
-
-**Deja observat (24 octombrie 2026):** dezinstalarea de la X-10 a șters și `%LOCALAPPDATA%\HASI\rhvoice`, folderul
-cu RHVoice.dll folosit la rulările din build. De atunci, HASI rulat din build vorbește cu „Paul, prin SAPI”
-(rularea de verificare de azi). Versiunea instalată nu e afectată, pentru că are RHVoice lângă program.
-
-**Propunerea (schimbată după verificarea cu Codex):**
+**Decizia ta (24 octombrie 2026): dezinstalarea șterge tot; decizia 12 rămâne neschimbată.** Nu facem un folder
+separat, păstrat la dezinstalare.
 
 | Ce | Unde | La dezinstalare |
 |---|---|---|
-| Setări | `%APPDATA%\HASI\settings.json` (ca acum) | se șterg (decizia ta 12 rămâne) |
+| Setări | `%APPDATA%\HASI\settings.json` (ca acum) | se șterg |
 | Jurnale, cache | `%LOCALAPPDATA%\HASI` (ca acum) | se șterg |
-| **Datele personale:** agenda, ciornele, documentele recente, pozițiile de citire, copiile de siguranță zilnice (ultimele 7) | **`%LOCALAPPDATA%\HASI.UserData`**, un folder separat, în afara celor care se șterg | **rămân** |
-| Documentele salvate din editor | unde le salvezi; implicit folderul **Documente** al Windows | **nu se ating** (nici acum nu se ating) |
+| **Datele personale:** agenda, ciornele, documentele recente, pozițiile de citire, copiile de siguranță zilnice (ultimele 7) | `%LOCALAPPDATA%\HASI\userdata`: rămâne pe calculator (nu e „roaming” ca `%APPDATA%` și nu se sincronizează în OneDrive ca Documente) | **se șterg** |
+| Documentele salvate din editor | unde le salvezi; implicit folderul **Documente** al Windows | **nu se ating** |
 
-De ce `%LOCALAPPDATA%` și nu Documente sau `%APPDATA%`:
-- **rămâne pe calculator.** Documente poate fi sincronizat în OneDrive (Windows 11 propune des „copiere de rezervă
-  a folderelor”), iar `%APPDATA%` e „roaming” și, în rețele de firmă, poate fi mutat pe un server. Regula noastră
-  e „datele rămân local”;
-- **e un folder separat**, nu un subfolder al celor șterse: o greșeală la codul de dezinstalare nu-l poate atinge.
+**Ce vine cu asta:**
+- în agendă (modulul 5): **„Fă o copie de siguranță”** (pe stick sau în Documente, un singur fișier) și **„Adu
+  datele dintr-o copie”**, care servesc și la mutarea pe un calculator nou;
+- **ghidul de instalare și README** spun clar că dezinstalarea șterge și datele personale (agenda, ciornele,
+  documentele recente, pozițiile de citire) și că **înainte se face o copie de siguranță**. Textul se completează
+  în modulul 2 (ciornele, documentele recente) și în modulul 5 (agenda și copia de siguranță), odată cu datele
+  respective. ADR 0007 o notează deja.
 
-Ce vine cu el, ca să nu fie „ascuns și pierdut”:
-- în agendă: **„Fă o copie de siguranță”** (pe stick sau în Documente, un singur fișier) și **„Adu datele dintr-o
-  copie”**: așa se mută pe un calculator nou;
-- în Setări: **„Șterge datele personale”**, cu confirmare dublă, pentru cine dă calculatorul altcuiva.
-- ghidul de instalare și README spun exact ce se șterge și ce rămâne; ADR 0007 se actualizează.
-
-**Varianta b**, dacă preferi un loc vizibil: `Documente\HASI`, cu riscul OneDrive de mai sus.
+**Copia RHVoice pentru rulările din build** (cerința ta, la pasul 0): dezinstalarea de la X-10 a șters
+`%LOCALAPPDATA%\HASI\rhvoice`, iar HASI rulat din build vorbea de atunci cu „Paul, prin SAPI”. Copia de test se
+mută în **`%LOCALAPPDATA%\HASI.Dev\rhvoice`**, pe care dezinstalarea nu-l atinge, restaurată din artifactul CI.
+HASI caută acolo **numai în build-urile de dezvoltare** (configurația Debug); versiunea instalată folosește doar
+RHVoice de lângă program.
 
 ---
 
 ## 6. Prima publicare (0.2.0)
 
-**Propun 0.2.0 după modulul 3 (Citire documente).**
+**Decis (24 octombrie 2026): 0.2.0 după modulul 3 (Citire documente)**, cu condițiile de mai jos.
 
 De ce:
 - **e primul pachet util în fiecare zi** pentru un om care abia a început: ora și data, o notă scrisă, o scrisoare
@@ -332,15 +318,15 @@ De ce:
 
 **Condiții pentru publicare** (o listă de verificat la oprirea modulului 3, nu doar „modulul e gata”):
 - salvarea, ciorna și recuperarea după o eroare gravă trec la tine;
-- dezinstalare + reinstalare păstrează datele personale (§5);
 - jurnalul de diagnostic nu conține textul scris;
 - tastele noi merg cu NVDA pornit;
-- o actualizare instalată (din folder local, ca la X-05) păstrează documentele, ciornele și pozițiile de citire.
+- o actualizare instalată (din folder local, ca la X-05) păstrează documentele, ciornele și pozițiile de citire;
+- ghidul și README spun că dezinstalarea șterge și datele personale și cum se face copia de siguranță.
+
+Condiția „dezinstalare + reinstalare păstrează datele personale” a fost scoasă: dezinstalarea șterge tot (§5).
 
 **Apoi:** propun o versiune mică de întreținere (0.2.1, cu calculatorul sau doar cu corecturi), ca prima
 actualizare reală prin GitHub să nu fie cea care aduce agenda. Agenda vine în 0.3.0.
-
-**Alternativa:** 0.2.0 după modulul 1, doar ca să pornim mai devreme cererea SignPath. Nu o recomand.
 
 Pașii de publicare sunt cei pregătiți în `plan-0.11.md`, pasul 4, neschimbați. Publicarea o fac numai după
 aprobarea ta explicită.
@@ -356,32 +342,31 @@ aprobarea ta explicită.
 | F3 | Ordinea textului în PDF-uri cu coloane sau tabele. | Algoritmii de ordine ai PdfPig; teste pe documente cu două coloane. |
 | F4 | PdfPig e încă „0.1.x”: API-ul se poate schimba. | Versiune fixată; tot codul PdfPig stă într-o singură clasă din `Hasi.Documents`. |
 | F5 | Tastele noi se pot ciocni cu NVDA (mai ales pe tastatura numerică, în aspectul desktop) sau cu tastele globale HASI. | Tabelul tastelor fiecărui modul ți-l arăt înainte de cod; Ctrl+H/R/U rămân globale; fiecare funcție merge și fără tastatura numerică; testat cu NVDA, cu Num Lock pornit și oprit. |
-| F6 | Programatorul de activități poate fi blocat de politici sau de antivirus. | Experiment în `spikes/`; dacă nu merge, rămân straturile 1 și 2 din §4. |
+| F6 | Mementourile se aud doar cât HASI e deschis (§4). | Avertisment la închidere, recuperare la pornire, spus în ajutor și în ghid. |
 | F7 | Meniul principal crește de la 4 la 10 opțiuni: se schimbă bun venit-ul și mulți pași din regresie. | Ordinea o decizi tu (§8); transcrierile se schimbă vizibil în diff. |
 | F8 | Date personale în jurnalul de diagnostic (text scris, contacte, nume de documente). | Ecranele sensibile maschează caracterele, mesajele și titlurile (§2). |
 | F9 | Licențele: fiecare pachet are fișiere de licență și NOTICE care trebuie livrate, nu doar pomenite. | Graful complet de dependențe (din versiunile fixate) în `THIRD-PARTY-NOTICES.md`; licențele și NOTICE-urile într-un folder `licente\` în pachetul instalat; „Despre HASI” le numește. |
 
 ---
 
-## 8. Decizii pe care ți le cer
+## 8. Deciziile tale (24 octombrie 2026)
 
-**Acum, înainte de modulul 1:**
-1. **Planul în ansamblu** și ordinea modulelor.
-2. **Locul datelor personale** (§5): `%LOCALAPPDATA%\HASI.UserData`, păstrat la dezinstalare (recomandat), sau
-   `Documente\HASI`. E o schimbare a deciziei 12 („dezinstalarea șterge tot”), de aceea ți-o cer explicit.
-3. **Meniul principal:** propun modulele întâi, în ordinea folosirii (Ceas și calendar, Agendă, Editor,
-   Documente, Calculator, Fișiere), apoi Setări, Învață tastele, Despre HASI, Ieșire. Fiecare modul apare în meniu
-   abia când e gata.
-4. **Prima publicare:** după modulul 3, cu condițiile din §6 (recomandat), sau după modulul 1.
+1. **Planul și ordinea modulelor:** aprobate.
+2. **Datele personale:** nu se păstrează nimic la dezinstalare; decizia 12 rămâne. Datele personale stau în
+   `%LOCALAPPDATA%\HASI\userdata`; documentele salvate de utilizator nu se ating. „Fă o copie de siguranță” și „Adu
+   datele dintr-o copie” rămân în agendă; ghidul și README spun că dezinstalarea șterge și agenda și că înainte se
+   face o copie (§5).
+3. **Meniul principal:** modulele întâi, în ordinea folosirii (Ceas și calendar, Agendă, Editor, Documente,
+   Calculator, Fișiere), apoi Setări, Învață tastele, Despre HASI, Ieșire. Fiecare modul apare abia când e gata.
+4. **Prima publicare:** 0.2.0 după modulul 3, cu condițiile din §6, fără condiția despre păstrarea datelor.
+5. **Mementourile:** doar cât HASI e deschis; fără pornire programată de Windows; straturile 1 și 2 din §4.
+6. **Calculatorul:** cu Num Lock pornit, / * − + de pe tastatura numerică devin operații; verificat cu NVDA în
+   aspectul desktop.
+7. **Editorul:** formatul implicit .docx; tastele exacte ți le arăt la începutul modulului 2.
+8. **Ceasul:** Ctrl+T, „Ce oră este?”, comandă globală nouă, în tabelul de taste și în „Învață tastele”; ora
+   rostită la fiecare oră fixă: setare, oprită implicit (§3.1).
 
-**Înainte de modulul 5 (le poți decide și acum):**
-5. **Pornirea programată de Windows** pentru mementouri (§4, stratul 3): da sau nu.
-
-**La începutul modulului respectiv:**
-6. Calculatorul: / * − + de pe tastatura numerică devin operații (§3.4)?
-7. Editorul: formatul implicit .docx (§3.2) și tastele exacte.
-8. Ceasul: vrei o tastă globală „Ce oră este?” (de exemplu Ctrl+T, oriunde în HASI) și/sau ora rostită la fiecare
-   oră fixă? Ar fi o comandă globală nouă în tabelul de taste, deci o schimbare de plan.
+În plus: copia RHVoice pentru rulările din build se mută în `%LOCALAPPDATA%\HASI.Dev\rhvoice` (§5).
 
 ## Lucruri care rămân la fel
 
@@ -404,12 +389,12 @@ observații; le-am verificat în cod și în documentație înainte să le iau. 
   Escape: acum HASI se închide fără să întrebe ecranele (verificat în `Shell.cs`).
 - **Jurnalul de diagnostic** scria fiecare caracter tastat înainte de ecran; acum ecranele sensibile maschează și
   caracterele, și titlurile (verificat).
-- **Datele personale:** decizia se ia acum, nu la agendă (ciornele apar în modulul 2), iar locul recomandat s-a
-  mutat din Documente în `%LOCALAPPDATA%\HASI.UserData` (OneDrive, `%APPDATA%` roaming), cu copie de siguranță,
-  restaurare și ștergere la cerere.
+- **Datele personale:** decizia se ia înainte de modulul 2 (ciornele), nu la agendă; locul e în `%LOCALAPPDATA%`
+  (nu Documente, din cauza OneDrive, nici `%APPDATA%`, care e „roaming”). Folderul separat, păstrat la
+  dezinstalare, a fost respins prin decizia ta 2.
 - **Mementourile:** Enter nu confirmă un memento neauzit; un singur ecran pentru mai multe; ecranul blocat nu
-  spune titlul; „Am auzit”, nu „am luat”; regulile de oră de vară, de 31 și de 29 februarie; mod „memento” la
-  pornirea programată, care nu se bate cu regula de o singură instanță; pornire și pe baterie.
+  spune titlul; „Am auzit”, nu „am luat”; regulile de oră de vară, de 31 și de 29 februarie. (Pornirea programată
+  de Windows, revizuită și ea, a fost scoasă apoi prin decizia ta 5.)
 - **Setarea „Nu lăsa calculatorul să adoarmă”** a fost scoasă: promitea mai mult decât poate Windows.
 - **Progresul vorbirii** aparține mesajului care l-a cerut (identificator și proprietar), nu ecranului curent;
   „citește tot” reia de la propoziție, nu de la cuvânt.

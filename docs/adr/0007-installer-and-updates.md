@@ -54,7 +54,21 @@ documentation and in the `Velopack` 1.2.161 package (MIT, published 2026-09-29):
    `installer/pack.ps1` passes it (from step 0 of Phase 1) and the archive is not produced at all. If a future `vpk` drops the option,
    the archive may be produced but is never uploaded or published.
 8. **First public release postponed** (owner's decision, 2026-10-24): 0.1.0 is not published. Step 4 of
-   `docs/plan-0.11.md` stays ready and runs after the first Phase 1 modules (`docs/plan-faza-1.md`, §6).
+   `docs/plan-0.11.md` stays ready and runs for **0.2.0, after Phase 1 module 3** (Documents), with the release
+   conditions of `docs/plan-faza-1.md` §6.
+9. **Uninstall still removes everything, personal data included** (owner's decision, 2026-10-24, confirming
+   decision 3): Phase 1 personal data (agenda, editor drafts, recent documents, reading positions, daily backups)
+   lives in `%LOCALAPPDATA%\HASI\userdata` and is deleted with the rest. No folder is kept on purpose. Documents the
+   user saved elsewhere (by default the Windows Documents folder) are never touched. The agenda offers "Fă o copie
+   de siguranță" and "Adu datele dintr-o copie"; the installation guide and the README say that uninstalling also
+   deletes the agenda and that a backup must be made first.
+10. **Reminders only while HASI runs** (owner's decision, 2026-10-24): no Windows Task Scheduler task, so the
+    installer and the uninstall hook create and remove nothing beyond decision 3. Missed reminders are announced
+    at the next start or resume, and closing HASI with a reminder due in the next 24 hours says so.
+11. **Development copy of RHVoice** (owner's request, 2026-10-24): the X-10 uninstall also deleted
+    `%LOCALAPPDATA%\HASI\rhvoice`, the developer copy used by `dotnet run`. Debug builds therefore also look in
+    `%LOCALAPPDATA%\HASI.Dev\rhvoice`, which uninstall never touches; Release builds (the installed program) do not
+    look there.
 
 ## Consequences
 
