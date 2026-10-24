@@ -248,8 +248,22 @@ public sealed class Shell : IShellServices, IScreenContext
         return ScreenResult.Push(new UnsavedWorkScreen(work, () => GuardUnsaved(proceed, [.. settled, work]), Localizer));
     }
 
-    /// <summary>The speech channel reports the end of announcement <paramref name="announcementId"/>; on the shell's thread.</summary>
-    public void SpeechFinished(long announcementId, SpeechOutcome outcome) { } // Module 3 (WP-A).
+    /// <summary>Tracked messages not reported yet: announcement id → the screen that asked and its token.</summary>
+    private readonly Dictionary<long, (IScreen Owner, long Token)> _tracked = [];
+
+    /// <summary>
+    /// The speech channel reports the end of announcement <paramref name="announcementId"/>. Call it on the shell's
+    /// thread, posted (never from inside an announcement): the report reaches the screen that asked, only while it is
+    /// still open. Unknown ids (untracked messages, or reported already) are ignored.
+    /// </summary>
+    public void SpeechFinished(long announcementId, SpeechOutcome outcome)
+    {
+        if (!_tracked.Remove(announcementId, out var tracked)) return;
+        if (tracked.Owner is not ISpeechListener listener || !_stack.Contains(tracked.Owner)) return;
+        var result = listener.SpeechFinished(tracked.Token, outcome, this);
+        // No key was pressed, so "this key has no function" would make no sense.
+        if (result is not UnhandledResult) Apply(result);
+    }
 
     public BackgroundJob RunInBackground<T>(IScreen owner, Func<CancellationToken, T> work, Func<T, IScreenContext, ScreenResult> onDone,
         Utterance? slowNotice = null) => _jobs.Run(owner, work, onDone, slowNotice);
@@ -426,11 +440,14 @@ public sealed class Shell : IShellServices, IScreenContext
     private UtterancePriority? _priority;
 
     /// <summary>Everything the shell says goes through here, so that private content never reaches the log.</summary>
-    private void Say(Utterance utterance)
+    /// <param name="queued">Waits for the current speech whatever <see cref="Show"/> forces (the rest of a tracked series).</param>
+    /// <returns>The announcement's id.</returns>
+    private long Say(Utterance utterance, bool queued = false)
     {
-        if (_priority is { } forced) utterance = utterance with { Priority = forced };
+        if (queued) utterance = utterance with { Priority = UtterancePriority.Queue };
+        else if (_priority is { } forced) utterance = utterance with { Priority = forced };
         if (IsSensitive) utterance = utterance with { Sensitive = true };
-        _announcer.Say(utterance);
+        return _announcer.Say(utterance);
     }
 
     private void Apply(ScreenResult result)
@@ -460,11 +477,14 @@ public sealed class Shell : IShellServices, IScreenContext
             case UnhandledResult:
                 Say(new Utterance(Localizer.Get("shell.keyUnavailable"), Earcon: Earcon.Unavailable));
                 break;
-            case SayTrackedResult tracked: // Module 3 (WP-A) tracks them; until then they are only said.
+            case SayTrackedResult tracked:
+                // The owner is the screen current now; a screen that is not a listener gets the messages said only.
+                var owner = Current is ISpeechListener ? Current : null;
                 for (var i = 0; i < tracked.Items.Count; i++)
                 {
-                    var item = tracked.Items[i].Utterance;
-                    Say(i == 0 ? item : item with { Priority = UtterancePriority.Queue });
+                    var item = tracked.Items[i];
+                    var id = Say(item.Utterance, queued: i > 0);
+                    if (owner is not null) _tracked[id] = (owner, item.Token);
                 }
                 break;
             case PopToResult popTo:

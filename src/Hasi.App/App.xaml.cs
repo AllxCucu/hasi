@@ -111,7 +111,17 @@ public partial class App : Application, ISystemActions
         _window = new ShellWindow();
         var earcons = new ToneEarconPlayer();
         _disposables.Add(earcons);
-        List<IOutputChannel> channels = [new SpeechOutputChannel(engine, earcons, _log), new VisualChannel(_window)];
+        var speechChannel = new SpeechOutputChannel(engine, earcons, _log);
+        speechChannel.Finished += (_, finished) =>
+            // Reported on any thread (the audio thread for RHVoice), sometimes from inside an announcement: always
+            // posted, so the shell sees it later, on its own thread, never in the middle of saying something.
+            Dispatcher.BeginInvoke(() =>
+            {
+                if (_exiting || _shell is null) return;
+                if (_log.IsEnabled) _log.Write("SPEECH", $"id={finished.Id} outcome={finished.Outcome}");
+                _shell.SpeechFinished(finished.Id, finished.Outcome);
+            });
+        List<IOutputChannel> channels = [speechChannel, new VisualChannel(_window)];
         if (comparison is not null) channels.Add(comparison);
         var hub = new OutputHub(channels, _log);
         engine.Failed += (_, ex) =>

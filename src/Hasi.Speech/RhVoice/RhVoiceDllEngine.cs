@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
+using Hasi.Core.Output;
 using Hasi.Core.Speech;
 using Hasi.Speech.Audio;
 
@@ -23,9 +24,16 @@ public sealed class RhVoiceDllEngine : ISpeechEngine, ISpeechMetrics, ISpeechSet
     private readonly ISpeechAudioSink _sink;
     private readonly string _profile;
     private readonly SynchronizationContext? _context;
-    private readonly BlockingCollection<(int Id, string Text)> _queue = new();
+    private readonly BlockingCollection<(int Id, string Text, int Generation)> _queue = new();
     private readonly Thread _worker;
     private readonly ConcurrentDictionary<int, Stopwatch> _clocks = new();
+
+    /// <summary>
+    /// Caller's id of every message not reported yet, by the engine's own id (the one the sink knows). Reports come
+    /// from the UI thread (Stop), the synthesis thread (errors) and the audio thread (end of playback): whoever removes
+    /// the entry reports the message, so each is reported exactly once.
+    /// </summary>
+    private readonly ConcurrentDictionary<int, long> _unreported = new();
     private readonly Stopwatch _stopClock = new();
     private volatile int _generation;
     private volatile int _synthesizing;
@@ -41,7 +49,12 @@ public sealed class RhVoiceDllEngine : ISpeechEngine, ISpeechMetrics, ISpeechSet
         _sink.FirstSoundPlayed += OnFirstSound;
         _sink.UtteranceFinished += OnFinished;
         _sink.FadeOutCompleted += OnFadeOutCompleted;
-        _sink.DeviceFailed += ex => Post(() => Failed?.Invoke(this, ex));
+        _sink.DeviceFailed += ex =>
+        {
+            // Without a device nothing written so far will be played, so it will never end by itself.
+            ReportAllEnds(SpeechOutcome.Failed);
+            Post(() => Failed?.Invoke(this, ex));
+        };
         _worker = new Thread(Work) { IsBackground = true, Name = "HASI RHVoice synthesis" };
         _worker.Start();
     }
@@ -66,6 +79,12 @@ public sealed class RhVoiceDllEngine : ISpeechEngine, ISpeechMetrics, ISpeechSet
 
     public event EventHandler<Exception>? Failed;
 
+    /// <summary>
+    /// Completed when the output has played the message's last sample; posted to the creating thread's context (if it
+    /// had one), like every other event of this engine.
+    /// </summary>
+    public event EventHandler<SpeechFinished>? Finished;
+
     public event EventHandler<SpeechMetric>? MetricReported;
 
     /// <summary>A word starts being synthesized: position and length in the text, and the word itself.</summary>
@@ -88,11 +107,14 @@ public sealed class RhVoiceDllEngine : ISpeechEngine, ISpeechMetrics, ISpeechSet
 
     private Task? _preload;
 
-    public void Speak(string text)
+    public void Speak(string text, long id)
     {
-        var id = Interlocked.Increment(ref _nextId);
-        _clocks[id] = Stopwatch.StartNew();
-        _queue.Add((id, text));
+        var own = Interlocked.Increment(ref _nextId);
+        _clocks[own] = Stopwatch.StartNew();
+        _unreported[own] = id;
+        // The message belongs to the generation it was queued in: a Stop() after this drops it even if the
+        // synthesis thread takes it from the queue in the middle of that Stop().
+        _queue.Add((own, text, _generation));
     }
 
     public void Stop()
@@ -101,6 +123,8 @@ public sealed class RhVoiceDllEngine : ISpeechEngine, ISpeechMetrics, ISpeechSet
         Interlocked.Increment(ref _generation);
         while (_queue.TryTake(out var dropped)) _clocks.TryRemove(dropped.Id, out _);
         _sink.FadeOutAndClear();
+        // Queued, being synthesized, or written to the sink but not played yet (its end marker was just cleared).
+        ReportAllEnds(SpeechOutcome.Cancelled);
     }
 
     public async Task WaitUntilIdleAsync(TimeSpan timeout)
@@ -121,9 +145,13 @@ public sealed class RhVoiceDllEngine : ISpeechEngine, ISpeechMetrics, ISpeechSet
 
     private void Work()
     {
-        foreach (var (id, text) in _queue.GetConsumingEnumerable())
+        foreach (var (id, text, generation) in _queue.GetConsumingEnumerable())
         {
-            var generation = _generation;
+            if (generation != _generation)
+            {
+                _clocks.TryRemove(id, out _); // stopped before its turn; Stop() has reported it
+                continue;
+            }
             Interlocked.Increment(ref _synthesizing);
             try
             {
@@ -150,6 +178,8 @@ public sealed class RhVoiceDllEngine : ISpeechEngine, ISpeechMetrics, ISpeechSet
             catch (Exception ex)
 #pragma warning restore CA1031
             {
+                _clocks.TryRemove(id, out _);
+                ReportEnd(id, SpeechOutcome.Failed); // before Failed, so the fallback chain hears about this message first
                 Post(() => Failed?.Invoke(this, ex));
             }
             finally
@@ -157,6 +187,20 @@ public sealed class RhVoiceDllEngine : ISpeechEngine, ISpeechMetrics, ISpeechSet
                 Interlocked.Decrement(ref _synthesizing);
             }
         }
+    }
+
+    /// <summary>Reports message <paramref name="id"/> (the engine's own id) unless someone else already has.</summary>
+    private void ReportEnd(int id, SpeechOutcome outcome)
+    {
+        if (!_unreported.TryRemove(id, out var callerId)) return;
+        var finished = new SpeechFinished(callerId, outcome);
+        Post(() => Finished?.Invoke(this, finished));
+    }
+
+    /// <summary>Reports every message not reported yet, oldest first.</summary>
+    private void ReportAllEnds(SpeechOutcome outcome)
+    {
+        foreach (var id in _unreported.Keys.Order()) ReportEnd(id, outcome);
     }
 
     private void WaitForPreload()
@@ -178,9 +222,11 @@ public sealed class RhVoiceDllEngine : ISpeechEngine, ISpeechMetrics, ISpeechSet
         if (_clocks.TryGetValue(id, out var clock)) Report("first-sound", clock.Elapsed.TotalMilliseconds);
     }
 
+    /// <summary>On the audio thread: the output has played the last sample of message <paramref name="id"/>.</summary>
     private void OnFinished(int id)
     {
         if (_clocks.TryRemove(id, out var clock)) Report("finished", clock.Elapsed.TotalMilliseconds);
+        ReportEnd(id, SpeechOutcome.Completed);
     }
 
     private void OnFadeOutCompleted()

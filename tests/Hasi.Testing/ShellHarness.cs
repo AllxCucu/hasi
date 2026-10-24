@@ -124,6 +124,8 @@ public sealed class ShellHarness
                 Shell.Options.KeyEcho = s.KeyEcho;
             };
         }
+        // As the application does: reports are posted to the shell's thread, so they arrive after the key that caused them.
+        Output.Finished += (_, finished) => _speechReports.Enqueue(finished);
         ModuleContext = new ModuleContext(Localizer, Shell, new ApplicationInfo("0.1.0"), Normalizer, comparison, Settings, Diagnostics, Autostart, Time: Shell.Time,
             UserData: UserData, Documents: Documents, Files: Files);
     }
@@ -181,6 +183,41 @@ public sealed class ShellHarness
         return this;
     }
 
+    private readonly Queue<SpeechFinished> _speechReports = new();
+
+    /// <summary>Announcements still being "spoken" (see <see cref="RecordingChannel.PendingSpeech"/>), oldest first.</summary>
+    public IReadOnlyList<Announcement> PendingSpeech => Output.PendingSpeech;
+
+    /// <summary>
+    /// The oldest pending announcement ends with <paramref name="outcome"/>; its report reaches the shell as it would in
+    /// the application. Returns what was said in answer.
+    /// </summary>
+    public IReadOnlyList<string> FinishSpeech(SpeechOutcome outcome = SpeechOutcome.Completed)
+    {
+        var before = Output.Announcements.Count;
+        Output.FinishSpeech(outcome);
+        DeliverSpeechReports();
+        return [.. Output.Announcements.Skip(before).Select(a => a.Utterance.Text)];
+    }
+
+    /// <summary>
+    /// Finishes pending announcements, oldest first, including the ones said in answer, until nothing is pending (at most
+    /// <paramref name="limit"/>, so a screen that never stops cannot hang a test). Returns what was said.
+    /// </summary>
+    public IReadOnlyList<string> FinishAllSpeech(SpeechOutcome outcome = SpeechOutcome.Completed, int limit = 1000)
+    {
+        var before = Output.Announcements.Count;
+        for (var i = 0; i < limit && Output.FinishSpeech(outcome); i++) DeliverSpeechReports();
+        DeliverSpeechReports();
+        return [.. Output.Announcements.Skip(before).Select(a => a.Utterance.Text)];
+    }
+
+    /// <summary>Hands the reports collected so far to the shell, as the application's event loop would after each event.</summary>
+    public void DeliverSpeechReports()
+    {
+        while (_speechReports.TryDequeue(out var report)) Shell.SpeechFinished(report.Id, report.Outcome);
+    }
+
     /// <summary>Presses keys one after the other and returns what was said, in order.</summary>
     public IReadOnlyList<string> Press(params KeyChord[] keys)
     {
@@ -188,6 +225,7 @@ public sealed class ShellHarness
         foreach (var key in keys)
         {
             Shell.Dispatch(new InputEvent(KeyMap.Resolve(key, Shell.ActiveKeyProfile), key));
+            DeliverSpeechReports();
         }
         return [.. Output.Announcements.Skip(before).Select(a => a.Utterance.Text)];
     }
@@ -199,6 +237,7 @@ public sealed class ShellHarness
         foreach (var c in text)
         {
             Shell.Dispatch(new InputEvent(Command.None, new KeyChord(Key.Other), c));
+            DeliverSpeechReports();
         }
         return [.. Output.Announcements.Skip(before).Select(a => a.Utterance.Text)];
     }
@@ -208,9 +247,11 @@ public sealed class ShellHarness
     {
         var before = Output.Announcements.Count;
         Shell.Dispatch(new InputEvent(KeyMap.Resolve(key, Shell.ActiveKeyProfile), key));
+        DeliverSpeechReports();
         for (var i = 0; i < repeats; i++)
         {
             Shell.Dispatch(new InputEvent(KeyMap.Resolve(key, Shell.ActiveKeyProfile), key, IsRepeat: true));
+            DeliverSpeechReports();
         }
         return [.. Output.Announcements.Skip(before).Select(a => a.Utterance.Text)];
     }

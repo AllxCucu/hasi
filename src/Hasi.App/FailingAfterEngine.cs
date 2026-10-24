@@ -1,4 +1,5 @@
-﻿using Hasi.Core.Speech;
+﻿using Hasi.Core.Output;
+using Hasi.Core.Speech;
 
 namespace Hasi.App;
 
@@ -6,33 +7,45 @@ namespace Hasi.App;
 /// Test aid for <c>--test-voice-failure</c>: behaves like the wrapped voice, then reports a failure after a
 /// few messages, so the tester can hear the fallback chain switch voices. Never used otherwise.
 /// </summary>
-internal sealed class FailingAfterEngine(ISpeechEngine inner, int messagesBeforeFailure) : ISpeechEngine, ISpeechSettingsTarget
+internal sealed class FailingAfterEngine : ISpeechEngine, ISpeechSettingsTarget
 {
+    private readonly ISpeechEngine _inner;
+    private readonly int _messagesBeforeFailure;
     private int _spoken;
 
-    public string Id => inner.Id;
+    public FailingAfterEngine(ISpeechEngine inner, int messagesBeforeFailure)
+    {
+        _inner = inner;
+        _messagesBeforeFailure = messagesBeforeFailure;
+        _inner.Finished += (_, finished) => Finished?.Invoke(this, finished);
+    }
 
-    public string? CurrentVoiceName => inner.CurrentVoiceName;
+    public string Id => _inner.Id;
 
-    public bool IsSpeaking => inner.IsSpeaking;
+    public string? CurrentVoiceName => _inner.CurrentVoiceName;
+
+    public bool IsSpeaking => _inner.IsSpeaking;
 
     public event EventHandler<Exception>? Failed;
 
-    public void Speak(string text)
+    public event EventHandler<SpeechFinished>? Finished;
+
+    public void Speak(string text, long id)
     {
-        if (++_spoken > messagesBeforeFailure)
+        if (++_spoken > _messagesBeforeFailure)
         {
+            Finished?.Invoke(this, new SpeechFinished(id, SpeechOutcome.Failed));
             Failed?.Invoke(this, new InvalidOperationException("Simulated voice failure (--test-voice-failure)."));
             return;
         }
-        inner.Speak(text);
+        _inner.Speak(text, id);
     }
 
-    public void Stop() => inner.Stop();
+    public void Stop() => _inner.Stop();
 
-    public void Apply(SpeechSettings settings) => (inner as ISpeechSettingsTarget)?.Apply(settings);
+    public void Apply(SpeechSettings settings) => (_inner as ISpeechSettingsTarget)?.Apply(settings);
 
-    public Task WaitUntilIdleAsync(TimeSpan timeout) => inner.WaitUntilIdleAsync(timeout);
+    public Task WaitUntilIdleAsync(TimeSpan timeout) => _inner.WaitUntilIdleAsync(timeout);
 
-    public void Dispose() => inner.Dispose();
+    public void Dispose() => _inner.Dispose();
 }

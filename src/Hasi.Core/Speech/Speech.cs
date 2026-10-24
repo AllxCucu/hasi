@@ -3,7 +3,7 @@ using Hasi.Core.Output;
 
 namespace Hasi.Core.Speech;
 
-/// <summary>A speech synthesizer. Implementations: SAPI5 now; OneCore, RHVoice direct, screen reader later.</summary>
+/// <summary>A speech synthesizer. Implementations: RHVoice direct, SAPI5, OneCore, none.</summary>
 public interface ISpeechEngine : IDisposable
 {
     string Id { get; }
@@ -12,16 +12,36 @@ public interface ISpeechEngine : IDisposable
 
     bool IsSpeaking { get; }
 
-    /// <summary>Queues text and returns immediately.</summary>
-    void Speak(string text);
+    /// <summary>
+    /// Queues text and returns immediately. Its end is reported exactly once by <see cref="Finished"/> with
+    /// <paramref name="id"/> (0: nobody waits for it, but it is still reported). Ids need not be unique.
+    /// If it throws, the message was not queued and is not reported.
+    /// </summary>
+    void Speak(string text, long id);
 
-    /// <summary>Stops speaking at once and drops queued text.</summary>
+    /// <summary>Stops speaking at once and drops queued text; each dropped message is reported Cancelled.</summary>
     void Stop();
 
     Task WaitUntilIdleAsync(TimeSpan timeout);
 
+    /// <summary>
+    /// A message ended: Completed when all of its sound has been played, Cancelled when <see cref="Stop"/> dropped it,
+    /// Failed when it could not be spoken. Raised once per message, on any thread.
+    /// </summary>
+    event EventHandler<SpeechFinished>? Finished;
+
     /// <summary>A queued message could not be spoken. Raised on the thread that uses the engine.</summary>
     event EventHandler<Exception>? Failed;
+}
+
+public static class SpeechEngineExtensions
+{
+    /// <summary>Speaks text whose end nobody waits for (reported with id 0).</summary>
+    public static void Speak(this ISpeechEngine engine, string text)
+    {
+        ArgumentNullException.ThrowIfNull(engine);
+        engine.Speak(text, 0);
+    }
 }
 
 public interface IEarconPlayer
@@ -29,7 +49,10 @@ public interface IEarconPlayer
     void Play(Earcon earcon);
 }
 
-/// <summary>Used when no synthesizer works: the screen still shows every message.</summary>
+/// <summary>
+/// Used when no synthesizer works: the screen still shows every message. Each message is reported Completed at once,
+/// synchronously, from inside <see cref="Speak"/>.
+/// </summary>
 public sealed class NullSpeechEngine : ISpeechEngine
 {
     public string Id => "none";
@@ -38,7 +61,9 @@ public sealed class NullSpeechEngine : ISpeechEngine
 
     public bool IsSpeaking => false;
 
-    public void Speak(string text) { }
+    public event EventHandler<SpeechFinished>? Finished;
+
+    public void Speak(string text, long id) => Finished?.Invoke(this, new SpeechFinished(id, SpeechOutcome.Completed));
 
     public void Stop() { }
 
@@ -54,26 +79,59 @@ public sealed class NullSpeechEngine : ISpeechEngine
 }
 
 /// <summary>Sends announcements to a speech engine, logging exactly what the engine receives.</summary>
-public sealed class SpeechOutputChannel(ISpeechEngine engine, IEarconPlayer earcons, IDiagnosticLog log) : IOutputChannel
+public sealed class SpeechOutputChannel : IOutputChannel
 {
+    private readonly ISpeechEngine _engine;
+    private readonly IEarconPlayer _earcons;
+    private readonly IDiagnosticLog _log;
+
+    public SpeechOutputChannel(ISpeechEngine engine, IEarconPlayer earcons, IDiagnosticLog log)
+    {
+        _engine = engine;
+        _earcons = earcons;
+        _log = log;
+        _engine.Finished += (_, finished) => Finished?.Invoke(this, finished);
+    }
+
+    /// <summary>
+    /// The end of an announcement (by <see cref="Announcement.Id"/>), as the engine reports it: on any thread, possibly
+    /// before <see cref="Present"/> returns. The host marshals it to the shell's thread.
+    /// </summary>
+    public event EventHandler<SpeechFinished>? Finished;
+
     public void Present(Announcement announcement)
     {
         var utterance = announcement.Utterance;
-        if (utterance.Earcon != Earcon.None) earcons.Play(utterance.Earcon);
-        if (string.IsNullOrWhiteSpace(announcement.SpokenText)) return;
+        if (utterance.Earcon != Earcon.None) _earcons.Play(utterance.Earcon);
+        if (string.IsNullOrWhiteSpace(announcement.SpokenText))
+        {
+            // Nothing to hear, so nothing to wait for.
+            Finished?.Invoke(this, new SpeechFinished(announcement.Id, SpeechOutcome.Completed));
+            return;
+        }
 
-        if (log.IsEnabled)
+        if (_log.IsEnabled)
         {
             var text = utterance.Sensitive ? TextDiagnosticLog.Mask : announcement.SpokenText;
-            log.Write("SPEAK", $"engine={engine.Id} text=\"{text}\"");
+            // The id matches the SPEECH line that reports how the message ended.
+            _log.Write("SPEAK", $"engine={_engine.Id} text=\"{text}\" id={announcement.Id}");
         }
-        engine.Speak(announcement.SpokenText);
+        try
+        {
+            _engine.Speak(announcement.SpokenText, announcement.Id);
+        }
+        catch
+        {
+            // An engine that throws has not queued the message, so it would never report it.
+            Finished?.Invoke(this, new SpeechFinished(announcement.Id, SpeechOutcome.Failed));
+            throw;
+        }
     }
 
     public void Cancel()
     {
-        if (engine.IsSpeaking) log.Write("STOP", $"engine={engine.Id}");
-        engine.Stop();
+        if (_engine.IsSpeaking) _log.Write("STOP", $"engine={_engine.Id}");
+        _engine.Stop();
     }
 }
 

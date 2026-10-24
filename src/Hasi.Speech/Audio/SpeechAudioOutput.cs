@@ -16,6 +16,7 @@ public interface ISpeechAudioSink : IDisposable
 
     event Action<int>? FirstSoundPlayed;
 
+    /// <summary>The last sample of an utterance was handed to the device (raised on the audio thread).</summary>
     event Action<int>? UtteranceFinished;
 
     event Action? FadeOutCompleted;
@@ -133,7 +134,13 @@ public sealed class SpeechAudioOutput : ISpeechAudioSink
         _source.Write(utteranceId, samples);
     }
 
-    public void EndUtterance(int utteranceId) => _source.EndUtterance(utteranceId);
+    public void EndUtterance(int utteranceId)
+    {
+        // A message that produced no sound still has to be "played" to the end, or it would never be reported finished.
+        Touch();
+        EnsureOpen();
+        _source.EndUtterance(utteranceId);
+    }
 
     public void FadeOutAndClear() => _source.FadeOutAndClear();
 

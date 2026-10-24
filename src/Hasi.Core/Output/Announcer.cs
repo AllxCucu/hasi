@@ -8,13 +8,17 @@ namespace Hasi.Core.Output;
 /// </summary>
 public sealed class Announcer(OutputHub hub, ITextNormalizer normalizer, IDiagnosticLog log)
 {
+    private long _lastId;
+
     public Utterance? Last { get; private set; }
 
-    public void Say(Utterance utterance)
+    /// <summary>Says <paramref name="utterance"/>; returns the id of its announcement, to match the speech channel's report.</summary>
+    public long Say(Utterance utterance)
     {
-        Present(utterance);
+        var id = Present(utterance);
         // A silent update (only the screen changes, e.g. typing with key echo off) is not a message to repeat.
         if (!string.IsNullOrWhiteSpace(utterance.Text)) Last = utterance;
+        return id;
     }
 
     /// <summary>Says the last message again, interrupting whatever is being said.</summary>
@@ -28,8 +32,10 @@ public sealed class Announcer(OutputHub hub, ITextNormalizer normalizer, IDiagno
 
     public void Silence() => hub.Cancel();
 
-    private void Present(Utterance utterance)
+    private long Present(Utterance utterance)
     {
+        // Ids increase, starting at 1 (0 means "no id"). Announcements are made on the shell's thread only.
+        var id = ++_lastId;
         if (utterance.Priority == UtterancePriority.Interrupt) hub.Cancel();
         var spoken = normalizer.Normalize(utterance.Text);
         if (log.IsEnabled)
@@ -39,6 +45,7 @@ public sealed class Announcer(OutputHub hub, ITextNormalizer normalizer, IDiagno
             log.Write("SAY", $"[{utterance.Priority}] text=\"{text}\"");
             log.Write("", $"normalized=\"{normalized}\"");
         }
-        hub.Present(new Announcement(utterance, spoken));
+        hub.Present(new Announcement(utterance, spoken, id));
+        return id;
     }
 }

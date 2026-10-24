@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Hasi.Core.Output;
 using Hasi.Core.Speech;
 using Hasi.Speech.Audio;
 using Hasi.Speech.RhVoice;
@@ -233,5 +234,111 @@ public class RhVoiceDllEngineTests
         WaitFor(() => words.Count == 1);
 
         Assert.Equal(["3+4 casă"], words);
+    }
+
+    /// <summary>
+    /// An engine created without a synchronization context, so it raises its events at once, in order, on the thread
+    /// that reports (the test's context would run posted events later, in any order).
+    /// </summary>
+    private static RhVoiceDllEngine Direct(FakeSynthesizer synth, FakeSink sink)
+    {
+        var previous = SynchronizationContext.Current;
+        SynchronizationContext.SetSynchronizationContext(null);
+        try
+        {
+            return new RhVoiceDllEngine(synth, sink, "Paul");
+        }
+        finally
+        {
+            SynchronizationContext.SetSynchronizationContext(previous);
+        }
+    }
+    private static ConcurrentQueue<SpeechFinished> Reports(RhVoiceDllEngine engine)
+    {
+        var reports = new ConcurrentQueue<SpeechFinished>();
+        engine.Finished += (_, finished) => reports.Enqueue(finished);
+        return reports;
+    }
+
+    [Fact]
+    public void A_message_is_completed_only_when_the_output_has_played_its_end()
+    {
+        var sink = new FakeSink();
+        using var engine = Direct(new FakeSynthesizer(), sink);
+        var reports = Reports(engine);
+
+        engine.Speak("unu", 10);
+        WaitFor(() => sink.Log.Contains("end 1"));
+        Assert.Empty(reports); // synthesized, not heard yet
+
+        sink.Finish(1);
+
+        Assert.Equal([new SpeechFinished(10, SpeechOutcome.Completed)], reports);
+    }
+
+    [Fact]
+    public void Stop_cancels_the_message_being_synthesized_and_the_queued_ones_once()
+    {
+        var synth = new FakeSynthesizer();
+        var sink = new FakeSink();
+        using var engine = Direct(synth, sink);
+        var reports = Reports(engine);
+        synth.Hold.Reset();
+        engine.Speak("un text lung", 11);
+        engine.Speak("nu trebuie rostit", 12);
+        synth.Started.Wait(TimeSpan.FromSeconds(5));
+
+        engine.Stop();
+        synth.Hold.Set();
+        WaitFor(() => !engine.IsSpeaking);
+        sink.Finish(1); // a late end of playback changes nothing
+
+        Assert.Equal([new SpeechFinished(11, SpeechOutcome.Cancelled), new SpeechFinished(12, SpeechOutcome.Cancelled)], reports);
+    }
+
+    [Fact]
+    public void Stop_cancels_a_message_already_synthesized_but_not_yet_heard()
+    {
+        var sink = new FakeSink();
+        using var engine = Direct(new FakeSynthesizer(), sink);
+        var reports = Reports(engine);
+        engine.Speak("unu", 20);
+        WaitFor(() => sink.Log.Contains("end 1"));
+
+        engine.Stop();
+        sink.Finish(1);
+
+        Assert.Equal([new SpeechFinished(20, SpeechOutcome.Cancelled)], reports);
+    }
+
+    [Fact]
+    public void A_message_that_cannot_be_synthesized_is_reported_failed_before_the_engine_failure()
+    {
+        var synth = new FakeSynthesizer { Throw = true };
+        using var engine = Direct(synth, new FakeSink());
+        var events = new ConcurrentQueue<string>();
+        engine.Finished += (_, f) => events.Enqueue($"{f.Id} {f.Outcome}");
+        engine.Failed += (_, _) => events.Enqueue("engine failed");
+
+        engine.Speak("ceva", 5);
+        WaitFor(() => events.Count == 2);
+
+        Assert.Equal(["5 Failed", "engine failed"], events);
+    }
+
+    [Fact]
+    public void An_audio_device_failure_fails_every_message_not_heard_yet()
+    {
+        var sink = new FakeSink();
+        using var engine = Direct(new FakeSynthesizer(), sink);
+        var reports = Reports(engine);
+        engine.Speak("unu", 1);
+        engine.Speak("doi", 2);
+        WaitFor(() => sink.Log.Contains("end 2"));
+
+        sink.FailDevice();
+        sink.Finish(1);
+
+        Assert.Equal([new SpeechFinished(1, SpeechOutcome.Failed), new SpeechFinished(2, SpeechOutcome.Failed)], reports);
     }
 }

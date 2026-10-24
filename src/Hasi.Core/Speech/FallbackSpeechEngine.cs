@@ -1,4 +1,6 @@
-﻿namespace Hasi.Core.Speech;
+﻿using Hasi.Core.Output;
+
+namespace Hasi.Core.Speech;
 
 /// <summary>A voice HASI may use, best first; <see cref="Start"/> returns null if it cannot start.</summary>
 /// <param name="Key">Stable identity ("engine:name"), stored in the settings; <paramref name="VoiceName"/> is what is said.</param>
@@ -12,11 +14,23 @@ public sealed record VoiceSwitchedEventArgs(string FailedVoice, string NewVoice,
 /// moves to the next one and says so. Only when every voice has failed does HASI fall silent
 /// (the screen still shows every message, and the error tone is played).
 /// </summary>
+/// <remarks>
+/// Reports (<see cref="Finished"/>): each message is reported by the engine that spoke it. When that engine fails or is
+/// replaced, every message it has not reported yet is reported here, at once: Failed after a failure, Cancelled after
+/// <see cref="Restart"/>. Such messages are not spoken again by the next voice (the application repeats the last
+/// message itself when the voice changes). Without any voice, messages are reported Failed.
+/// </remarks>
 public sealed class FallbackSpeechEngine : ISpeechEngine, ISpeechSettingsTarget
 {
     private Queue<SpeechCandidate> _remaining;
     private ISpeechEngine _current = new NullSpeechEngine();
     private SpeechSettings? _settings;
+
+    // Ids given to _current and not reported yet, oldest first. The engine reports on any thread, so this is shared;
+    // removing an id under the lock decides who reports it (the engine or this chain), so it is reported once.
+    private readonly Lock _lock = new();
+    private readonly List<long> _pending = [];
+    private EventHandler<SpeechFinished>? _forward;
 
     private FallbackSpeechEngine(IEnumerable<SpeechCandidate> candidates)
     {
@@ -33,6 +47,7 @@ public sealed class FallbackSpeechEngine : ISpeechEngine, ISpeechSettingsTarget
     public bool Restart(IEnumerable<SpeechCandidate> candidates, Action<string, Exception>? onStartFailure = null)
     {
         _current.Failed -= OnCurrentFailed;
+        Detach(SpeechOutcome.Cancelled);
         _current.Stop();
         _current.Dispose();
         _remaining = new Queue<SpeechCandidate>(candidates);
@@ -66,7 +81,27 @@ public sealed class FallbackSpeechEngine : ISpeechEngine, ISpeechSettingsTarget
     /// <summary>Raised only when no voice is left.</summary>
     public event EventHandler<Exception>? Failed;
 
-    public void Speak(string text) => _current.Speak(text);
+    public event EventHandler<SpeechFinished>? Finished;
+
+    public void Speak(string text, long id)
+    {
+        if (_forward is null)
+        {
+            // No voice is left: the message cannot be spoken.
+            Finished?.Invoke(this, new SpeechFinished(id, SpeechOutcome.Failed));
+            return;
+        }
+        lock (_lock) _pending.Add(id);
+        try
+        {
+            _current.Speak(text, id);
+        }
+        catch
+        {
+            Forget(id); // a Speak that throws reports nothing (see ISpeechEngine.Speak); the caller does
+            throw;
+        }
+    }
 
     public void Stop() => _current.Stop();
 
@@ -75,6 +110,7 @@ public sealed class FallbackSpeechEngine : ISpeechEngine, ISpeechSettingsTarget
     public void Dispose()
     {
         _current.Failed -= OnCurrentFailed;
+        Detach(SpeechOutcome.Cancelled);
         _current.Dispose();
     }
 
@@ -82,6 +118,8 @@ public sealed class FallbackSpeechEngine : ISpeechEngine, ISpeechSettingsTarget
     {
         var failedVoice = CurrentVoiceName ?? _current.Id;
         _current.Failed -= OnCurrentFailed;
+        // Before the next voice speaks anything: what the failed voice still owed is reported Failed now.
+        Detach(SpeechOutcome.Failed);
         _current.Dispose();
         if (Advance(onStartFailure: null))
         {
@@ -116,11 +154,42 @@ public sealed class FallbackSpeechEngine : ISpeechEngine, ISpeechSettingsTarget
             CurrentKey = candidate.Key;
             if (_settings is { } settings) (engine as ISpeechSettingsTarget)?.Apply(settings);
             _current.Failed += OnCurrentFailed;
+            Attach(engine);
             return true;
         }
         _current = new NullSpeechEngine();
         CurrentVoiceName = null;
         CurrentKey = null;
         return false;
+    }
+
+    /// <summary>Forwards the reports of <paramref name="engine"/>, until <see cref="Detach"/>.</summary>
+    private void Attach(ISpeechEngine engine)
+    {
+        _forward = (_, finished) =>
+        {
+            // A late report from an engine already detached finds nothing: its messages were reported by Detach.
+            if (Forget(finished.Id)) Finished?.Invoke(this, finished);
+        };
+        engine.Finished += _forward;
+    }
+
+    /// <summary>Stops listening to the current engine and reports, with <paramref name="outcome"/>, what it still owed.</summary>
+    private void Detach(SpeechOutcome outcome)
+    {
+        if (_forward is not null) _current.Finished -= _forward;
+        _forward = null;
+        long[] owed;
+        lock (_lock)
+        {
+            owed = [.. _pending];
+            _pending.Clear();
+        }
+        foreach (var id in owed) Finished?.Invoke(this, new SpeechFinished(id, outcome));
+    }
+
+    private bool Forget(long id)
+    {
+        lock (_lock) return _pending.Remove(id);
     }
 }

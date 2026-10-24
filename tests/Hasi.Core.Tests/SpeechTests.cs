@@ -18,13 +18,19 @@ public class SpeechTests
 
         public bool IsSpeaking { get; set; }
 
-        public void Speak(string text) => Spoken.Add(text);
+        public void Speak(string text, long id) => Spoken.Add(text);
 
         public void Stop() => Stops++;
 
         public Task WaitUntilIdleAsync(TimeSpan timeout) => Task.CompletedTask;
 
         public event EventHandler<Exception>? Failed
+        {
+            add { }
+            remove { }
+        }
+
+        public event EventHandler<SpeechFinished>? Finished
         {
             add { }
             remove { }

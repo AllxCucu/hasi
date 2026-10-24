@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Speech.Synthesis;
+using Hasi.Core.Output;
 using Hasi.Core.Speech;
 
 namespace Hasi.Speech;
@@ -14,6 +15,7 @@ public sealed class Sapi5Engine : ISpeechEngine, ISpeechMetrics, ISpeechSettings
 
     private readonly SpeechSynthesizer _synthesizer = new();
     private readonly Dictionary<Prompt, Stopwatch> _prompts = [];
+    private readonly Dictionary<Prompt, long> _ids = [];
     private readonly HashSet<Prompt> _started = [];
     private readonly Stopwatch _stopClock = new();
     private SpeechSettings _settings = new();
@@ -42,11 +44,22 @@ public sealed class Sapi5Engine : ISpeechEngine, ISpeechMetrics, ISpeechSettings
                 _stopClock.Stop();
                 Report("stop", _stopClock.Elapsed.TotalMilliseconds, "SpeakCompleted(cancelled) received");
             }
+            // SAPI raises SpeakCompleted once per prompt, cancelled ones included; with the default audio device as
+            // output it comes after the device has played the prompt's last sound. Reported before Failed, so the
+            // fallback chain hears about this message first.
+            if (_ids.Remove(e.Prompt, out var id))
+            {
+                var outcome = e.Cancelled ? SpeechOutcome.Cancelled : e.Error is not null ? SpeechOutcome.Failed : SpeechOutcome.Completed;
+                Finished?.Invoke(this, new SpeechFinished(id, outcome));
+            }
             if (!e.Cancelled && e.Error is not null) Failed?.Invoke(this, e.Error);
         };
     }
 
     public event EventHandler<Exception>? Failed;
+
+    /// <summary>Raised on the thread that created the engine (System.Speech posts its events to that thread's context).</summary>
+    public event EventHandler<SpeechFinished>? Finished;
 
     public event EventHandler<SpeechMetric>? MetricReported;
 
@@ -75,7 +88,12 @@ public sealed class Sapi5Engine : ISpeechEngine, ISpeechMetrics, ISpeechSettings
 
     public void SelectVoice(string name) => _synthesizer.SelectVoice(name);
 
-    public void Speak(string text) => _prompts[_synthesizer.SpeakAsync(text)] = Stopwatch.StartNew();
+    public void Speak(string text, long id)
+    {
+        var prompt = _synthesizer.SpeakAsync(text);
+        _prompts[prompt] = Stopwatch.StartNew();
+        _ids[prompt] = id;
+    }
 
     public void Stop()
     {
