@@ -16,6 +16,8 @@ Cuprins:
 7. Riscuri
 8. Deciziile tale
 9. Ce s-a schimbat după verificarea cu Codex
+10. Ce s-a schimbat la modulul 2
+11. Ce s-a schimbat la modulul 3
 
 ---
 
@@ -46,8 +48,8 @@ respectă asta deja.
 |---|---|---|
 | 0 | Corecturile din 0.11 (**făcute**) | Mici; le auzi la prima oprire, împreună cu modulul 1. |
 | 1 | Ceas, dată și calendar (**făcut**, testat 24 octombrie 2026) | Mic. Verifică pe ceva simplu: un modul nou, un fișier de date, timpul simulat în teste. Aduce alegerea unei date, refolosită de agendă. |
-| 2 | Editor de text (**gata pentru testul tău**) | Aduce navigarea în text, alegerea fișierelor, salvarea sigură și locul datelor personale (§5). |
-| 3 | Citire documente | Folosește navigarea din editor; adaugă formatele și „citește tot”. |
+| 2 | Editor de text (**făcut**, testat 24 octombrie 2026) | Aduce navigarea în text, alegerea fișierelor, salvarea sigură și locul datelor personale (§5). |
+| 3 | Citire documente (**gata pentru testul tău**) | Folosește navigarea din editor; adaugă formatele și „citește tot”. |
 | 4 | Calculator | Mic, independent; cere un „profil de taste” (§3.4). |
 | 5 | Agendă | Cere programatorul de evenimente și prioritatea de anunț (§4). |
 | 6 | Manager de fișiere | Folosește alegerea fișierelor din modulul 2 și deschiderea documentelor din 3. |
@@ -417,7 +419,7 @@ depozit (calea e în §0).
 ## 10. Ce s-a schimbat la modulul 2
 
 - **Operațiile în fundal** (§2) se mută la modulul 3, pentru că deschiderea și salvarea fișierelor `.txt` și
-  `.docx` sunt rapide. Decizie a asistentului principal; **de confirmat de tine**.
+  `.docx` sunt rapide. Decizie a asistentului principal, **confirmată de tine** (24 octombrie 2026); făcute în modulul 3.
 - **Confidențialitatea în jurnal**, protecția lucrului nesalvat și locul datelor utilizatorului (`userdata`) au
   apărut acum, cum cerea §9.
 - **Profilul de taste pentru text** („TextEditing”) a apărut acum; planul îl avea la modulul 4.
@@ -425,3 +427,22 @@ depozit (calea e în §0).
   `Hasi.App`; nu există un proiect `Hasi.Platform.Windows`.
 - **Ciorna** are un singur loc: se păstrează un singur document nesalvat.
 - Dezinstalarea șterge acum și datele personale din `userdata` (decizia ta, ADR 0007, decizia 9).
+
+---
+
+## 11. Ce s-a schimbat la modulul 3
+
+- **Operațiile în fundal** (§2) sunt făcute acum, la modulul 3: deschiderea documentelor mari se face în fundal și se
+  poate opri cu Escape. Erau mutate din modulul 2, cu acordul tău.
+- **Ciornele:** una pentru fiecare document nesalvat, cel mult 10; HASI anunță înainte să șteargă cea mai veche.
+  Decizia ta; înlocuiește locul unic din §10.
+- **Progresul vorbirii** este făcut în toate cele patru motoare; cum se detectează sfârșitul mesajului **trebuie
+  verificat după ureche** (scenariile din `faza-1-modul-3.md`).
+- **Profilul de taste „TextReading”:** Enter citește tot, H sare la titluri, Page Down și Page Up trec la
+  pagini sau capitole.
+- **Poziția de citire** nu se salvează dacă închizi cu Alt+F4 în ultimele cel mult 5 secunde (se salvează la 5 secunde
+  și la ieșirea din document).
+- **Verificările Codex** la nucleu au găsit 5 + 7 probleme, toate corectate: confidențialitatea cuvintelor în
+  jurnal, tastele ignorate după confirmarea ieșirii, copii de siguranță mai sigure, emoji și caractere combinate
+  în editor, proprietarul și erorile la „citește tot”, terminarea RHVoice față de redare, raportul vocii de rezervă,
+  cursorul la marginile elementelor de text, ultimele pagini goale din PDF.

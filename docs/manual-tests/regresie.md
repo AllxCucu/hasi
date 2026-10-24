@@ -1,4 +1,4 @@
-# Regresie – o singură sesiune (50 de pași)
+# Regresie – o singură sesiune (55 de pași)
 
 Lista se parcurge de sus în jos, fără să închizi HASI, până la pasul 37. Pașii 1–40 vin din Faza 0; fiecare modul
 din Faza 1 adaugă la final câțiva pași esențiali (secțiunea J și următoarele). Pașii care se pot verifica fără sunet
@@ -17,11 +17,11 @@ Dacă un pas nu sună cum scrie aici, notează numărul pasului și ce ai auzit,
 
 | # | Ce apăs | Ce trebuie să aud |
 |---|---|---|
-| 1 | (nimic, HASI pornește) | „Bun venit în HASI. Meniu principal. 6 opțiuni. Selectat: Ceas și calendar, 1 din 6.”, fără întârziere (M0-01, R-16) |
-| 2 | Săgeata jos de 5 ori, apoi ții apăsată săgeata jos | „Editor de text, 2 din 6.”, „Setări, 3 din 6.”, „Învață tastele, 4 din 6.”, „Despre HASI, 5 din 6.”, „Ieșire, 6 din 6.”, apoi o singură dată [sunet] „Sfârșitul listei. Ieșire, 6 din 6.” (M0-02, M0-03, P-14) |
-| 3 | Control + săgeata sus, apoi Control + săgeata jos | „Ceas și calendar, 1 din 6.”, apoi „Ieșire, 6 din 6.” (M0-04) |
-| 4 | Home, apoi Escape | „Ceas și calendar, 1 din 6.”, apoi „Sunteți în meniul principal. Pentru a închide HASI, alegeți Ieșire.” (M0-07) |
-| 5 | Cu Num Lock **oprit**, de pe tastatura numerică: 2, 2, 8, 8, 2, 2, 5, apoi 0 | „Editor de text, 2 din 6.”, „Setări, 3 din 6.”, „Editor de text, 2 din 6.”, „Ceas și calendar, 1 din 6.”, „Editor de text, 2 din 6.”, „Setări, 3 din 6.”, „Setări. 12 opțiuni. Selectat: Voce, 1 din 12.”, „Meniu principal. Selectat: Setări, 3 din 6.” (R-11, N-05) |
+| 1 | (nimic, HASI pornește) | „Bun venit în HASI. Meniu principal. 7 opțiuni. Selectat: Ceas și calendar, 1 din 7.”, fără întârziere (M0-01, R-16) |
+| 2 | Săgeata jos de 6 ori, apoi ții apăsată săgeata jos | „Editor de text, 2 din 7.”, „Citire documente, 3 din 7.”, „Setări, 4 din 7.”, „Învață tastele, 5 din 7.”, „Despre HASI, 6 din 7.”, „Ieșire, 7 din 7.”, apoi o singură dată [sunet] „Sfârșitul listei. Ieșire, 7 din 7.” (M0-02, M0-03, P-14) |
+| 3 | Control + săgeata sus, apoi Control + săgeata jos | „Ceas și calendar, 1 din 7.”, apoi „Ieșire, 7 din 7.” (M0-04) |
+| 4 | Home, apoi Escape | „Ceas și calendar, 1 din 7.”, apoi „Sunteți în meniul principal. Pentru a închide HASI, alegeți Ieșire.” (M0-07) |
+| 5 | Cu Num Lock **oprit**, de pe tastatura numerică: 2, 2, 2, 8, 8, 8, 2, 2, 2, 5, apoi 0 | „Editor de text, 2 din 7.”, „Citire documente, 3 din 7.”, „Setări, 4 din 7.”, „Citire documente, 3 din 7.”, „Editor de text, 2 din 7.”, „Ceas și calendar, 1 din 7.”, „Editor de text, 2 din 7.”, „Citire documente, 3 din 7.”, „Setări, 4 din 7.”, „Setări. 12 opțiuni. Selectat: Voce, 1 din 12.”, „Meniu principal. Selectat: Setări, 4 din 7.” (R-11, N-05) |
 | 6 | Enter pe Setări, apoi Control + H | „Ajutor pentru Setări. Folosiți săgețile sus și jos …”, care se termină cu „Aici schimbați vocea, viteza vorbirii, culorile și alte preferințe. Fiecare schimbare se salvează imediat.” (M0-08) |
 | 7 | Săgeata jos, apoi Control + R, apoi Control + U | „Viteză, 2 din 12.” de două ori, apoi „Sunteți în: Meniu principal, Setări.” (M0-09, M0-10) |
 | 8 | F1 și, în timp ce vorbește, săgeata jos; apoi F1 și, în timp ce vorbește, Control | vorbirea se oprește imediat și auzi doar „Volum, 3 din 12.”; apoi liniște imediată. Nicio pocnitură, la oprire sau la pornire. (M0-11, M0-12, R-03, R-04) |
@@ -35,7 +35,7 @@ Dacă un pas nu sună cum scrie aici, notează numărul pasului și ce ai auzit,
 | 11 | Viteză: Enter; săgeata dreapta de 2 ori, stânga de 2 ori; Escape | „Viteză. 50, viteza normală. Săgețile stânga și dreapta schimbă valoarea. Enter sau Escape vă întoarce.”, „55”, „60”, „55”, „50, viteza normală”, fiecare cu viteza nouă (S-03) |
 | 12 | Volum: stânga de 2 ori, dreapta de 2 ori; Escape | „90”, „80” (tot mai încet), „90”, „100, volumul maxim” (S-04) |
 | 13 | Culori → „Negru pe galben”, Enter; apoi înapoi la „Galben pe negru” | „Culori: Negru pe galben.” și ecranul se schimbă imediat; apoi „Culori: Galben pe negru.” (S-08) |
-| 14 | Capătul listei → „Salt la celălalt capăt”; Escape; în meniul principal End, apoi săgeata jos | „Capătul listei: Salt la celălalt capăt. …”; apoi [sunet] „Ceas și calendar, 1 din 6.” Pui la loc „Oprire la capăt, cu sunet”. (S-09) |
+| 14 | Capătul listei → „Salt la celălalt capăt”; Escape; în meniul principal End, apoi săgeata jos | „Capătul listei: Salt la celălalt capăt. …”; apoi [sunet] „Ceas și calendar, 1 din 7.” Pui la loc „Oprire la capăt, cu sunet”. (S-09) |
 | 15 | Ecoul tastelor → „Fiecare cuvânt” | „Ecoul tastelor: Fiecare cuvânt. Setări. Selectat: Ecoul tastelor, 5 din 12.” (S-06, continuă la pasul 18) |
 
 ## C. Test pronunție (Setări → Diagnostic → Test pronunție)
@@ -66,8 +66,8 @@ Enter nu golește câmpul. Ca să pornești de la un câmp gol, apeși Escape, a
 | # | Ce apăs | Ce trebuie să aud |
 |---|---|---|
 | 27 | Escape, Escape; Învață tastele; apoi: săgeata jos, Control + săgeata sus, `ș`, Control + Shift + D, Alt + F4 | „Învață tastele. Apăsați orice tastă …”, „Săgeata jos: trece la opțiunea următoare.”, „Control plus săgeata sus: duce la prima opțiune.”, „Litera ș: când scrieți, scrie acest caracter. …”, „Control plus Shift plus litera D: pornește sau oprește modul de diagnostic.”, „Alt plus F4: închide HASI, după confirmare.”. Nimic nu se execută. (K-02…K-06, G-04) |
-| 28 | Escape, altă tastă, apoi Escape de două ori la rând | „Escape: înapoi la ecranul anterior. Apăsați încă o dată Escape …”; după al doilea Escape la rând: „Meniu principal. Selectat: Învață tastele, 4 din 6.” (K-07) |
-| 29 | Despre HASI; săgeata jos până la capăt | 12 rânduri; rândul 4: „Sinteza vocală RHVoice versiunea 1.18.4, de Olga Yakovleva și colaboratorii. …”, terminat cu „Sursa exactă este indicată în fișierul de licențe”, **fără commit în voce**; pe ecran apare și „(commit fa9dd196)”; rândul 7: MULTEXT-East; rândul 9: System.Speech; ultimul rând: „Citirea și scrierea documentelor Word, cu Open XML SDK, de la .NET Foundation, sub licența MIT” (D-01, M0-20) |
+| 28 | Escape, altă tastă, apoi Escape de două ori la rând | „Escape: înapoi la ecranul anterior. Apăsați încă o dată Escape …”; după al doilea Escape la rând: „Meniu principal. Selectat: Învață tastele, 5 din 7.” (K-07) |
+| 29 | Despre HASI; săgeata jos până la capăt | 15 rânduri; rândul 4: „Sinteza vocală RHVoice versiunea 1.18.4, de Olga Yakovleva și colaboratorii. …”, terminat cu „Sursa exactă este indicată în fișierul de licențe”, **fără commit în voce**; pe ecran apare și „(commit fa9dd196)”; rândul 7: MULTEXT-East; rândul 9: System.Speech; rândul 12: „Citirea și scrierea documentelor Word, cu Open XML SDK, de la .NET Foundation, sub licența MIT”; rândurile 13–15: PdfPig, VersOne.Epub; ultimul rând: „Extragerea textului din cărți, cu Html Agility Pack, de ZZZ Projects și colaboratorii, sub licența MIT” (D-01, M0-20) |
 
 ## F. Ieșire, fără să închizi nimic
 
@@ -119,6 +119,16 @@ Enter nu golește câmpul. Ca să pornești de la un câmp gol, apeși Escape, a
 | 48 | Control + S; Enter fără să scrii nimic | „Numele documentului. … se folosește numele propus: Dragă Ana.”; „Documentul a fost salvat: Dragă Ana.” |
 | 49 | Escape; End, Enter pe Documente recente; Enter; Control + End; scrii ` Pa!`; Escape; Enter | „Documente recente. 1 document. Selectat: Dragă Ana, 1 din 1.”; documentul se deschide; „Sfârșitul documentului.”; „Documentul are modificări nesalvate. Ce doriți să faceți? 3 opțiuni. Selectat: Salvează și ieși, 1 din 3.”; „Documentul a fost salvat. Editor de text. …” |
 | 50 | Document nou, scrii o literă; Alt + F4; Escape; apoi Escape din nou, săgeata jos, Enter pe „Ieși fără să salvezi” | „Documentul … are modificări nesalvate. Ce doriți să faceți? 3 opțiuni. Selectat: Salvează și continuă, 1 din 3.”; după Escape: „Anulat.”; apoi întrebarea editorului (Salvează și ieși, 1 din 3) și „Modificările se vor pierde.” |
+
+## L. Faza 1, modulul 3: Citire documente (pornești HASI din nou; ai nevoie de un document PDF cu text și, dacă ai, de o carte EPUB)
+
+| # | Ce apăs | Ce trebuie să aud |
+|---|---|---|
+| 51 | Pornești HASI; săgeata jos de 2 ori; Enter pe Citire documente; Enter pe Deschide un document | „Citire documente. 2 opțiuni. Selectat: Deschide un document, 1 din 2.”; apoi lista locurilor. Documentele PDF se aud „…, document PDF”, cărțile „…, carte EPUB”. |
+| 52 | Alegi un document PDF cu text; Enter | titlul și primul rând; dacă are pagini scanate, o singură dată: „Pagina … este o imagine scanată.” |
+| 53 | Enter (Citește tot); după o propoziție sau două, apeși săgeata dreapta | HASI citește propoziție cu propoziție, fără pauze lungi și fără să taie ultimul cuvânt; la tastă tace, fără niciun mesaj. Enter din nou repetă propoziția întreruptă. |
+| 54 | Page Down de 2 ori; Page Up; F10, Spune poziția, Enter | „Pagina … din …. …” de fiecare dată; „Rândul … din …. Pagina … din ….” |
+| 55 | Escape; Documente recente, Enter; Enter pe document | „Documente recente. 1 document. Selectat: …, pagina …, 1 din 1.”; documentul se deschide cu „Continui de la pagina ….” |
 
 ## În afara sesiunii (o dată, înainte de 0.11)
 
