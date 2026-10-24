@@ -3,9 +3,10 @@ using Hasi.Core.Output;
 
 namespace Hasi.Core.Screens;
 
-/// <param name="Label">What is said and shown for the item.</param>
+/// <param name="Label">What is said for the item, and shown unless DisplayLabel is supplied.</param>
 /// <param name="Activate">Runs on Enter. When null, Enter says the item again (reading lists).</param>
-public sealed record MenuItem(string Label, Func<IScreenContext, ScreenResult>? Activate = null);
+/// <param name="DisplayLabel">What the screen shows, when it differs from Label.</param>
+public sealed record MenuItem(string Label, Func<IScreenContext, ScreenResult>? Activate = null, string? DisplayLabel = null);
 
 /// <summary>A vertical list of items: the basic building block of HASI.</summary>
 /// <param name="initialIndex">The item selected when the screen opens (clamped to the list).</param>
@@ -31,10 +32,10 @@ public class MenuScreen(
     {
         var l = context.Localizer;
         if (Items.Count == 0) return l.Get("menu.empty", ("title", Title));
-        return reason == EnterReason.Return
-            ? l.Get("menu.return", ("title", Title), ("item", Selected!.Label), ("index", SelectedIndex + 1), ("total", Items.Count))
+        return AnnounceSelected(label => reason == EnterReason.Return
+            ? l.Get("menu.return", ("title", Title), ("item", label), ("index", SelectedIndex + 1), ("total", Items.Count))
             : l.Get("menu.enter", ("title", Title), ("count", l.Plural(countKey, Items.Count)),
-                ("item", Selected!.Label), ("index", SelectedIndex + 1), ("total", Items.Count));
+                ("item", label), ("index", SelectedIndex + 1), ("total", Items.Count)));
     }
 
     public virtual ScreenResult Handle(InputEvent input, IScreenContext context)
@@ -74,9 +75,7 @@ public class MenuScreen(
         }
 
         var key = delta > 0 ? "menu.endOfList" : "menu.startOfList";
-        return ScreenResult.Say(new Utterance(
-            context.Localizer.Get(key, ("item", Selected!.Label), ("index", SelectedIndex + 1), ("total", Items.Count)),
-            Earcon: Earcon.EdgeOfList));
+        return ScreenResult.Say(ItemAnnouncement(context, key) with { Earcon = Earcon.EdgeOfList });
     }
 
     private ScreenResult MoveTo(int index, IScreenContext context)
@@ -85,6 +84,11 @@ public class MenuScreen(
         return ScreenResult.Say(ItemAnnouncement(context));
     }
 
-    private Utterance ItemAnnouncement(IScreenContext context) =>
-        context.Localizer.Get("menu.item", ("item", Selected!.Label), ("index", SelectedIndex + 1), ("total", Items.Count));
+    private Utterance ItemAnnouncement(IScreenContext context, string key = "menu.item") =>
+        AnnounceSelected(label => context.Localizer.Get(key,
+            ("item", label), ("index", SelectedIndex + 1), ("total", Items.Count)));
+
+    private Utterance AnnounceSelected(Func<string, string> format) => new(
+        format(Selected!.Label),
+        DisplayText: Selected.DisplayLabel is { } display ? format(display) : null);
 }

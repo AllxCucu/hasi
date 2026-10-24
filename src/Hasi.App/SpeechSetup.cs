@@ -50,11 +50,16 @@ internal sealed class SpeechSetup
     }
 
     /// <summary>
-    /// Where HASI looks for RHVoice.dll and the voice data when no --rhvoice-path is given: next to the
-    /// executable (the future installer, phase 0.11), then the user's HASI folder (the tester's copy).
+    /// Where HASI looks for RHVoice.dll and the voice data when no --rhvoice-path is given:
+    /// first &lt;exe&gt;\rhvoice; only in Debug builds, then %LOCALAPPDATA%\HASI.Dev\rhvoice.
     /// </summary>
     public static string[] DefaultRhVoiceFolders =>
-        [Path.Combine(AppContext.BaseDirectory, "rhvoice"), Path.Combine(AppPaths.LocalData, "rhvoice")];
+        [
+            Path.Combine(AppContext.BaseDirectory, "rhvoice"),
+#if DEBUG
+            AppPaths.DevRhVoice,
+#endif
+        ];
 
     /// <summary>How long the audio stream stays open without speech (settings or --audio-idle-seconds; 0 = always open).</summary>
     private TimeSpan AudioIdleTimeout { get; }

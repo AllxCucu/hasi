@@ -172,6 +172,10 @@ done before the installer milestone. If any of those fails, stay on SAPI and fix
 The CI build from a pinned commit (plan above) is implemented before phase 0.11, not now. Until then HASI looks
 for the DLL and Paul's data in `<HASI folder>\rhvoice` and `%LOCALAPPDATA%\HASI\rhvoice` (or `--rhvoice-path`).
 
+2026-10-24: The default search now checks `<exe>\rhvoice` first, then only in Debug builds
+`%LOCALAPPDATA%\HASI.Dev\rhvoice`, outside the folder removed by uninstall (ADR 0007, decision 11).
+`%LOCALAPPDATA%\HASI\rhvoice` is no longer searched; `--rhvoice-path` still overrides the defaults.
+
 ## Follow-up (2026-10-23): idle stream and voice preloading
 
 **Problem raised by the owner:** a stream kept open forever (playing silence) can stop the computer from going to

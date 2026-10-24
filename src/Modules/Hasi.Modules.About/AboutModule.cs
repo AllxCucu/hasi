@@ -21,7 +21,7 @@ public sealed class AboutModule : IModule
             new(l.Get("about.name", ("version", context.Application.Version))),
             new(l.Get("about.purpose")),
             new(l.Get("about.license")),
-            new(l.Get("about.rhvoice")),
+            new(l.Get("about.rhvoice"), DisplayLabel: l.Get("about.rhvoice.display")),
             new(l.Get("about.paul")),
             new(l.Get("about.romanianData")),
             new(l.Get("about.multext")),

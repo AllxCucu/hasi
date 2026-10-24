@@ -41,7 +41,7 @@ try {
     dotnet tool restore
     if ($LASTEXITCODE -ne 0) { throw 'dotnet tool restore failed' }
     dotnet vpk pack --packId HASI.App --packTitle HASI --packAuthors 'HASI contributors' --packVersion $Version `
-        --packDir $publish --mainExe hasi.exe --outputDir $Output
+        --packDir $publish --mainExe hasi.exe --outputDir $Output --noPortable
     if ($LASTEXITCODE -ne 0) { throw 'vpk pack failed' }
     Get-ChildItem $Output | Select-Object Name, @{ n = 'MB'; e = { [math]::Round($_.Length / 1MB, 1) } } | Format-Table -AutoSize
 }

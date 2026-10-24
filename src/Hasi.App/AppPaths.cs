@@ -10,6 +10,12 @@ internal static class AppPaths
     public static string LocalData { get; } =
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "HASI");
 
+#if DEBUG
+    /// <summary>Development-only RHVoice copy, outside the folder removed by uninstall.</summary>
+    public static string DevRhVoice { get; } =
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "HASI.Dev", "rhvoice");
+#endif
+
     public static string DiagnosticFolder => Path.Combine(LocalData, "diagnostic");
 
     /// <summary>Roaming, so the settings follow the user to another computer of the same domain.</summary>

@@ -132,11 +132,11 @@ dotnet run --project src/Hasi.App                       # add: -- --diagnostic -
 
 - User settings: `%APPDATA%\HASI\settings.json` (`UserSettings`, schema version 1, migrations in `SettingsFile`).
   Command-line options override them for the session and are saved only when changed in Settings.
-- Default engine: RHVoice.dll from `<exe>\rhvoice` or `%LOCALAPPDATA%\HASI\rhvoice` (ADR 0004); the CI build of
-  RHVoice.dll must be done before phase 0.11.
+- Default engine: RHVoice.dll from `<exe>\rhvoice`, then only in Debug builds `%LOCALAPPDATA%\HASI.Dev\rhvoice`
+  (ADRs 0004, 0007); the CI build of RHVoice.dll must be done before phase 0.11.
 
 - RHVoice.dll binaries (until the CI build exists) live outside the repository, in
-  `%LOCALAPPDATA%\HASI\rhvoice` on the owner's PC. Never commit them.
+  `%LOCALAPPDATA%\HASI.Dev\rhvoice` on the owner's PC (Debug builds only). Never commit them.
 - Git author for this repository: the GitHub noreply address (local config). Never rewrite published
   history without the owner's explicit approval.
 
