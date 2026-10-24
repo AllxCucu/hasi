@@ -29,6 +29,7 @@ public sealed class AboutModule : IModule
             new(l.Get("about.systemSpeech")),
             new(l.Get("about.dotnet")),
             new(l.Get("about.velopack")),
+            new(l.Get("about.openXml")),
         ];
         return new MenuScreen(l.Get(TitleKey), lines, help: l.Get("about.help"), countKey: MenuScreen.LinesCountKey);
     }

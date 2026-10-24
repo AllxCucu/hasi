@@ -10,23 +10,25 @@
 > Down
 < Despre HASI, 4 din 5.
 > Enter
-< Despre HASI. 11 rânduri. Selectat: HASI, Human Assisted Information, versiunea 0.1.0, 1 din 11.
+< Despre HASI. 12 rânduri. Selectat: HASI, Human Assisted Information, versiunea 0.1.0, 1 din 12.
 > Down
-< Mediu de lucru vorbit pentru nevăzători și slabvăzători, 2 din 11.
+< Mediu de lucru vorbit pentru nevăzători și slabvăzători, 2 din 12.
 > Down
-< HASI este program liber, sub Licența Publică Generală GNU, versiunea 3 sau ulterioară. Este oferit fără nicio garanție, 3 din 11.
+< HASI este program liber, sub Licența Publică Generală GNU, versiunea 3 sau ulterioară. Este oferit fără nicio garanție, 3 din 12.
 > Down
-< Sinteza vocală RHVoice versiunea 1.18.4, de Olga Yakovleva și colaboratorii. Biblioteca e distribuită sub licența GNU GPL, versiunea 3 sau ulterioară; are părți sub GNU GPL 2 sau ulterioară, GNU LGPL 2.1 sau ulterioară și GNU LGPL 3 sau ulterioară. Sursa exactă este indicată în fișierul de licențe, 4 din 11.
+< Sinteza vocală RHVoice versiunea 1.18.4, de Olga Yakovleva și colaboratorii. Biblioteca e distribuită sub licența GNU GPL, versiunea 3 sau ulterioară; are părți sub GNU GPL 2 sau ulterioară, GNU LGPL 2.1 sau ulterioară și GNU LGPL 3 sau ulterioară. Sursa exactă este indicată în fișierul de licențe, 4 din 12.
 > Down
-< Vocea românească Paul, de Stefan Moisei, Paul Bogorin și Zvonimir Stanecic, cu egalizare de Tomasz Bilecki, sub licența Creative Commons Atribuire, Distribuire în condiții identice, versiunea 4.0, 5 din 11.
+< Vocea românească Paul, de Stefan Moisei, Paul Bogorin și Zvonimir Stanecic, cu egalizare de Tomasz Bilecki, sub licența Creative Commons Atribuire, Distribuire în condiții identice, versiunea 4.0, 5 din 12.
 > Down
-< Datele limbii române pentru RHVoice, de Stefan Moisei, sub licența GNU LGPL, 6 din 11.
+< Datele limbii române pentru RHVoice, de Stefan Moisei, sub licența GNU LGPL, 6 din 12.
 > Down
-< Genul substantivelor, din lexiconul românesc MULTEXT-East, versiunea 4, de Tomaž Erjavec, Dan Tufiș și colaboratorii, Institutul Jožef Stefan, sub licența Creative Commons Atribuire, Distribuire în condiții identice, versiunea 4.0, 7 din 11.
+< Genul substantivelor, din lexiconul românesc MULTEXT-East, versiunea 4, de Tomaž Erjavec, Dan Tufiș și colaboratorii, Institutul Jožef Stefan, sub licența Creative Commons Atribuire, Distribuire în condiții identice, versiunea 4.0, 7 din 12.
 > Down
-< Redarea sunetului, cu biblioteca NAudio, de Mark Heath și colaboratorii, sub licența MIT, 8 din 11.
+< Redarea sunetului, cu biblioteca NAudio, de Mark Heath și colaboratorii, sub licența MIT, 8 din 12.
 > Down
-< Componenta System.Speech, de la .NET Foundation, sub licența MIT, 9 din 11.
+< Componenta System.Speech, de la .NET Foundation, sub licența MIT, 9 din 12.
+> End
+< Citirea și scrierea documentelor Word, cu Open XML SDK, de la .NET Foundation, sub licența MIT, 12 din 12.
 > Escape
 < Meniu principal. Selectat: Despre HASI, 4 din 5.
 

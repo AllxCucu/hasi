@@ -2,6 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/Hasi.App/Hasi.App.csproj" />
     <Project Path="src/Hasi.Core/Hasi.Core.csproj" />
+    <Project Path="src/Hasi.Documents/Hasi.Documents.csproj" />
     <Project Path="src/Hasi.Speech/Hasi.Speech.csproj" />
     <Project Path="src/Hasi.Text.Ro/Hasi.Text.Ro.csproj" />
   </Folder>
@@ -15,6 +16,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/Hasi.Architecture.Tests/Hasi.Architecture.Tests.csproj" />
     <Project Path="tests/Hasi.Core.Tests/Hasi.Core.Tests.csproj" />
+    <Project Path="tests/Hasi.Documents.Tests/Hasi.Documents.Tests.csproj" />
     <Project Path="tests/Hasi.Speech.Tests/Hasi.Speech.Tests.csproj" />
     <Project Path="tests/Hasi.Testing/Hasi.Testing.csproj" />
     <Project Path="tests/Hasi.Text.Ro.Tests/Hasi.Text.Ro.Tests.csproj" />

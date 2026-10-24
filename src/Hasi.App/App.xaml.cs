@@ -15,6 +15,7 @@ using Hasi.Core.Screens;
 using Hasi.Core.Settings;
 using Hasi.Core.Speech;
 using Hasi.Core.Updates;
+using Hasi.Documents;
 using Hasi.Modules.About;
 using Hasi.Modules.Clock;
 using Hasi.Modules.Exit;
@@ -143,7 +144,7 @@ public partial class App : Application, ISystemActions
         var autostart = new RegistryAutostart(_log);
         var updates = new UpdateFlow(CreateUpdates(options, settings, version), settings, _shell, localizer, _log);
         var context = new ModuleContext(localizer, _shell, new ApplicationInfo(version), normalizer, comparison, settings, _diagnostics,
-            autostart, updates, _shell.Time, Files: new WindowsFileSystem());
+            autostart, updates, _shell.Time, Documents: new DocumentFormats(), Files: new WindowsFileSystem());
 
         _shell.ScreenChanged += (_, _) => _window.ShowTitle(_shell.Current.Title);
         _window.ProducesText = chord => TextRouting.ProducesText(chord, _keyMap, _shell.IsTextEntryActive, ShellWindow.NumLockOn);

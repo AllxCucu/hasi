@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Hasi.Core\Hasi.Core.csproj" />
+    <ProjectReference Include="..\Hasi.Documents\Hasi.Documents.csproj" />
     <ProjectReference Include="..\Hasi.Speech\Hasi.Speech.csproj" />
     <ProjectReference Include="..\Hasi.Text.Ro\Hasi.Text.Ro.csproj" />
     <ProjectReference Include="..\Modules\Hasi.Modules.Clock\Hasi.Modules.Clock.csproj" />

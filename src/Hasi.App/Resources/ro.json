@@ -279,6 +279,7 @@
   "about.systemSpeech": "Componenta System.Speech, de la .NET Foundation, sub licența MIT",
   "about.dotnet": "Platforma .NET, inclusiv WPF, de la .NET Foundation și Microsoft, sub licența MIT",
   "about.velopack": "Instalarea și actualizările, cu Velopack, de Velopack Ltd, Caelan Sayler și colaboratorii, sub licența MIT",
+  "about.openXml": "Citirea și scrierea documentelor Word, cu Open XML SDK, de la .NET Foundation, sub licența MIT",
 
   "exit.title": "Ieșire",
   "exit.closeHasi": "Închide HASI",

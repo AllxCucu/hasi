@@ -48,9 +48,20 @@ public class DependencyRulesTests
     [Theory]
     [InlineData("Hasi.Speech")]
     [InlineData("Hasi.Text.Ro")]
+    [InlineData("Hasi.Documents")]
     public void Services_depend_only_on_core_among_hasi_assemblies(string assembly)
     {
         Assert.All(HasiReferences(assembly), r => Assert.Equal("Hasi.Core", r));
+    }
+
+    [Fact]
+    public void Document_formats_do_not_reference_windows_specific_assemblies()
+    {
+        var references = Assembly.Load("Hasi.Documents").GetReferencedAssemblies().Select(a => a.Name!);
+        Assert.DoesNotContain(references, n =>
+            n.Contains("Windows", StringComparison.OrdinalIgnoreCase)
+            || n.StartsWith("Presentation", StringComparison.Ordinal)
+            || n == "System.Speech");
     }
 
     [Fact]

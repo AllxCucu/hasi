@@ -65,3 +65,17 @@ Every entry here must also appear in the spoken "Despre HASI" screen.
 - License: MIT
 - Source: https://github.com/velopack/velopack
 - The installer, the uninstaller and the updates (`Update.exe`, the `Velopack` library).
+
+### Open XML SDK (DocumentFormat.OpenXml, DocumentFormat.OpenXml.Framework 3.5.1)
+- Copyright: .NET Foundation and Contributors (the package metadata says "© Microsoft Corporation")
+- License: MIT
+- Source: https://github.com/dotnet/Open-XML-SDK
+- Reading and writing Word documents (.docx), in `Hasi.Documents`.
+
+### System.IO.Packaging 10.0.2
+- Copyright: .NET Foundation and Contributors
+- License: MIT
+- Source: https://github.com/dotnet/runtime
+- The zip package layer under the Open XML SDK (a dependency of DocumentFormat.OpenXml.Framework). In the
+  application the copy from the .NET Windows Desktop runtime above is used; the NuGet package only builds
+  `Hasi.Documents` and its tests.
