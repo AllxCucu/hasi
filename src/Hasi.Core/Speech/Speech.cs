@@ -90,7 +90,26 @@ public sealed class SpeechOutputChannel : IOutputChannel
         _engine = engine;
         _earcons = earcons;
         _log = log;
-        _engine.Finished += (_, finished) => Finished?.Invoke(this, finished);
+        _engine.Finished += (_, finished) =>
+        {
+            lock (_private) _private.Remove(finished.Id);
+            Finished?.Invoke(this, finished);
+        };
+    }
+
+    /// <summary>Ids of private announcements (<see cref="Utterance.Sensitive"/>) not yet reported finished.</summary>
+    private readonly HashSet<long> _private = [];
+
+    /// <summary>
+    /// True while a private announcement may still be heard. Engine callbacks about words come later than the screen
+    /// that said them may have closed, so the host masks them by this, not by the current screens. Any thread.
+    /// </summary>
+    public bool SpeakingPrivate
+    {
+        get
+        {
+            lock (_private) return _private.Count > 0;
+        }
     }
 
     /// <summary>
@@ -116,6 +135,10 @@ public sealed class SpeechOutputChannel : IOutputChannel
             // The id matches the SPEECH line that reports how the message ended.
             _log.Write("SPEAK", $"engine={_engine.Id} text=\"{text}\" id={announcement.Id}");
         }
+        if (utterance.Sensitive)
+        {
+            lock (_private) _private.Add(announcement.Id);
+        }
         try
         {
             _engine.Speak(announcement.SpokenText, announcement.Id);
@@ -123,6 +146,7 @@ public sealed class SpeechOutputChannel : IOutputChannel
         catch
         {
             // An engine that throws has not queued the message, so it would never report it.
+            lock (_private) _private.Remove(announcement.Id);
             Finished?.Invoke(this, new SpeechFinished(announcement.Id, SpeechOutcome.Failed));
             throw;
         }

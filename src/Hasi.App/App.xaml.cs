@@ -101,7 +101,11 @@ public partial class App : Application, ISystemActions
         var savedSettings = SettingsFile.Load(AppPaths.SettingsFile, out var settingsProblem);
         if (settingsProblem is not null) _log.Write("ERROR", $"settings file: {settingsProblem}");
         var effectiveSettings = AppSettingsService.Effective(savedSettings, options);
-        var speech = new SpeechSetup(options, effectiveSettings, _log, localizer) { IsPrivate = () => _shell?.IsSensitive == true };
+        SpeechOutputChannel? speechChannelForPrivacy = null;
+        var speech = new SpeechSetup(options, effectiveSettings, _log, localizer)
+        {
+            IsPrivate = () => _shell?.IsSensitive == true || speechChannelForPrivacy?.SpeakingPrivate == true,
+        };
         var (engine, voiceNotice) = speech.CreateMainEngine(localizer);
         _engine = engine;
         _log.Write("ENGINE", $"{engine.Id} voice=\"{engine.CurrentVoiceName}\"");
@@ -112,6 +116,7 @@ public partial class App : Application, ISystemActions
         var earcons = new ToneEarconPlayer();
         _disposables.Add(earcons);
         var speechChannel = new SpeechOutputChannel(engine, earcons, _log);
+        speechChannelForPrivacy = speechChannel;
         speechChannel.Finished += (_, finished) =>
             // Reported on any thread (the audio thread for RHVoice), sometimes from inside an announcement: always
             // posted, so the shell sees it later, on its own thread, never in the middle of saying something.

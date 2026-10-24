@@ -88,6 +88,9 @@ public interface IShellServices
     /// </summary>
     ScreenResult GuardUnsaved(Func<ScreenResult> proceed);
 
+    /// <summary>HASI is about to close or restart (an update): from now on keys are ignored, so nothing typed can be lost.</summary>
+    void BeginClosing();
+
     /// <summary>
     /// Runs <paramref name="work"/> off the shell's thread. When it ends, <paramref name="onDone"/> runs on the shell's
     /// thread and its result is applied, but only if <paramref name="owner"/> is still the current screen and the job was

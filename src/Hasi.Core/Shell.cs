@@ -75,8 +75,22 @@ public sealed class Shell : IShellServices, IScreenContext
     /// </summary>
     private bool _sensitiveTurn;
 
+    /// <summary>
+    /// HASI is closing (after "La revedere" or before installing an update): keys are ignored, so nothing typed now can
+    /// be lost after the unsaved-work question was answered.
+    /// </summary>
+    public bool IsClosing { get; private set; }
+
+    public void BeginClosing()
+    {
+        if (IsClosing) return;
+        IsClosing = true;
+        _log.Write("CLOSING", "keys ignored from now on");
+    }
+
     public void Dispatch(InputEvent input)
     {
+        if (IsClosing) return;
         if (_stack.Count == 0) throw new InvalidOperationException("The shell has not been started.");
 
         if (input.IsRepeat && !input.Command.RepeatsWhenHeld()) return;
@@ -159,6 +173,7 @@ public sealed class Shell : IShellServices, IScreenContext
     /// </summary>
     public void Interrupt(KeyChord key)
     {
+        if (IsClosing) return;
         // That key names the character it types: masked like the character.
         _log.Write("KEY", IsSensitive ? "*" : key.ToString());
         _announcer.Silence();
@@ -272,6 +287,7 @@ public sealed class Shell : IShellServices, IScreenContext
         Localizer.Get("shell.exit.confirm"),
         () =>
         {
+            BeginClosing();
             _system.RequestExit();
             return ScreenResult.Say(Localizer.Get("shell.exit.goodbye"));
         }));
@@ -370,6 +386,7 @@ public sealed class Shell : IShellServices, IScreenContext
 
         ScreenResult RequestPower(PowerAction requested, bool force)
         {
+            if (simulated) BeginClosing(); // A simulated restart only closes HASI.
             _system.RequestPower(requested, force);
             return ScreenResult.Say(Localizer.Get(simulated ? "power.simulatedGoodbye" : PowerKey(requested, "goodbye")));
         }
@@ -549,7 +566,10 @@ public sealed class Shell : IShellServices, IScreenContext
     private void OnScreenChanged()
     {
         // The title of a private screen names a document or a person.
-        _log.Write("SCREEN", string.Join(" > ", _stack.Select(s => s is ISensitiveScreen ? "***" : s.Title)));
+        // From the first private screen up, every title is masked: a screen opened above it (a menu, a name field)
+        // may carry the document's name.
+        var firstPrivate = _stack.FindIndex(s => s is ISensitiveScreen);
+        _log.Write("SCREEN", string.Join(" > ", _stack.Select((s, i) => firstPrivate >= 0 && i >= firstPrivate ? "***" : s.Title)));
         _jobs.CancelLeft(_stack); // Leaving a screen stops the work it started.
         ScreenChanged?.Invoke(this, EventArgs.Empty);
     }

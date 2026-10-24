@@ -105,7 +105,15 @@ public sealed partial class JsonUserDataStore : IUserDataStore
         var backup = Path.Combine(BackupFolder, $"{name}-{day}.json");
         if (File.Exists(backup)) return;
         Directory.CreateDirectory(BackupFolder);
-        File.Copy(path, backup);
+        // Copied under a temporary name, flushed, then renamed: an interrupted copy never looks like a finished backup.
+        var temporary = backup + ".tmp";
+        using (var source = File.OpenRead(path))
+        using (var target = new FileStream(temporary, FileMode.Create, FileAccess.Write, FileShare.None))
+        {
+            source.CopyTo(target);
+            target.Flush(flushToDisk: true);
+        }
+        File.Move(temporary, backup, overwrite: true);
         foreach (var old in Backups(name).Skip(BackupsKept)) TryDelete(old);
     }
 

@@ -154,6 +154,8 @@ public sealed class UpdateFlow(IUpdateService updates, ISettingsService settings
                 // Something may have been typed during the download: asked about again before HASI closes.
                 shell.Show(shell.GuardUnsaved(() =>
                 {
+                    // Nothing typed from now on could be saved: keys are ignored until HASI restarts.
+                    shell.BeginClosing();
                     // Said first: applying waits only for the speech already started.
                     shell.Show(Say("update.ready"));
                     updates.ApplyAndRestart();
