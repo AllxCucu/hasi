@@ -20,6 +20,12 @@ public interface IModule
     string TitleKey { get; }
 
     IScreen CreateRootScreen(IModuleContext context);
+
+    /// <summary>
+    /// Said or shown once after the welcome, when the module has something to tell (a document left unsaved by a
+    /// serious error or a power cut); null when not.
+    /// </summary>
+    ScreenResult? OnStartup(IModuleContext context) => null;
 }
 
 public interface IModuleContext
@@ -49,6 +55,15 @@ public interface IModuleContext
 
     /// <summary>Checking for and installing updates, or null when the host has none.</summary>
     Updates.UpdateFlow? Updates { get; }
+
+    /// <summary>The user's personal data (drafts, recent documents), or null when the host keeps none.</summary>
+    Storage.IUserDataStore? UserData { get; }
+
+    /// <summary>Reading and writing .txt and .docx, or null when the host has no document support.</summary>
+    Documents.IDocumentFormats? Documents { get; }
+
+    /// <summary>The disk as HASI shows it (places, folders, files), or null when the host has none.</summary>
+    Files.IFileSystem? Files { get; }
 }
 
 /// <summary>Shell features that modules may trigger.</summary>
@@ -65,6 +80,13 @@ public interface IShellServices
 
     /// <summary>Applies a result that arrives later (see <see cref="Shell.Show"/>); on the shell's thread only.</summary>
     void Show(ScreenResult result, UtterancePriority priority = UtterancePriority.Interrupt);
+
+    /// <summary>
+    /// Runs <paramref name="proceed"/> at once when no open screen has unsaved work (<see cref="IUnsavedWork"/>);
+    /// otherwise first asks what to do with it: save and continue, continue without saving (confirmed), or stay.
+    /// Used before closing HASI, restarting or shutting down, and installing an update.
+    /// </summary>
+    ScreenResult GuardUnsaved(Func<ScreenResult> proceed);
 }
 
 /// <summary>Host operations the core may request, implemented by the application.</summary>
@@ -100,7 +122,10 @@ public sealed record ModuleContext(
     IDiagnosticsService? Diagnostics = null,
     IAutostartService? Autostart = null,
     Updates.UpdateFlow? Updates = null,
-    TimeProvider? Time = null) : IModuleContext
+    TimeProvider? Time = null,
+    Storage.IUserDataStore? UserData = null,
+    Documents.IDocumentFormats? Documents = null,
+    Files.IFileSystem? Files = null) : IModuleContext
 {
     public TimeProvider Time { get; init; } = Time ?? TimeProvider.System;
 }

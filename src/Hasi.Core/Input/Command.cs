@@ -20,6 +20,26 @@ public enum Command
     /// <summary>Delete the character before the cursor (Backspace) in text fields.</summary>
     DeletePrevious,
 
+    // Text editing (KeyProfile.TextEditing). Up/Down keep Previous/Next (line), Left/Right become characters.
+    PreviousCharacter,
+    NextCharacter,
+    PreviousWord,
+    NextWord,
+    LineStart,
+    LineEnd,
+    DocumentStart,
+    DocumentEnd,
+    NewLine,
+
+    /// <summary>Delete the character at the cursor (Delete).</summary>
+    DeleteNext,
+    Undo,
+    Redo,
+    Save,
+
+    /// <summary>The current screen's own menu (F10, Ctrl+M).</summary>
+    ScreenMenu,
+
     // Global commands, handled by the shell on every screen.
     Help,
     RepeatLast,

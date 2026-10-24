@@ -187,6 +187,8 @@ public sealed class Shell : IShellServices, IScreenContext
         _announcer.Say(new Utterance(DateText.Time(hour, Localizer), UtterancePriority.Queue));
     }
 
+    public ScreenResult GuardUnsaved(Func<ScreenResult> proceed) => proceed(); // Implemented in module 2 (WP3).
+
     public ScreenResult ConfirmExit() => ScreenResult.Confirm(
         Localizer.Get("shell.exit.confirm"),
         () =>

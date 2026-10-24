@@ -18,6 +18,9 @@ public sealed class KeyMap
 
     public bool Unbind(KeyChord chord) => _bindings.Remove(chord);
 
+    /// <summary>The command of <paramref name="chord"/> on a screen with <paramref name="profile"/>.</summary>
+    public Command Resolve(KeyChord chord, KeyProfile profile) => Resolve(chord); // Profiles: module 2 (WP1).
+
     public Command Resolve(KeyChord chord) =>
         _bindings.TryGetValue(chord, out var command) ? command : Command.None;
 
