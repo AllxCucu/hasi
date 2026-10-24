@@ -22,10 +22,16 @@ public sealed class Shell : IShellServices, IScreenContext
     private readonly PowerWatch _power = new();
     private bool _focusLostWhilePowerPending;
     private DateTimeOffset? _lastAnnouncedHour;
+    private readonly BackgroundJobs _jobs;
 
+    /// <param name="loop">
+    /// The host's event loop, for background work (<see cref="RunInBackground"/>). Without one, posted actions run at once,
+    /// delayed ones never, and background work runs on the calling thread.
+    /// </param>
     public Shell(Announcer announcer, ILocalizer localizer, ShellOptions options, ISystemActions system, IDiagnosticLog log,
-        IDiagnosticsService? diagnostics = null, TimeProvider? time = null)
+        IDiagnosticsService? diagnostics = null, TimeProvider? time = null, IEventLoop? loop = null)
     {
+        _jobs = new BackgroundJobs(loop ?? new ImmediateEventLoop(), log, this);
         Time = time ?? TimeProvider.System;
         _diagnostics = diagnostics;
         _announcer = announcer;
@@ -246,7 +252,7 @@ public sealed class Shell : IShellServices, IScreenContext
     public void SpeechFinished(long announcementId, SpeechOutcome outcome) { } // Module 3 (WP-A).
 
     public BackgroundJob RunInBackground<T>(IScreen owner, Func<CancellationToken, T> work, Func<T, IScreenContext, ScreenResult> onDone,
-        Utterance? slowNotice = null) => throw new NotImplementedException("Module 3 (WP-B).");
+        Utterance? slowNotice = null) => _jobs.Run(owner, work, onDone, slowNotice);
 
     public ScreenResult ConfirmExit() => GuardUnsaved(() => ScreenResult.Confirm(
         Localizer.Get("shell.exit.confirm"),
@@ -524,6 +530,7 @@ public sealed class Shell : IShellServices, IScreenContext
     {
         // The title of a private screen names a document or a person.
         _log.Write("SCREEN", string.Join(" > ", _stack.Select(s => s is ISensitiveScreen ? "***" : s.Title)));
+        _jobs.CancelLeft(_stack); // Leaving a screen stops the work it started.
         ScreenChanged?.Invoke(this, EventArgs.Empty);
     }
 }

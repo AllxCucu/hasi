@@ -137,7 +137,7 @@ public partial class App : Application, ISystemActions
         };
         _announcer = new Announcer(hub, normalizer, _log);
         var shellOptions = new ShellOptions();
-        _shell = new Shell(_announcer, localizer, shellOptions, this, _log, _diagnostics);
+        _shell = new Shell(_announcer, localizer, shellOptions, this, _log, _diagnostics, loop: new DispatcherEventLoop(Dispatcher));
         var settings = new AppSettingsService(AppPaths.SettingsFile, savedSettings, options, speech, engine, shellOptions, _window, _log);
         _settings = settings;
         settings.SaveFailed += (_, _) => _announcer.Say(new Utterance(localizer.Get("settings.saveProblem"), UtterancePriority.Queue, Earcon.Error));

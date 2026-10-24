@@ -22,11 +22,15 @@ public interface IEventLoop
 
     /// <summary>Runs <paramref name="action"/> on the shell's thread after <paramref name="delay"/>, unless disposed first.</summary>
     IDisposable PostAfter(TimeSpan delay, Action action);
+
+    /// <summary>Starts background work off the shell's thread (the thread pool); a test loop runs it when the test chooses.</summary>
+    void StartWork(Action work) => _ = Task.Run(work);
 }
 
 /// <summary>A long operation started with <see cref="Modules.IShellServices.RunInBackground"/>.</summary>
 public abstract class BackgroundJob
 {
+    /// <summary>True until the job is cancelled or its outcome has reached the shell's thread.</summary>
     public abstract bool IsRunning { get; }
 
     /// <summary>Asks the work to stop; its result, if any arrives, is dropped.</summary>

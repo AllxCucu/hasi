@@ -90,9 +90,14 @@ public sealed class FakeAutostartService : IAutostartService
 public sealed class ShellHarness
 {
     /// <param name="normalizer">Pass-through by default, so tests see the texts exactly as in ro.json.</param>
+    /// <param name="eventLoop">
+    /// For tests of background jobs: the test decides when their work runs and when the outcome reaches the shell
+    /// (see <see cref="ManualEventLoop"/>). Without one, background work runs at once, inside the call that starts it.
+    /// </param>
     public ShellHarness(ShellOptions? options = null, ITextNormalizer? normalizer = null, IVoiceComparison? comparison = null, ISettingsService? settings = null,
-        TimeProvider? time = null, IDiagnosticLog? diagnosticLog = null, IDocumentFormats? documents = null)
+        TimeProvider? time = null, IDiagnosticLog? diagnosticLog = null, IDocumentFormats? documents = null, ManualEventLoop? eventLoop = null)
     {
+        EventLoop = eventLoop;
         Localizer = JsonLocalizer.LoadRomanian(Path.Combine(AppContext.BaseDirectory, "Resources", "ro.json"));
         Output = new RecordingChannel();
         System = new FakeSystemActions();
@@ -105,7 +110,7 @@ public sealed class ShellHarness
         Files = new FakeFileSystem();
         Documents = documents;
         if (documents is FakeDocumentFormats fake) fake.Files ??= Files;
-        Shell =new Shell(Announcer, Localizer, options ?? new ShellOptions(), System, log, Diagnostics, time);
+        Shell =new Shell(Announcer, Localizer, options ?? new ShellOptions(), System, log, Diagnostics, time, eventLoop);
         Settings = settings ?? new InMemorySettingsService();
         Shell.Options.HourlyChime = options?.HourlyChime ?? Settings.Current.HourlyChime;
         System.Simulated = () => Settings.Current.SimulatePower;
@@ -149,6 +154,9 @@ public sealed class ShellHarness
     public InMemoryUserDataStore UserData { get; } = new();
 
     public Announcer Announcer { get; }
+
+    /// <summary>The event loop passed to the constructor, or null when background work runs at once.</summary>
+    public ManualEventLoop? EventLoop { get; }
 
     public Shell Shell { get; }
 
