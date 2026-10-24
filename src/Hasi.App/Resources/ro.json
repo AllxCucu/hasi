@@ -95,6 +95,8 @@
   "files.item.file": "{name}, {type}",
   "files.type.docx": "document Word",
   "files.type.txt": "text",
+  "files.type.pdf": "document PDF",
+  "files.type.epub": "carte EPUB",
   "files.empty": "{title}. Nu există documente aici. Apăsați Escape pentru a vă întoarce.",
   "files.noPlaces": "{title}. Nu am găsit niciun loc pentru documente. Apăsați Escape pentru a vă întoarce.",
   "files.help.places": "Alegeți locul în care este documentul: Documente, Desktop, Descărcări sau un stick USB, dacă aveți unul introdus. Enter deschide locul ales.",
@@ -387,6 +389,9 @@
   "about.dotnet": "Platforma .NET, inclusiv WPF, de la .NET Foundation și Microsoft, sub licența MIT",
   "about.velopack": "Instalarea și actualizările, cu Velopack, de Velopack Ltd, Caelan Sayler și colaboratorii, sub licența MIT",
   "about.openXml": "Citirea și scrierea documentelor Word, cu Open XML SDK, de la .NET Foundation, sub licența MIT",
+  "about.pdfPig": "Citirea fișierelor PDF, cu PdfPig, de Eliot Jones și colaboratorii, sub licența Apache 2.0",
+  "about.versOneEpub": "Citirea cărților EPUB, cu VersOne.Epub, de vers-one, fără restricții de drept de autor (Unlicense)",
+  "about.htmlAgilityPack": "Extragerea textului din cărți, cu Html Agility Pack, de ZZZ Projects și colaboratorii, sub licența MIT",
 
   "exit.title": "Ieșire",
   "exit.closeHasi": "Închide HASI",

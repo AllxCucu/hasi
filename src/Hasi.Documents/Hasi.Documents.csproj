@@ -6,10 +6,17 @@
 
   <ItemGroup>
     <PackageReference Include="DocumentFormat.OpenXml" />
+    <PackageReference Include="PdfPig" />
+    <PackageReference Include="VersOne.Epub" />
+    <PackageReference Include="HtmlAgilityPack" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Hasi.Core\Hasi.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Hasi.Documents.Tests" />
   </ItemGroup>
 
 </Project>

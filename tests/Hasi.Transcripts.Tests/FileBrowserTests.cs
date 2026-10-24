@@ -136,6 +136,21 @@ public class FileBrowserTests
     }
 
     [Fact]
+    public void Pdf_and_epub_files_are_said_with_their_type()
+    {
+        var h = new ShellHarness();
+        h.Files.AddPlace(PlaceKind.UsbStick, @"E:\", "Kingston", 15 * GB)
+            .AddFile(@"E:\Manual.pdf")
+            .AddFile(@"E:\Amintiri din copilărie.EPUB")
+            .AddFile(@"E:\Scrisoare.docx");
+        h.Start(new FileBrowserScreen("Deschide un document", h.Files, [".pdf", ".epub"], (_, _) => ScreenResult.Handled));
+
+        Assert.Equal(["Stick USB, Kingston. 2 opțiuni. Selectat: Amintiri din copilărie, carte EPUB, 1 din 2."],
+            h.Press(Key.Enter));
+        Assert.Equal(["Manual, document PDF, 2 din 2."], h.Press(Key.Down));
+    }
+
+    [Fact]
     public void An_empty_folder_says_there_are_no_documents()
     {
         var (h, _) = Opened(files =>

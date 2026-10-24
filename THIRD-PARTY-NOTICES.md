@@ -79,3 +79,30 @@ Every entry here must also appear in the spoken "Despre HASI" screen.
 - The zip package layer under the Open XML SDK (a dependency of DocumentFormat.OpenXml.Framework). In the
   application the copy from the .NET Windows Desktop runtime above is used; the NuGet package only builds
   `Hasi.Documents` and its tests.
+
+### PdfPig 0.1.16 (UglyToad.PdfPig and its parts: Core, Tokens, Tokenization, Fonts, DocumentLayoutAnalysis, Package)
+- Copyright: Eliot Jones and contributors (UglyToad)
+- License: Apache-2.0
+- Source: https://github.com/UglyToad/PdfPig, tag `v0.1.16`, commit `a7bb35662bbbf405efddad50aedc9bcdcf515afc`
+  (the commit the NuGet package names)
+- Reading PDF files (text, pages, reading order), in `Hasi.Documents`. One NuGet package, no further dependencies
+  on .NET 8 or later.
+- Contains code derived from Apache PDFBox and FontBox (BSD-3-Clause, www.pdfbox.org), the Adobe Glyph List and
+  Zapf Dingbats Glyph List, the Adobe Font Metrics of the 14 standard PDF fonts (their own permissive notice, which
+  must travel with them) and Adobe CMaps (BSD-3-Clause). Shipped in `licente\` next to `hasi.exe`:
+  `PdfPig-LICENSE.txt` (Apache-2.0 plus the licences of these components), `PdfPig-NOTICES.txt` (the NOTICE file)
+  and `Adobe-AFM-MustRead.html` (the AFM notice), taken unmodified from the tag above.
+
+### VersOne.Epub 3.3.6
+- Author: vers (vers-one)
+- License: Unlicense (public domain dedication)
+- Source: https://github.com/vers-one/EpubReader, tag `v3.3.6`
+- Reading EPUB books (reading order, table of contents), in `Hasi.Documents`. No dependencies on .NET Standard 2.0.
+  Licence text shipped as `licente\VersOne.Epub-LICENSE.txt`.
+
+### Html Agility Pack (HtmlAgilityPack 1.13.1)
+- Copyright: ZZZ Projects Inc., Simon Mourrier, Jeff Klawiter, Stephan Grell and contributors
+- License: MIT
+- Source: https://github.com/zzzprojects/html-agility-pack, tag `v1.13.1`
+- Extracting the text of the chapters of EPUB books, in `Hasi.Documents`. No dependencies on .NET 8.
+  Licence text shipped as `licente\HtmlAgilityPack-LICENSE.txt`.

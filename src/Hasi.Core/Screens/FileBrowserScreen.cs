@@ -17,6 +17,8 @@ public sealed class FileBrowserScreen : IScreen, ISensitiveScreen
     {
         [".docx"] = "files.type.docx",
         [".txt"] = "files.type.txt",
+        [".pdf"] = "files.type.pdf",
+        [".epub"] = "files.type.epub",
     };
 
     private readonly IFileSystem _files;

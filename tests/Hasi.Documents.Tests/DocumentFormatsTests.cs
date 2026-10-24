@@ -12,6 +12,10 @@ public sealed class DocumentFormatsTests : TempFolder
     [InlineData(@"C:\Documente\NOTE.TXT", DocumentFormat.Text)]
     [InlineData("scrisoare.docx", DocumentFormat.Word)]
     [InlineData("Scrisoare.DocX", DocumentFormat.Word)]
+    [InlineData("manual.pdf", DocumentFormat.Pdf)]
+    [InlineData(@"D:\Carti\ROMAN.PDF", DocumentFormat.Pdf)]
+    [InlineData("roman.epub", DocumentFormat.Epub)]
+    [InlineData("Roman.EPUB", DocumentFormat.Epub)]
     public void Format_comes_from_the_extension(string path, DocumentFormat expected)
     {
         Assert.Equal(expected, _formats.FormatOf(path));
@@ -19,7 +23,8 @@ public sealed class DocumentFormatsTests : TempFolder
 
     [Theory]
     [InlineData("vechi.doc")]
-    [InlineData("carte.pdf")]
+    [InlineData("carte.mobi")]
+    [InlineData("carte.epub.zip")]
     [InlineData("fara-extensie")]
     [InlineData("arhiva.docx.zip")]
     public void Other_extensions_have_no_format(string path)
@@ -32,11 +37,24 @@ public sealed class DocumentFormatsTests : TempFolder
     {
         Assert.Equal(".txt", _formats.Extension(DocumentFormat.Text));
         Assert.Equal(".docx", _formats.Extension(DocumentFormat.Word));
+        Assert.Equal(".pdf", _formats.Extension(DocumentFormat.Pdf));
+        Assert.Equal(".epub", _formats.Extension(DocumentFormat.Epub));
+    }
+
+    [Theory]
+    [InlineData(DocumentFormat.Pdf, "a.pdf")]
+    [InlineData(DocumentFormat.Epub, "a.epub")]
+    public void Pdf_and_epub_are_never_written(DocumentFormat format, string name)
+    {
+        Assert.Equal(DocumentProblem.Unsupported, _formats.Save(PathOf(name), [new("text")], format));
+        Assert.Empty(Directory.GetFileSystemEntries(Folder));
     }
 
     [Theory]
     [InlineData("lipsa.txt")]
     [InlineData("lipsa.docx")]
+    [InlineData("lipsa.pdf")]
+    [InlineData("lipsa.epub")]
     public void A_missing_file_is_not_found(string name)
     {
         var result = _formats.Load(PathOf(name));
@@ -72,6 +90,29 @@ public sealed class DocumentFormatsTests : TempFolder
 
         Assert.Equal(DocumentProblem.TooLarge, result.Problem);
         Assert.Null(result.Document);
+    }
+
+    [Theory]
+    [InlineData("carte.pdf")]
+    [InlineData("carte.epub")]
+    public void A_book_larger_than_50_megabytes_is_too_large(string name)
+    {
+        var path = PathOf(name);
+        using (var stream = File.Create(path)) stream.SetLength(DocumentFormats.MaxBookSize + 1);
+
+        Assert.Equal(DocumentProblem.TooLarge, _formats.Load(path).Problem);
+    }
+
+    [Theory]
+    [InlineData("carte.pdf")]
+    [InlineData("carte.epub")]
+    public void A_book_of_11_megabytes_is_not_too_large(string name)
+    {
+        var path = PathOf(name);
+        using (var stream = File.Create(path)) stream.SetLength(11L * 1024 * 1024);
+
+        // Only zeros: opened, then found damaged.
+        Assert.Equal(DocumentProblem.Damaged, _formats.Load(path).Problem);
     }
 
     [Fact]
