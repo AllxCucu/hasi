@@ -34,11 +34,16 @@ Verificarea automată se oprește din Setări → Actualizări → Verificare au
 
 ## Dezinstalarea
 
-**Atenție: dezinstalarea șterge toate setările și jurnalele HASI.** Se șterg:
+**Atenție: dezinstalarea șterge toate setările, jurnalele și datele personale din HASI.** Se șterg:
 - programul (`%LOCALAPPDATA%\HASI.App`) și scurtăturile;
 - pornirea automată;
 - setările (`%APPDATA%\HASI`): vocea, viteza, culorile și toate celelalte;
-- jurnalele de diagnostic și de erori (`%LOCALAPPDATA%\HASI`).
+- jurnalele de diagnostic și de erori (`%LOCALAPPDATA%\HASI`);
+- datele personale (`%LOCALAPPDATA%\HASI\userdata`): ciornele editorului de text și lista documentelor recente
+  (și, din modulul 5, agenda).
+
+**Documentele pe care le-ai salvat în Documente rămân**; dezinstalarea nu le atinge.
+Când va exista agenda (modulul 5), fă o copie de rezervă a ei înainte de dezinstalare.
 
 Dacă vrei să păstrezi jurnalele (de exemplu ca să le trimiți cuiva), folosește înainte
 Setări → Diagnostic → Copiază jurnalul pe Desktop.

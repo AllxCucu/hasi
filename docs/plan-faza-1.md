@@ -45,8 +45,8 @@ respectă asta deja.
 | # | Modul | De ce aici |
 |---|---|---|
 | 0 | Corecturile din 0.11 (**făcute**) | Mici; le auzi la prima oprire, împreună cu modulul 1. |
-| 1 | Ceas, dată și calendar (**gata pentru testul tău**, 24 octombrie 2026) | Mic. Verifică pe ceva simplu: un modul nou, un fișier de date, timpul simulat în teste. Aduce alegerea unei date, refolosită de agendă. |
-| 2 | Editor de text | Aduce navigarea în text, alegerea fișierelor, salvarea sigură și locul datelor personale (§5). |
+| 1 | Ceas, dată și calendar (**făcut**, testat 24 octombrie 2026) | Mic. Verifică pe ceva simplu: un modul nou, un fișier de date, timpul simulat în teste. Aduce alegerea unei date, refolosită de agendă. |
+| 2 | Editor de text (**gata pentru testul tău**) | Aduce navigarea în text, alegerea fișierelor, salvarea sigură și locul datelor personale (§5). |
 | 3 | Citire documente | Folosește navigarea din editor; adaugă formatele și „citește tot”. |
 | 4 | Calculator | Mic, independent; cere un „profil de taste” (§3.4). |
 | 5 | Agendă | Cere programatorul de evenimente și prioritatea de anunț (§4). |
@@ -411,3 +411,17 @@ observații; le-am verificat în cod și în documentație înainte să le iau. 
 
 Una nu se confirmă: Codex n-a putut citi fișierul Adobe `MustRead.html` din PdfPig; eu l-am citit direct din
 depozit (calea e în §0).
+
+---
+
+## 10. Ce s-a schimbat la modulul 2
+
+- **Operațiile în fundal** (§2) se mută la modulul 3, pentru că deschiderea și salvarea fișierelor `.txt` și
+  `.docx` sunt rapide. Decizie a asistentului principal; **de confirmat de tine**.
+- **Confidențialitatea în jurnal**, protecția lucrului nesalvat și locul datelor utilizatorului (`userdata`) au
+  apărut acum, cum cerea §9.
+- **Profilul de taste pentru text** („TextEditing”) a apărut acum; planul îl avea la modulul 4.
+- **Răsfoitorul de fișiere** este în nucleu, iar partea de Windows (Documente, Desktop, Descărcări, stick-uri) este în
+  `Hasi.App`; nu există un proiect `Hasi.Platform.Windows`.
+- **Ciorna** are un singur loc: se păstrează un singur document nesalvat.
+- Dezinstalarea șterge acum și datele personale din `userdata` (decizia ta, ADR 0007, decizia 9).

@@ -24,8 +24,10 @@ Documentație: [arhitectură](docs/architecture.md), [decizii (ADR)](docs/adr/),
 Ghidul, cu pașii pentru cititoarele de ecran: [docs/ghid-instalare.md](docs/ghid-instalare.md). Instalarea e
 per-utilizator, fără drepturi de administrator. Windows 11: testat. Windows 10: suportat, netestat.
 
-**Dezinstalarea șterge toate setările și jurnalele HASI** (`%APPDATA%\HASI` și `%LOCALAPPDATA%\HASI`), pe lângă
-program și pornirea automată.
+**Dezinstalarea șterge toate setările, jurnalele și datele personale HASI** (`%APPDATA%\HASI` și
+`%LOCALAPPDATA%\HASI`, inclusiv `userdata`: ciornele și documentele recente ale editorului, iar din modulul 5
+agenda), pe lângă program și pornirea automată. Documentele salvate în Documente rămân. Când va exista agenda,
+fă o copie de rezervă înainte de dezinstalare.
 
 ## Confidențialitate
 
