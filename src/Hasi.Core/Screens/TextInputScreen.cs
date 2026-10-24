@@ -9,10 +9,12 @@ namespace Hasi.Core.Screens;
 /// the up and down arrows read the whole text; Enter hands the text to <paramref name="submit"/>.
 /// The text stays after Enter so it can be corrected and sent again.
 /// </summary>
+/// <param name="defaultValue">Submitted by Enter on an empty field, when not null (a proposed document name).</param>
 public sealed class TextInputScreen(
     string title,
     string prompt,
-    Func<string, IScreenContext, ScreenResult> submit) : IScreen, ITextEntry
+    Func<string, IScreenContext, ScreenResult> submit,
+    string? defaultValue = null) : IScreen, ITextEntry
 {
     private readonly StringBuilder _text = new();
 
@@ -47,9 +49,9 @@ public sealed class TextInputScreen(
             Command.Next or Command.Previous => _text.Length == 0
                 ? ScreenResult.Say(l.Get("textInput.empty"))
                 : Say(l.Get("textInput.readBack", ("text", Text))),
-            Command.Activate => _text.Length == 0
-                ? ScreenResult.Say(l.Get("textInput.emptySubmit"))
-                : submit(Text, context),
+            Command.Activate when _text.Length > 0 => submit(Text, context),
+            Command.Activate when defaultValue is not null => submit(defaultValue, context),
+            Command.Activate => ScreenResult.Say(l.Get("textInput.emptySubmit")),
             _ => ScreenResult.Unhandled,
         };
     }

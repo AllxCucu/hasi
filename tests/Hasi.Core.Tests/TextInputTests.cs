@@ -91,6 +91,22 @@ public class TextInputTests
     }
 
     [Fact]
+    public void Enter_on_an_empty_field_submits_the_proposed_value()
+    {
+        var submitted = new List<string>();
+        var h = new ShellHarness().Start(new TextInputScreen("Nume", "Scrieți numele.", (text, _) =>
+        {
+            submitted.Add(text);
+            return ScreenResult.Say($"Trimis: {text}");
+        }, defaultValue: "Scrisoare"));
+
+        Assert.Equal(["Trimis: Scrisoare"], h.Press(Key.Enter));
+        h.Type("Rețetă");
+        h.Press(Key.Enter);
+        Assert.Equal(["Scrisoare", "Rețetă"], submitted);
+    }
+
+    [Fact]
     public void Global_keys_still_work_in_a_text_field()
     {
         var (field, _) = Started();

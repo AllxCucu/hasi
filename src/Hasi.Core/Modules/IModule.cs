@@ -146,4 +146,18 @@ public static class MainMenu
             .ToList();
         return new MenuScreen(context.Localizer.Get(TitleKey), items, help: context.Localizer.Get(HelpKey));
     }
+
+    /// <summary>
+    /// After the welcome (and HASI's own startup notices): asks every module, in registration order, whether it has
+    /// something to tell (<see cref="IModule.OnStartup"/>) and shows it queued, so it never cuts what is being said.
+    /// </summary>
+    public static void ShowStartupNotices(IShellServices shell, IEnumerable<IModule> modules, IModuleContext context)
+    {
+        ArgumentNullException.ThrowIfNull(shell);
+        ArgumentNullException.ThrowIfNull(modules);
+        foreach (var module in modules)
+        {
+            if (module.OnStartup(context) is { } notice) shell.Show(notice, UtterancePriority.Queue);
+        }
+    }
 }

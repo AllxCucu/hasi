@@ -117,7 +117,7 @@ public sealed class ShellHarness
             };
         }
         ModuleContext = new ModuleContext(Localizer, Shell, new ApplicationInfo("0.1.0"), Normalizer, comparison, Settings, Diagnostics, Autostart, Time: Shell.Time,
-            Files: Files);
+            UserData: UserData, Files: Files);
     }
 
     public JsonLocalizer Localizer { get; }
@@ -139,6 +139,9 @@ public sealed class ShellHarness
 
     public FakeAutostartService Autostart { get; }
 
+    /// <summary>The user's data (drafts, recent documents), in memory.</summary>
+    public InMemoryUserDataStore UserData { get; } = new();
+
     public Announcer Announcer { get; }
 
     public Shell Shell { get; }
@@ -152,7 +155,9 @@ public sealed class ShellHarness
 
     public ShellHarness StartWithModules(params IModule[] modules)
     {
+        // As the application does: the main menu, the welcome, then what each module has to say.
         Shell.Start(MainMenu.Create(modules, ModuleContext));
+        MainMenu.ShowStartupNotices(Shell, modules, ModuleContext);
         return this;
     }
 

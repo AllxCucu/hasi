@@ -53,8 +53,21 @@ public sealed class Shell : IShellServices, IScreenContext
         if (_stack.Count > 0) throw new InvalidOperationException("The shell is already started.");
         PushScreen(root);
         Utterance welcome = Localizer.Get("shell.welcome");
-        _announcer.Say(welcome.Then(root.Enter(EnterReason.Startup, this)));
+        Say(welcome.Then(root.Enter(EnterReason.Startup, this)));
     }
+
+    /// <summary>
+    /// True while a screen with private content (<see cref="ISensitiveScreen"/>) is open anywhere in the stack, or
+    /// the key being handled began with one open: the diagnostic log then masks typed characters, everything said
+    /// and that screen's title.
+    /// </summary>
+    public bool IsSensitive => _sensitiveTurn || _stack.Any(screen => screen is ISensitiveScreen);
+
+    /// <summary>
+    /// Set while the shell handles something that began with a private screen open, so that what is said after that
+    /// screen closes (for example "Documentul Scrisoare a fost salvat.") is masked too.
+    /// </summary>
+    private bool _sensitiveTurn;
 
     public void Dispatch(InputEvent input)
     {
@@ -62,10 +75,25 @@ public sealed class Shell : IShellServices, IScreenContext
 
         if (input.IsRepeat && !input.Command.RepeatsWhenHeld()) return;
 
-        if (input.Character is { } typed) _log.Write("CHAR", $"'{typed}'");
+        var sensitive = IsSensitive;
+        if (input.Character is { } typed) _log.Write("CHAR", sensitive ? "'*'" : $"'{typed}'");
         else _log.Write("KEY", input.IsRepeat ? $"{input.Key} (repeat)" : input.Key.ToString());
         if (input.Command != Command.None) _log.Write("CMD", input.Command.ToString());
 
+        var previous = _sensitiveTurn;
+        _sensitiveTurn = sensitive;
+        try
+        {
+            Handle(input);
+        }
+        finally
+        {
+            _sensitiveTurn = previous;
+        }
+    }
+
+    private void Handle(InputEvent input)
+    {
         // Any key interrupts speech. A modifier pressed alone does nothing else.
         _announcer.Silence();
 
@@ -85,19 +113,19 @@ public sealed class Shell : IShellServices, IScreenContext
         switch (input.Command)
         {
             case Command.SayTime:
-                _announcer.Say(DateText.Time(Time.GetLocalNow(), Localizer));
+                Say(DateText.Time(Time.GetLocalNow(), Localizer));
                 return;
             case Command.Help:
-                _announcer.Say(Current.Help(this));
+                Say(Current.Help(this));
                 return;
             case Command.RepeatLast:
-                _announcer.Repeat();
+                _announcer.Repeat(sensitive: IsSensitive);
                 return;
             case Command.WhereAmI:
-                _announcer.Say(Localizer.Get("shell.whereAmI", ("path", string.Join(", ", _stack.Select(s => s.Title)))));
+                Say(Localizer.Get("shell.whereAmI", ("path", string.Join(", ", _stack.Select(s => s.Title)))));
                 return;
-            case Command.Exit when Current is ConfirmScreen:
-                _announcer.Say(Current.Enter(EnterReason.Initial, this));
+            case Command.Exit when Current is ConfirmScreen or UnsavedWorkScreen:
+                Say(Current.Enter(EnterReason.Initial, this));
                 return;
             case Command.Exit:
                 Apply(ConfirmExit());
@@ -107,7 +135,7 @@ public sealed class Shell : IShellServices, IScreenContext
                 if (!turnOn) _log.Write("DIAG", "turned off");
                 var said = DiagnosticsMessages.Switch(_diagnostics, Localizer, turnOn);
                 if (turnOn) _log.Write("DIAG", $"turned on by {input.Key}");
-                _announcer.Say(said);
+                Say(said);
                 return;
         }
 
@@ -125,7 +153,8 @@ public sealed class Shell : IShellServices, IScreenContext
     /// </summary>
     public void Interrupt(KeyChord key)
     {
-        _log.Write("KEY", key.ToString());
+        // That key names the character it types: masked like the character.
+        _log.Write("KEY", IsSensitive ? "*" : key.ToString());
         _announcer.Silence();
     }
 
@@ -146,7 +175,7 @@ public sealed class Shell : IShellServices, IScreenContext
     {
         _log.Write("NUMPAD", numLockOn ? "digits" : "navigation");
         if (!IsTextEntryActive) return;
-        _announcer.Say(Localizer.Get(numLockOn ? "numpad.digits" : "numpad.navigation"));
+        Say(Localizer.Get(numLockOn ? "numpad.digits" : "numpad.navigation"));
     }
 
     /// <summary>Another window took the keyboard: say so, otherwise keys silently go elsewhere.</summary>
@@ -161,14 +190,14 @@ public sealed class Shell : IShellServices, IScreenContext
             _focusLostWhilePowerPending = true;
             return;
         }
-        _announcer.Say(FocusLostText);
+        Say(FocusLostText);
     }
 
     /// <summary>The user asked HASI to come forward, but Windows kept another window in front.</summary>
     public void CannotComeForward()
     {
         _log.Write("FOCUS", "could not come forward");
-        _announcer.Say(Localizer.Get("shell.cannotComeForward"));
+        Say(Localizer.Get("shell.cannotComeForward"));
     }
 
     private string FocusLostText => Localizer.Get(Options.ReturnHotkey ? "shell.focusLost" : "shell.focusLost.altTab");
@@ -179,33 +208,51 @@ public sealed class Shell : IShellServices, IScreenContext
         if (_stack.Count == 0) return;
         _log.Write("FOCUS", "regained");
         _focusLostWhilePowerPending = false;
-        _announcer.Say(Current.Enter(EnterReason.Return, this));
+        Say(Current.Enter(EnterReason.Return, this));
     }
 
-    /// <summary>Called on the shell's thread every few seconds; late ticks never announce a stale hour.</summary>
+    /// <summary>
+    /// Called on the shell's thread every few seconds: first every open <see cref="ITickingScreen"/> gets the tick
+    /// (to save a draft, for example), then the hourly announcement; late ticks never announce a stale hour.
+    /// </summary>
     public void ClockTick()
     {
-        if (_stack.Count == 0 || !Options.HourlyChime) return;
+        if (_stack.Count == 0) return;
         var now = Time.GetLocalNow();
+        // A copy: a tick may not change the stack, but a screen must never break the loop if it does.
+        foreach (var screen in _stack.OfType<ITickingScreen>().ToList()) screen.Tick(now);
+
+        if (!Options.HourlyChime) return;
         var hour = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, 0, 0, now.Offset);
         if (now - hour >= TimeSpan.FromMinutes(2) || _lastAnnouncedHour == hour) return;
         _lastAnnouncedHour = hour;
-        _announcer.Say(new Utterance(DateText.Time(hour, Localizer), UtterancePriority.Queue));
+        Say(new Utterance(DateText.Time(hour, Localizer), UtterancePriority.Queue));
     }
 
-    public ScreenResult GuardUnsaved(Func<ScreenResult> proceed) => proceed(); // Implemented in module 2 (WP3).
+    public ScreenResult GuardUnsaved(Func<ScreenResult> proceed) => GuardUnsaved(proceed, []);
 
-    public ScreenResult ConfirmExit() => ScreenResult.Confirm(
+    /// <param name="settled">Work already saved or discarded during this question, never asked about twice.</param>
+    private ScreenResult GuardUnsaved(Func<ScreenResult> proceed, IReadOnlyList<IUnsavedWork> settled)
+    {
+        ArgumentNullException.ThrowIfNull(proceed);
+        // The screen on top first: it is the one the user was working in.
+        var work = _stack.AsEnumerable().Reverse().OfType<IUnsavedWork>()
+            .FirstOrDefault(w => w.HasUnsavedChanges && !settled.Contains(w));
+        if (work is null) return proceed();
+        return ScreenResult.Push(new UnsavedWorkScreen(work, () => GuardUnsaved(proceed, [.. settled, work]), Localizer));
+    }
+
+    public ScreenResult ConfirmExit() => GuardUnsaved(() => ScreenResult.Confirm(
         Localizer.Get("shell.exit.confirm"),
         () =>
         {
             _system.RequestExit();
             return ScreenResult.Say(Localizer.Get("shell.exit.goodbye"));
-        });
+        }));
 
-    public ScreenResult ConfirmRestart() => ConfirmPower(PowerAction.Restart);
+    public ScreenResult ConfirmRestart() => GuardUnsaved(() => ConfirmPower(PowerAction.Restart));
 
-    public ScreenResult ConfirmShutdown() => ConfirmPower(PowerAction.Shutdown);
+    public ScreenResult ConfirmShutdown() => GuardUnsaved(() => ConfirmPower(PowerAction.Shutdown));
 
     /// <summary>A restart or shutdown was asked for and its outcome is not known yet.</summary>
     public bool PowerPending => _power.Active is not null;
@@ -225,9 +272,27 @@ public sealed class Shell : IShellServices, IScreenContext
     }
 
     /// <summary>Windows has begun closing the session.</summary>
+    /// <remarks>
+    /// Whoever ends the session, HASI never blocks it: each open screen with unsaved work keeps a draft at once,
+    /// without asking. Called again while Windows waits, so the draft follows what is typed meanwhile.
+    /// </remarks>
     public void PowerSessionEnding()
     {
         if (_power.SessionEnding()) _log.Write("POWER", "session ending");
+        foreach (var work in _stack.OfType<IUnsavedWork>().ToList())
+        {
+            try
+            {
+                if (work.HasUnsavedChanges) work.SaveDraftNow();
+            }
+#pragma warning disable CA1031 // The session is ending: one failed draft must not stop the others or block Windows.
+            catch (Exception ex)
+#pragma warning restore CA1031
+            {
+                // Only the type: the message may name a private document.
+                _log.Write("ERROR", $"draft not saved: {ex.GetType().Name}");
+            }
+        }
     }
 
     /// <summary>Windows reported that the session goes on (the restart or shutdown was cancelled).</summary>
@@ -251,7 +316,7 @@ public sealed class Shell : IShellServices, IScreenContext
                 break;
             case PowerStatus.Waiting:
                 _log.Write("POWER", $"{action} waiting");
-                _announcer.Say(new Utterance(PowerSentence(action, "waiting", "power.openPrograms"), Earcon: Earcon.Error));
+                Say(new Utterance(PowerSentence(action, "waiting", "power.openPrograms"), Earcon: Earcon.Error));
                 break;
         }
     }
@@ -307,7 +372,7 @@ public sealed class Shell : IShellServices, IScreenContext
             _focusLostWhilePowerPending = false;
             outcome = outcome.Then(FocusLostText);
         }
-        _announcer.Say(outcome);
+        Say(outcome);
     }
 
     private static string PowerKey(PowerAction action, string what) =>
@@ -320,7 +385,7 @@ public sealed class Shell : IShellServices, IScreenContext
     public void RequestExitConfirmation()
     {
         _announcer.Silence();
-        if (Current is ConfirmScreen) _announcer.Say(Current.Enter(EnterReason.Initial, this));
+        if (Current is ConfirmScreen or UnsavedWorkScreen) Say(Current.Enter(EnterReason.Initial, this));
         else Apply(ConfirmExit());
     }
 
@@ -332,23 +397,29 @@ public sealed class Shell : IShellServices, IScreenContext
     public void Show(ScreenResult result, UtterancePriority priority = UtterancePriority.Interrupt)
     {
         if (_stack.Count == 0) return;
-        var previous = _priority;
+        var previous = (_priority, _sensitiveTurn);
         _priority = priority;
+        _sensitiveTurn = IsSensitive;
         try
         {
             Apply(result);
         }
         finally
         {
-            _priority = previous;
+            (_priority, _sensitiveTurn) = previous;
         }
     }
 
     /// <summary>Priority forced by <see cref="Show"/>, or null for each utterance's own.</summary>
     private UtterancePriority? _priority;
 
-    private void Say(Utterance utterance) =>
-        _announcer.Say(_priority is { } forced ? utterance with { Priority = forced } : utterance);
+    /// <summary>Everything the shell says goes through here, so that private content never reaches the log.</summary>
+    private void Say(Utterance utterance)
+    {
+        if (_priority is { } forced) utterance = utterance with { Priority = forced };
+        if (IsSensitive) utterance = utterance with { Sensitive = true };
+        _announcer.Say(utterance);
+    }
 
     private void Apply(ScreenResult result)
     {
@@ -376,6 +447,13 @@ public sealed class Shell : IShellServices, IScreenContext
                 break;
             case UnhandledResult:
                 Say(new Utterance(Localizer.Get("shell.keyUnavailable"), Earcon: Earcon.Unavailable));
+                break;
+            case CloseResult close:
+                var index = _stack.LastIndexOf(close.Screen);
+                if (index <= 0) break; // Already closed; the main menu is never closed.
+                _stack.RemoveRange(index, _stack.Count - index);
+                OnScreenChanged();
+                Apply(close.Then());
                 break;
             default:
                 throw new NotSupportedException($"Unknown screen result {result.GetType().Name}.");
@@ -412,7 +490,8 @@ public sealed class Shell : IShellServices, IScreenContext
 
     private void OnScreenChanged()
     {
-        _log.Write("SCREEN", string.Join(" > ", _stack.Select(s => s.Title)));
+        // The title of a private screen names a document or a person.
+        _log.Write("SCREEN", string.Join(" > ", _stack.Select(s => s is ISensitiveScreen ? "***" : s.Title)));
         ScreenChanged?.Invoke(this, EventArgs.Empty);
     }
 }

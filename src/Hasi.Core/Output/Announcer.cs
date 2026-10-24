@@ -18,10 +18,11 @@ public sealed class Announcer(OutputHub hub, ITextNormalizer normalizer, IDiagno
     }
 
     /// <summary>Says the last message again, interrupting whatever is being said.</summary>
-    public bool Repeat()
+    /// <param name="sensitive">Mask it in the log even if it was not masked the first time (a private screen is open).</param>
+    public bool Repeat(bool sensitive = false)
     {
         if (Last is null) return false;
-        Present(Last with { Priority = UtterancePriority.Interrupt });
+        Present(Last with { Priority = UtterancePriority.Interrupt, Sensitive = Last.Sensitive || sensitive });
         return true;
     }
 

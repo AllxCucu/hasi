@@ -14,6 +14,7 @@ using Hasi.Core.Power;
 using Hasi.Core.Screens;
 using Hasi.Core.Settings;
 using Hasi.Core.Speech;
+using Hasi.Core.Storage;
 using Hasi.Core.Updates;
 using Hasi.Documents;
 using Hasi.Modules.About;
@@ -94,7 +95,8 @@ public partial class App : Application, ISystemActions
         var normalizer = new RomanianNormalizer(
             AcronymLexicon.Load(AcronymLexicon.DefaultPath),
             NounGenderLexicon.LoadDefault(),
-            word => _log.Write("LEXICON?", word));
+            // A word from a private document is not written down.
+            word => _log.Write("LEXICON?", _shell?.IsSensitive == true ? TextDiagnosticLog.Mask : word));
         var savedSettings = SettingsFile.Load(AppPaths.SettingsFile, out var settingsProblem);
         if (settingsProblem is not null) _log.Write("ERROR", $"settings file: {settingsProblem}");
         var effectiveSettings = AppSettingsService.Effective(savedSettings, options);
@@ -144,7 +146,8 @@ public partial class App : Application, ISystemActions
         var autostart = new RegistryAutostart(_log);
         var updates = new UpdateFlow(CreateUpdates(options, settings, version), settings, _shell, localizer, _log);
         var context = new ModuleContext(localizer, _shell, new ApplicationInfo(version), normalizer, comparison, settings, _diagnostics,
-            autostart, updates, _shell.Time, Documents: new DocumentFormats(), Files: new WindowsFileSystem());
+            autostart, updates, _shell.Time, UserData: new JsonUserDataStore(AppPaths.UserData, TimeProvider.System),
+            Documents: new DocumentFormats(), Files: new WindowsFileSystem());
 
         _shell.ScreenChanged += (_, _) => _window.ShowTitle(_shell.Current.Title);
         _window.ProducesText = chord => TextRouting.ProducesText(chord, _keyMap, _shell.IsTextEntryActive, ShellWindow.NumLockOn,
@@ -212,6 +215,8 @@ public partial class App : Application, ISystemActions
             AutostartTurnedOn: autostartTurnedOn);
         _log.Write("START", facts.ToString());
         foreach (var notice in StartupNotices.For(facts, localizer)) _announcer.Say(notice);
+        // Then what the modules have to tell (a document left unsaved by a serious error or a power cut).
+        MainMenu.ShowStartupNotices(_shell, modules, context);
         // After an update the new version has just been checked for; asking again now would be noise.
         if (Program.Events.UpdatedTo is null) updates.CheckAtStartup();
         HangWatchdog.Start(Dispatcher, () => RecoverFromSeriousError("frozen"));

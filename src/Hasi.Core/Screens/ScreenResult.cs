@@ -43,3 +43,9 @@ public sealed record ReplaceResult(IScreen Screen) : ScreenResult;
 public sealed record PopResult(Utterance? Prefix, bool Announce, ScreenResult? Then) : ScreenResult;
 
 public sealed record ConfirmResult(string Question, Func<ScreenResult> OnYes, Utterance? Cancelled = null) : ScreenResult;
+
+/// <summary>
+/// Closes <paramref name="Screen"/> and every screen above it without announcing anything, then applies what
+/// <paramref name="Then"/> returns at that moment. Nothing happens when the screen is no longer open.
+/// </summary>
+internal sealed record CloseResult(IScreen Screen, Func<ScreenResult> Then) : ScreenResult;

@@ -126,7 +126,8 @@ public sealed class UpdateFlow(IUpdateService updates, ISettingsService settings
 
     private ScreenResult Offer(string version) => ScreenResult.Confirm(
         localizer.Get("update.offer", ("version", version)),
-        () => StartDownload(version),
+        // Installing closes HASI: unsaved work is asked about first.
+        () => shell.GuardUnsaved(() => StartDownload(version)),
         localizer.Get("update.later"));
 
     private ScreenResult StartDownload(string version)
@@ -150,8 +151,14 @@ public sealed class UpdateFlow(IUpdateService updates, ISettingsService settings
                     shell.Show(SayError("update.downloadFailed", ("version", updates.CurrentVersion)));
                     return;
                 }
-                shell.Show(Say("update.ready"));
-                updates.ApplyAndRestart();
+                // Something may have been typed during the download: asked about again before HASI closes.
+                shell.Show(shell.GuardUnsaved(() =>
+                {
+                    // Said first: applying waits only for the speech already started.
+                    shell.Show(Say("update.ready"));
+                    updates.ApplyAndRestart();
+                    return ScreenResult.Handled;
+                }));
             });
         return Say("update.downloading");
     }

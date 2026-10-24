@@ -18,6 +18,12 @@ internal static class AppPaths
 
     public static string DiagnosticFolder => Path.Combine(LocalData, "diagnostic");
 
+    /// <summary>
+    /// The user's personal data (drafts, recent documents, later the agenda). Local, not roaming, and under
+    /// <see cref="LocalData"/>, so uninstalling removes it (ADR 0007 decision 9).
+    /// </summary>
+    public static string UserData => Path.Combine(LocalData, "userdata");
+
     /// <summary>Roaming, so the settings follow the user to another computer of the same domain.</summary>
     public static string SettingsFile { get; } =
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "HASI", "settings.json");

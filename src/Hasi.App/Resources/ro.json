@@ -121,6 +121,14 @@
   "confirm.cancelled": "Anulat.",
   "confirm.help": "Vi se cere o confirmare. Apăsați Enter pentru da sau Escape pentru nu.",
 
+  "unsaved.title": "Modificări nesalvate",
+  "unsaved.enter": "{description} Ce doriți să faceți? {count}. Selectat: {item}, {index} din {total}.",
+  "unsaved.save": "Salvează și continuă",
+  "unsaved.discard": "Continuă fără să salvezi",
+  "unsaved.cancel": "Renunță",
+  "unsaved.discardConfirm": "Modificările nesalvate se vor pierde.",
+  "unsaved.help": "Salvează și continuă păstrează modificările, apoi HASI face ce ați cerut. Continuă fără să salvezi pierde modificările, după o confirmare. Renunță, sau tasta Escape, vă întoarce unde erați, fără să se piardă nimic.",
+
   "message.enter": "{title}. {message}",
   "message.help": "Ajutor pentru {title}. Apăsați Enter pentru a asculta din nou mesajul și Escape pentru a vă întoarce.",
 
