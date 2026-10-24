@@ -114,6 +114,64 @@ public class KeyMapTests
         Assert.DoesNotContain(map.ProfileBindings(KeyProfile.TextEditing), b => b.Value.IsGlobal() || map.Resolve(b.Key).IsGlobal());
     }
 
+    [Theory]
+    [InlineData(Key.Left, KeyModifiers.None, Command.PreviousCharacter)]
+    [InlineData(Key.Right, KeyModifiers.None, Command.NextCharacter)]
+    [InlineData(Key.Left, KeyModifiers.Ctrl, Command.PreviousWord)]
+    [InlineData(Key.Right, KeyModifiers.Ctrl, Command.NextWord)]
+    [InlineData(Key.Home, KeyModifiers.None, Command.LineStart)]
+    [InlineData(Key.End, KeyModifiers.None, Command.LineEnd)]
+    [InlineData(Key.Home, KeyModifiers.Ctrl, Command.DocumentStart)]
+    [InlineData(Key.Up, KeyModifiers.Ctrl, Command.DocumentStart)]
+    [InlineData(Key.End, KeyModifiers.Ctrl, Command.DocumentEnd)]
+    [InlineData(Key.Down, KeyModifiers.Ctrl, Command.DocumentEnd)]
+    [InlineData(Key.Enter, KeyModifiers.None, Command.ReadAll)]
+    [InlineData(Key.NumPad5, KeyModifiers.None, Command.ReadAll)]
+    [InlineData(Key.H, KeyModifiers.None, Command.NextHeading)]
+    [InlineData(Key.H, KeyModifiers.Shift, Command.PreviousHeading)]
+    [InlineData(Key.F10, KeyModifiers.None, Command.ScreenMenu)]
+    [InlineData(Key.M, KeyModifiers.Ctrl, Command.ScreenMenu)]
+    [InlineData(Key.NumPad4, KeyModifiers.None, Command.PreviousCharacter)]
+    [InlineData(Key.NumPad6, KeyModifiers.None, Command.NextCharacter)]
+    [InlineData(Key.NumPad7, KeyModifiers.None, Command.LineStart)]
+    [InlineData(Key.NumPad1, KeyModifiers.None, Command.LineEnd)]
+    public void The_text_reading_profile_overrides_the_default_keys(Key key, KeyModifiers modifiers, Command command)
+    {
+        var map = KeyMap.CreateDefault();
+        var chord = new KeyChord(key, modifiers);
+
+        Assert.Equal(command, map.Resolve(chord, KeyProfile.TextReading));
+        Assert.NotEqual(command, map.Resolve(chord));
+    }
+
+    [Theory]
+    [InlineData(Key.Up, KeyModifiers.None, Command.Previous)]
+    [InlineData(Key.Down, KeyModifiers.None, Command.Next)]
+    [InlineData(Key.Escape, KeyModifiers.None, Command.Back)]
+    [InlineData(Key.PageDown, KeyModifiers.None, Command.NextPage)]
+    [InlineData(Key.NumPad3, KeyModifiers.None, Command.NextPage)]
+    [InlineData(Key.PageUp, KeyModifiers.None, Command.PreviousPage)]
+    [InlineData(Key.NumPad9, KeyModifiers.None, Command.PreviousPage)]
+    [InlineData(Key.A, KeyModifiers.None, Command.None)] // no typing
+    [InlineData(Key.Delete, KeyModifiers.None, Command.None)]
+    [InlineData(Key.S, KeyModifiers.Ctrl, Command.None)]
+    public void The_text_reading_profile_keeps_the_other_keys(Key key, KeyModifiers modifiers, Command command)
+    {
+        Assert.Equal(command, KeyMap.CreateDefault().Resolve(new KeyChord(key, modifiers), KeyProfile.TextReading));
+    }
+
+    [Fact]
+    public void Every_global_key_keeps_its_command_in_the_text_reading_profile()
+    {
+        var map = KeyMap.CreateDefault();
+
+        foreach (var (chord, command) in map.Bindings.Where(b => b.Value.IsGlobal()))
+        {
+            Assert.Equal(command, map.Resolve(chord, KeyProfile.TextReading));
+        }
+        Assert.DoesNotContain(map.ProfileBindings(KeyProfile.TextReading), b => b.Value.IsGlobal() || map.Resolve(b.Key).IsGlobal());
+    }
+
     [Fact]
     public void The_default_profile_is_unchanged_by_the_editing_layer()
     {

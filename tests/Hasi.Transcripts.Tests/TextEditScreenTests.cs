@@ -256,6 +256,29 @@ public class TextEditScreenTests
     }
 
     [Fact]
+    public void A_letter_with_a_combining_mark_moves_is_said_and_deleted_as_one_character()
+    {
+        var (h, editor) = Opened("așb");
+
+        Assert.Equal(["ș"], h.Press(Key.Right));
+        Assert.Equal(["b"], h.Press(Key.Right));
+        Assert.Equal(["ș"], h.Press(Key.Left));
+        Assert.Equal(["Șters: ș"], h.Press(Key.Delete));
+        Assert.Equal("ab", editor.Buffer.Text);
+    }
+
+    [Fact]
+    public void An_emoji_typed_as_two_halves_is_echoed_once_and_deleted_whole()
+    {
+        var (h, editor) = Opened();
+
+        Assert.Equal(["", "\U0001F600"], h.Type("\U0001F600"));
+        Assert.Equal(["\U0001F600"], h.Press(Key.Left));
+        Assert.Equal(["Șters: \U0001F600"], h.Press(Key.Delete));
+        Assert.Equal("", editor.Buffer.Text);
+    }
+
+    [Fact]
     public void Backspace_at_the_start_says_the_edge()
     {
         var (h, editor) = Opened("ab");

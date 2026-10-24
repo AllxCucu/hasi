@@ -242,13 +242,13 @@ public class TextBufferTests
     {
         var buffer = new TextBuffer("aș\nb", cursor: 3);
 
-        Assert.Equal('\n', buffer.DeletePrevious());
+        Assert.Equal("\n", buffer.DeletePrevious());
         Assert.Equal("așb", buffer.Text);
         Assert.Equal(2, buffer.Cursor);
-        Assert.Equal('b', buffer.DeleteNext());
+        Assert.Equal("b", buffer.DeleteNext());
         Assert.Null(buffer.DeleteNext());
-        Assert.Equal('ș', buffer.DeletePrevious());
-        Assert.Equal('a', buffer.DeletePrevious());
+        Assert.Equal("ș", buffer.DeletePrevious());
+        Assert.Equal("a", buffer.DeletePrevious());
         Assert.Null(buffer.DeletePrevious());
         Assert.True(buffer.IsEmpty);
     }
@@ -398,5 +398,116 @@ public class TextBufferTests
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => new TextBuffer("ab", cursor: 3));
         Assert.Throws<ArgumentOutOfRangeException>(() => new TextBuffer("ab", cursor: -1));
+    }
+
+    // --- Text elements: surrogate pairs and combining marks are one character ---
+
+    private const string Emoji = "\U0001F600"; // two UTF-16 code units
+    private const string DecomposedS = "ș"; // ș written as s plus a combining comma below
+
+    private static bool IsValidUtf16(string text)
+    {
+        for (var i = 0; i < text.Length; i++)
+        {
+            if (char.IsHighSurrogate(text[i]))
+            {
+                if (i + 1 >= text.Length || !char.IsLowSurrogate(text[i + 1])) return false;
+                i++;
+            }
+            else if (char.IsLowSurrogate(text[i]))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    [Fact]
+    public void An_emoji_typed_as_two_halves_is_inserted_whole_and_undone_whole()
+    {
+        var buffer = new TextBuffer();
+        buffer.Insert('a');
+        buffer.Insert(Emoji[0]);
+        Assert.Equal("a", buffer.Text); // the first half waits for the second
+
+        buffer.Insert(Emoji[1]);
+        Assert.Equal("a" + Emoji, buffer.Text);
+        Assert.Equal(3, buffer.Cursor);
+
+        buffer.Undo();
+        Assert.True(IsValidUtf16(buffer.Text));
+        Assert.True(buffer.Text is "a" or "", buffer.Text);
+    }
+
+    [Fact]
+    public void Half_a_surrogate_pair_alone_is_never_inserted()
+    {
+        var buffer = new TextBuffer();
+        buffer.Insert(Emoji[0]);
+        buffer.Insert('b'); // the second half never came
+        buffer.Insert(Emoji[1]); // a second half without a first one
+
+        Assert.Equal("b", buffer.Text);
+    }
+
+    [Fact]
+    public void A_move_drops_a_first_half_still_waiting()
+    {
+        var buffer = new TextBuffer("x", cursor: 1);
+        buffer.Insert(Emoji[0]);
+        buffer.MovePreviousCharacter();
+        buffer.Insert(Emoji[1]);
+
+        Assert.Equal("x", buffer.Text);
+    }
+
+    [Theory]
+    [InlineData(Emoji)]
+    [InlineData(DecomposedS)]
+    public void Left_and_right_cross_an_emoji_or_a_letter_with_a_combining_mark_in_one_step(string element)
+    {
+        var buffer = new TextBuffer($"a{element}b", cursor: 0);
+
+        Assert.True(buffer.MoveNextCharacter());
+        Assert.Equal(1, buffer.Cursor);
+        Assert.Equal(element, buffer.TextElementAtCursor);
+        Assert.True(buffer.MoveNextCharacter());
+        Assert.Equal(1 + element.Length, buffer.Cursor);
+        Assert.Equal("b", buffer.TextElementAtCursor);
+        Assert.True(buffer.MovePreviousCharacter());
+        Assert.Equal(1, buffer.Cursor);
+        Assert.True(buffer.MovePreviousCharacter());
+        Assert.Equal(0, buffer.Cursor);
+    }
+
+    [Theory]
+    [InlineData(Emoji)]
+    [InlineData(DecomposedS)]
+    public void Backspace_and_delete_remove_an_emoji_or_a_letter_with_a_combining_mark_whole(string element)
+    {
+        var buffer = new TextBuffer($"a{element}b{element}", cursor: 1 + element.Length);
+
+        Assert.Equal(element, buffer.DeletePrevious());
+        Assert.Equal($"ab{element}", buffer.Text);
+        Assert.Equal(1, buffer.Cursor);
+
+        buffer.MoveNextCharacter();
+        Assert.Equal(element, buffer.DeleteNext());
+        Assert.Equal("ab", buffer.Text);
+        Assert.True(IsValidUtf16(buffer.Text));
+    }
+
+    [Fact]
+    public void Moving_to_the_middle_of_an_element_lands_on_its_start()
+    {
+        var buffer = new TextBuffer($"a{Emoji}\nxyz");
+
+        Assert.True(buffer.MoveTo(2));
+        Assert.Equal(1, buffer.Cursor);
+
+        buffer.MoveTo(6); // on "z", column 2
+        Assert.True(buffer.MoveLineUp());
+        Assert.Equal(1, buffer.Cursor); // column 2 would split the emoji
+        Assert.False(buffer.MoveTo(99));
     }
 }

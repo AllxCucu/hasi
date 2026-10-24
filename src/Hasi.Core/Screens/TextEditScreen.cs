@@ -20,43 +20,36 @@ public sealed class TextEditScreen(
     Func<IScreenContext, ScreenResult>? onSave = null,
     Func<IScreenContext, ScreenResult>? onBack = null) : IScreen, ITextEntry, IHasKeyProfile, ISensitiveScreen
 {
+    private readonly TextNavigator _navigator = new(buffer ?? throw new ArgumentNullException(nameof(buffer)));
+
     /// <summary>The document's name; it changes when a new document is saved under a name.</summary>
     public string Title { get; set; } = title;
 
-    public TextBuffer Buffer { get; } = buffer ?? throw new ArgumentNullException(nameof(buffer));
+    public TextBuffer Buffer => _navigator.Buffer;
 
     public KeyProfile KeyProfile => KeyProfile.TextEditing;
 
     public Utterance Enter(EnterReason reason, IScreenContext context) =>
-        Private(context.Localizer.Get("edit.enter", ("title", Title), ("line", LineDescription(context))));
+        Private(context.Localizer.Get("edit.enter", ("title", Title), ("line", _navigator.Line(context))));
 
     public ScreenResult Handle(InputEvent input, IScreenContext context)
     {
         ArgumentNullException.ThrowIfNull(input);
         ArgumentNullException.ThrowIfNull(context);
         if (input.Character is { } c && !char.IsControl(c)) return Typed(c, context);
+        if (_navigator.Move(input.Command, context) is var (said, earcon)) return Say(said, earcon);
 
         var l = context.Localizer;
         return input.Command switch
         {
             Command.NewLine => NewLine(context),
-            Command.PreviousCharacter => Buffer.MovePreviousCharacter() ? Say(AtCursor(context)) : StartEdge(context),
-            Command.NextCharacter => Buffer.MoveNextCharacter() ? Say(AtCursor(context)) : EndEdge(context),
-            Command.PreviousWord => Buffer.MovePreviousWord() ? Say(WordOrCharacter(context)) : StartEdge(context),
-            Command.NextWord => Buffer.MoveNextWord() ? Say(WordOrCharacter(context)) : EndEdge(context),
-            Command.Previous => Buffer.MoveLineUp() ? Say(LineDescription(context)) : StartEdge(context),
-            Command.Next => Buffer.MoveLineDown() ? Say(LineDescription(context)) : EndEdge(context),
-            Command.LineStart => LineStart(context),
-            Command.LineEnd => LineEnd(context),
-            Command.DocumentStart => DocumentStart(context),
-            Command.DocumentEnd => DocumentEnd(context),
-            Command.DeletePrevious => Buffer.DeletePrevious() is { } deleted ? Deleted(deleted, context) : StartEdge(context),
-            Command.DeleteNext => Buffer.DeleteNext() is { } deleted ? Deleted(deleted, context) : EndEdge(context),
+            Command.DeletePrevious => Buffer.DeletePrevious() is { } deleted ? Deleted(deleted, context) : Say(_navigator.StartEdge(context)),
+            Command.DeleteNext => Buffer.DeleteNext() is { } deleted ? Deleted(deleted, context) : Say(_navigator.EndEdge(context)),
             Command.Undo => Buffer.Undo()
-                ? Say(l.Get("edit.undone", ("line", LineDescription(context))))
+                ? Say(l.Get("edit.undone", ("line", _navigator.Line(context))))
                 : Say(l.Get("edit.nothingToUndo")),
             Command.Redo => Buffer.Redo()
-                ? Say(l.Get("edit.redone", ("line", LineDescription(context))))
+                ? Say(l.Get("edit.redone", ("line", _navigator.Line(context))))
                 : Say(l.Get("edit.nothingToRedo")),
             Command.Save => onSave?.Invoke(context) ?? ScreenResult.Unhandled,
             Command.ScreenMenu => onMenu?.Invoke(context) ?? ScreenResult.Unhandled,
@@ -77,14 +70,20 @@ public sealed class TextEditScreen(
 
     private ScreenResult Typed(char c, IScreenContext context)
     {
+        var before = Buffer.Length;
         Buffer.Insert(c);
+        // Half of a surrogate pair: nothing is inserted (or said) until the other half arrives.
+        if (Buffer.Length == before) return Say("");
+        var typed = Buffer.Text[(Buffer.Cursor - (Buffer.Length - before))..Buffer.Cursor];
         return context.Options.KeyEcho switch
         {
             Settings.KeyEcho.None => Say(""),
             // Word echo: letters are silent; a space or punctuation says the word just finished.
-            Settings.KeyEcho.Word when TextBuffer.IsWordCharacter(c) => Say(""),
-            Settings.KeyEcho.Word => Say(Buffer.WordEndingAt(Buffer.Cursor - 1) is { Length: > 0 } word ? word : CharacterName(c, context)),
-            _ => Say(CharacterName(c, context)),
+            Settings.KeyEcho.Word when TextBuffer.IsWordCharacter(typed[0]) => Say(""),
+            Settings.KeyEcho.Word => Say(Buffer.WordEndingAt(Buffer.Cursor - typed.Length) is { Length: > 0 } word
+                ? word
+                : TextNavigator.ElementName(typed, context)),
+            _ => Say(TextNavigator.ElementName(typed, context)),
         };
     }
 
@@ -94,63 +93,17 @@ public sealed class TextEditScreen(
         return Say(context.Options.KeyEcho == Settings.KeyEcho.None ? "" : context.Localizer.Get("edit.newLine"));
     }
 
-    private ScreenResult LineStart(IScreenContext context)
+    private ScreenResult Deleted(string deleted, IScreenContext context)
     {
-        Buffer.MoveLineStart();
-        return Say(Buffer.CurrentLine.Length == 0 ? context.Localizer.Get("edit.emptyLine") : AtCursor(context));
-    }
-
-    private ScreenResult LineEnd(IScreenContext context)
-    {
-        Buffer.MoveLineEnd();
-        return Say(context.Localizer.Get("edit.lineEnd"));
-    }
-
-    private ScreenResult DocumentStart(IScreenContext context)
-    {
-        Buffer.MoveDocumentStart();
-        return Say($"{context.Localizer.Get("edit.documentStart")} {LineDescription(context)}");
-    }
-
-    private ScreenResult DocumentEnd(IScreenContext context)
-    {
-        Buffer.MoveDocumentEnd();
-        return Say(context.Localizer.Get("edit.documentEnd"));
-    }
-
-    private ScreenResult Deleted(char deleted, IScreenContext context)
-    {
-        var name = deleted == '\n' ? context.Localizer.Get("edit.lineBreakName") : CharacterName(deleted, context);
+        var name = deleted == "\n" ? context.Localizer.Get("edit.lineBreakName") : TextNavigator.ElementName(deleted, context);
         return Say(context.Localizer.Get("textInput.deleted", ("char", name)));
     }
 
-    private ScreenResult StartEdge(IScreenContext context) => Say(context.Localizer.Get("edit.documentStart"), Earcon.EdgeOfList);
-
-    private ScreenResult EndEdge(IScreenContext context) => Say(context.Localizer.Get("edit.documentEnd"), Earcon.EdgeOfList);
-
-    /// <summary>The character at the cursor: its name, "Sfârșit de rând" on a line break, "Sfârșitul documentului." at the end.</summary>
-    private string AtCursor(IScreenContext context) => Buffer.CharacterAtCursor switch
-    {
-        null => context.Localizer.Get("edit.documentEnd"),
-        '\n' => context.Localizer.Get("edit.lineEnd"),
-        { } c => CharacterName(c, context),
-    };
-
-    private string WordOrCharacter(IScreenContext context) => Buffer.WordAtCursor ?? AtCursor(context);
-
-    /// <summary>The current line's text, "Rând gol", or "Documentul este gol." when there is no text at all.</summary>
-    private string LineDescription(IScreenContext context)
-    {
-        if (Buffer.IsEmpty) return context.Localizer.Get("edit.empty");
-        var line = Buffer.CurrentLine;
-        return line.Length == 0 ? context.Localizer.Get("edit.emptyLine") : line;
-    }
+    private ScreenResult Say((string Text, Earcon Earcon) said) => Say(said.Text, said.Earcon);
 
     private ScreenResult Say(string text, Earcon earcon = Earcon.None) => ScreenResult.Say(Private(text, earcon));
 
     /// <summary>Masked in the diagnostic log; the window shows the whole document.</summary>
     private Utterance Private(string text, Earcon earcon = Earcon.None) =>
         new(text, Earcon: earcon, DisplayText: Buffer.Text, Sensitive: true);
-
-    private static string CharacterName(char c, IScreenContext context) => KeyNames.Character(c, context.Localizer);
 }

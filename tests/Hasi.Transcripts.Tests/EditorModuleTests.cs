@@ -477,9 +477,53 @@ public class EditorModuleTests
     {
         var (h, _, editor) = NewDocument("unu\ndoi");
 
-        Assert.Equal(["Meniul documentului. 4 opțiuni. Selectat: Salvează, 1 din 4."], h.Press(Key.F10));
-        Assert.Equal(["Spune poziția, 3 din 4.", "Rândul 2 din 2, coloana 4."], h.Press(Key.End, Key.Up, Key.Enter).Skip(1));
+        Assert.Equal(["Meniul documentului. 5 opțiuni. Selectat: Salvează, 1 din 5."], h.Press(Key.F10));
+        Assert.Equal(["Spune poziția, 4 din 5.", "Rândul 2 din 2, coloana 4."], h.Press(Key.End, Key.Up, Key.Enter).Skip(1));
         Assert.Same(editor, h.Shell.Current);
+    }
+
+    [Fact]
+    public void Document_menu_reads_all_from_the_sentence_at_the_cursor_to_the_end()
+    {
+        var (h, _, editor) = NewDocument("Unu. Doi.\nTrei.");
+        editor.Buffer.MoveTo(6); // inside "Doi."
+        h.Press(Key.F10, Key.Down, Key.Down);
+
+        Assert.Equal(["Doi.", "Trei."], h.Press(Key.Enter));
+        Assert.Same(editor, h.Shell.Current);
+        Assert.Equal(5, editor.Buffer.Cursor);
+        Assert.All(h.PendingSpeech, a => Assert.True(a.Utterance.Sensitive));
+
+        Assert.Empty(h.FinishSpeech());
+        Assert.Equal(10, editor.Buffer.Cursor);
+        Assert.Equal(["Sfârșitul documentului."], h.FinishSpeech());
+    }
+
+    [Fact]
+    public void A_key_stops_reading_in_the_editor_at_the_start_of_the_sentence_and_types_nothing()
+    {
+        var (h, _, editor) = NewDocument("Unu. Doi. Trei.");
+        editor.Buffer.MoveDocumentStart();
+        h.Press(Key.F10, Key.Down, Key.Down, Key.Enter);
+        h.FinishSpeech();
+
+        Assert.Empty(h.Type("x"));
+        Assert.Equal("Unu. Doi. Trei.", editor.Buffer.Text);
+        Assert.Equal(5, editor.Buffer.Cursor);
+        Assert.Empty(h.FinishAllSpeech());
+
+        Assert.Equal(["d"], h.Type("d")); // the next key types again
+    }
+
+    [Fact]
+    public void Escape_while_reading_in_the_editor_stops_and_leaves()
+    {
+        var (h, _, editor) = NewDocument("Unu. Doi.");
+        h.Press(CtrlS, Key.Enter);
+        editor.Buffer.MoveDocumentStart();
+        h.Press(Key.F10, Key.Down, Key.Down, Key.Enter);
+
+        Assert.Equal([string.Format(null, EditorMenuReturn, "Document nou", 1)], h.Press(Key.Escape));
     }
 
     [Fact]
@@ -498,7 +542,7 @@ public class EditorModuleTests
         var (h, _, _) = NewDocument("Notă");
         h.Press(Key.F10);
 
-        Assert.Equal(["Închide documentul, 4 din 4.", LeaveQuestion], h.Press(Key.End, Key.Enter));
+        Assert.Equal(["Închide documentul, 5 din 5.", LeaveQuestion], h.Press(Key.End, Key.Enter));
         Assert.Equal(["Meniu principal", "Editor de text", "Document nou", "Modificări nesalvate"], h.Shell.Stack.Select(s => s.Title));
     }
 
@@ -519,7 +563,7 @@ public class EditorModuleTests
         h.Type(" bun");
         h.Press(Key.F10);
 
-        Assert.Equal(["Salvează o copie, 2 din 4.", "Formatul copiei. 2 opțiuni. Selectat: Document Word, 1 din 2."], h.Press(Key.Down, Key.Enter));
+        Assert.Equal(["Salvează o copie, 2 din 5.", "Formatul copiei. 2 opțiuni. Selectat: Document Word, 1 din 2."], h.Press(Key.Down, Key.Enter));
         Assert.Equal(["Text, 2 din 2.", "Locul copiei. 2 opțiuni. Selectat: Documente, 1 din 2."], h.Press(Key.Down, Key.Enter));
         Assert.Equal(["Desktop, 2 din 2.", string.Format(null, NameField, "Rețetă de cozonac")], h.Press(Key.Down, Key.Enter));
         Assert.Equal(["Copia a fost salvată: Rețetă de cozonac."], h.Press(Key.Enter));

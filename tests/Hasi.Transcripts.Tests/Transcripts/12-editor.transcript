@@ -33,11 +33,13 @@
 
 # Meniul documentului: poziția
 > F10
-< Meniul documentului. 4 opțiuni. Selectat: Salvează, 1 din 4.
+< Meniul documentului. 5 opțiuni. Selectat: Salvează, 1 din 5.
 > Down
-< Salvează o copie, 2 din 4.
+< Salvează o copie, 2 din 5.
 > Down
-< Spune poziția, 3 din 4.
+< Citește tot de la cursor, 3 din 5.
+> Down
+< Spune poziția, 4 din 5.
 > Enter
 < Rândul 2 din 2, coloana 13.
 > Ctrl+U

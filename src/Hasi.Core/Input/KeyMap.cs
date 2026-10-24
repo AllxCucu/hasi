@@ -60,6 +60,7 @@ public sealed class KeyMap
     {
         const KeyModifiers ctrl = KeyModifiers.Ctrl;
         const KeyProfile editing = KeyProfile.TextEditing;
+        const KeyProfile reading = KeyProfile.TextReading;
         return new KeyMap()
             // Navigation
             .Bind(Key.Up, Command.Previous).Bind(Key.NumPad8, Command.Previous)
@@ -96,6 +97,19 @@ public sealed class KeyMap
             .Bind(Key.Delete, Command.DeleteNext, editing)
             .Bind(new(Key.S, ctrl), Command.Save, editing)
             .Bind(new(Key.Z, ctrl), Command.Undo, editing).Bind(new(Key.Y, ctrl), Command.Redo, editing)
-            .Bind(Key.F10, Command.ScreenMenu, editing).Bind(new(Key.M, ctrl), Command.ScreenMenu, editing);
+            .Bind(Key.F10, Command.ScreenMenu, editing).Bind(new(Key.M, ctrl), Command.ScreenMenu, editing)
+            // Reading a document: the same moves, no typing. Page Down / Page Up (and the keypad's 3 / 9) keep their
+            // default NextPage / PreviousPage. The reader is no text field, so the keypad always moves: 4 / 6 the
+            // character, 7 / 1 the start / end of the line (like Home / End), 5 reads all (like Enter).
+            .Bind(Key.Left, Command.PreviousCharacter, reading).Bind(Key.Right, Command.NextCharacter, reading)
+            .Bind(Key.NumPad4, Command.PreviousCharacter, reading).Bind(Key.NumPad6, Command.NextCharacter, reading)
+            .Bind(new(Key.Left, ctrl), Command.PreviousWord, reading).Bind(new(Key.Right, ctrl), Command.NextWord, reading)
+            .Bind(Key.Home, Command.LineStart, reading).Bind(Key.End, Command.LineEnd, reading)
+            .Bind(Key.NumPad7, Command.LineStart, reading).Bind(Key.NumPad1, Command.LineEnd, reading)
+            .Bind(new(Key.Home, ctrl), Command.DocumentStart, reading).Bind(new(Key.Up, ctrl), Command.DocumentStart, reading)
+            .Bind(new(Key.End, ctrl), Command.DocumentEnd, reading).Bind(new(Key.Down, ctrl), Command.DocumentEnd, reading)
+            .Bind(Key.Enter, Command.ReadAll, reading).Bind(Key.NumPad5, Command.ReadAll, reading).Bind(Key.Clear, Command.ReadAll, reading)
+            .Bind(Key.H, Command.NextHeading, reading).Bind(new(Key.H, KeyModifiers.Shift), Command.PreviousHeading, reading)
+            .Bind(Key.F10, Command.ScreenMenu, reading).Bind(new(Key.M, ctrl), Command.ScreenMenu, reading);
     }
 }

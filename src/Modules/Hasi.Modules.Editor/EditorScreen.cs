@@ -16,13 +16,16 @@ namespace Hasi.Modules.Editor;
 /// A new document, or a .docx written by another program, is saved as a new .docx in Documente, asking only its name;
 /// the original is never written.
 /// </remarks>
-public sealed class EditorScreen : IScreen, ITextEntry, IHasKeyProfile, ISensitiveScreen, IUnsavedWork, ITickingScreen
+public sealed class EditorScreen : IScreen, ITextEntry, IHasKeyProfile, ISensitiveScreen, IUnsavedWork, ITickingScreen, ISpeechListener
 {
     /// <summary>The least time between two drafts.</summary>
     public static readonly TimeSpan DraftInterval = TimeSpan.FromSeconds(30);
 
     private readonly EditorServices _services;
     private readonly TextEditScreen _edit;
+
+    /// <summary>"Citește tot de la cursor", from the document's menu.</summary>
+    private readonly ContinuousReader _reading;
 
     /// <summary>Opened from a draft: unsaved until it is saved or its changes are discarded.</summary>
     private bool _recovered;
@@ -44,6 +47,8 @@ public sealed class EditorScreen : IScreen, ITextEntry, IHasKeyProfile, ISensiti
     {
         _services = services;
         _edit = new TextEditScreen(title, new TextBuffer(text), OpenMenu, SaveKey, Back);
+        _reading = new ContinuousReader(position => Buffer.MoveTo(position),
+            utterance => utterance with { DisplayText = Buffer.Text, Sensitive = true });
         FilePath = path;
         Format = format;
         MadeByHasi = madeByHasi;
@@ -85,7 +90,17 @@ public sealed class EditorScreen : IScreen, ITextEntry, IHasKeyProfile, ISensiti
 
     public Utterance Enter(EnterReason reason, IScreenContext context) => _edit.Enter(reason, context);
 
-    public ScreenResult Handle(InputEvent input, IScreenContext context) => _edit.Handle(input, context);
+    public ScreenResult Handle(InputEvent input, IScreenContext context)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        // Any key stops reading aloud; the cursor stays at the start of the interrupted sentence. Only Escape and the
+        // menu then do what they always do.
+        if (_reading.Stop() && input.Command is not (Command.Back or Command.ScreenMenu)) return ScreenResult.Handled;
+        return _edit.Handle(input, context);
+    }
+
+    public ScreenResult SpeechFinished(long token, SpeechOutcome outcome, IScreenContext context) =>
+        _reading.SpeechFinished(token, outcome, context);
 
     public Utterance Help(IScreenContext context) => _edit.Help(context);
 
@@ -240,11 +255,15 @@ public sealed class EditorScreen : IScreen, ITextEntry, IHasKeyProfile, ISensiti
             [
                 new MenuItem(l.Get("editor.menu.save"), c => SaveFlow(c, said => BackToDocument(said))),
                 new MenuItem(l.Get("editor.menu.saveCopy"), SaveCopy),
+                new MenuItem(l.Get("editor.menu.readAll"), c => ScreenResult.PopTo(this, then: ReadAll(c))),
                 new MenuItem(l.Get("editor.menu.position"), c => BackToDocument(_edit.Position(c))),
                 new MenuItem(l.Get("editor.menu.close"), c => ScreenResult.PopTo(this, then: Back(c))),
             ],
             help: l.Get("editor.menu.help")));
     }
+
+    /// <summary>Reads the document aloud from the sentence that contains the cursor to the end.</summary>
+    private ScreenResult ReadAll(IScreenContext context) => _reading.Start(Sentences.From(Buffer.Text, Buffer.Cursor), context);
 
     /// <summary>Escape: leaves an unchanged document; with unsaved changes, asks what to do first.</summary>
     private ScreenResult Back(IScreenContext context)
