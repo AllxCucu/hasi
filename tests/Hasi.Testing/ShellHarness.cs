@@ -101,7 +101,8 @@ public sealed class ShellHarness
         Announcer = new Announcer(new OutputHub([Output], log), Normalizer, log);
         Diagnostics = new FakeDiagnosticsService();
         Autostart = new FakeAutostartService();
-        Shell = new Shell(Announcer, Localizer, options ?? new ShellOptions(), System, log, Diagnostics, time);
+        Files = new FakeFileSystem();
+        Shell =new Shell(Announcer, Localizer, options ?? new ShellOptions(), System, log, Diagnostics, time);
         Settings = settings ?? new InMemorySettingsService();
         Shell.Options.HourlyChime = options?.HourlyChime ?? Settings.Current.HourlyChime;
         System.Simulated = () => Settings.Current.SimulatePower;
@@ -115,7 +116,8 @@ public sealed class ShellHarness
                 Shell.Options.KeyEcho = s.KeyEcho;
             };
         }
-        ModuleContext = new ModuleContext(Localizer, Shell, new ApplicationInfo("0.1.0"), Normalizer, comparison, Settings, Diagnostics, Autostart, Time: Shell.Time);
+        ModuleContext = new ModuleContext(Localizer, Shell, new ApplicationInfo("0.1.0"), Normalizer, comparison, Settings, Diagnostics, Autostart, Time: Shell.Time,
+            Files: Files);
     }
 
     public JsonLocalizer Localizer { get; }
@@ -131,6 +133,9 @@ public sealed class ShellHarness
     public ISettingsService Settings { get; }
 
     public FakeDiagnosticsService Diagnostics { get; }
+
+    /// <summary>The disk modules see through <see cref="ModuleContext"/>: empty until a test adds places, folders and files.</summary>
+    public FakeFileSystem Files { get; }
 
     public FakeAutostartService Autostart { get; }
 
