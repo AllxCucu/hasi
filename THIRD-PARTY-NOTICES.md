@@ -3,6 +3,10 @@
 HASI is licensed under GPL-3.0-or-later. It uses or works with the components below.
 Every entry here must also appear in the spoken "Despre HASI" screen.
 
+In the installed program, this file, HASI's licence (`HASI-LICENSE.txt`), the MIT licence text (`MIT-LICENSE.txt`)
+and the licence and NOTICE files of the libraries are in the `licente` folder next to `hasi.exe`; RHVoice's
+licences (GPL, LGPL, CC BY-SA 4.0, also covering the MULTEXT-East data) are in `rhvoice\licenses`.
+
 ## Shipped with HASI
 
 ### System.Speech

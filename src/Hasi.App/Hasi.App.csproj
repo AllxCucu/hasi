@@ -34,6 +34,9 @@
     <Content Include="Resources\ro.json" CopyToOutputDirectory="PreserveNewest" />
     <!-- Licence and NOTICE files of the shipped libraries (THIRD-PARTY-NOTICES.md), next to hasi.exe in licente\. -->
     <Content Include="licente\*" CopyToOutputDirectory="PreserveNewest" />
+    <!-- HASI's own licence (GPL-3.0-or-later) and the full list of third-party notices travel with the program. -->
+    <Content Include="..\..\LICENSE" Link="licente\HASI-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\THIRD-PARTY-NOTICES.md" Link="licente\THIRD-PARTY-NOTICES.md" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
