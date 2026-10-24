@@ -1,36 +1,39 @@
-﻿# HASI – Faza 1, modulul 2: Editor de text
+﻿# HASI – Faza 1, modulul 3: Citire documente
 
-**Stare:** codul e gata. Build-ul trece fără avertismente și toate cele 757 de teste trec. Rularea de verificare a trecut: 6 opțiuni în meniul principal, vocea RHVoice, nicio eroare. **Recenzia Codex pe nucleu nu a rulat încă**: pornește la 13:13, când i se ridică limita. Dacă găsește probleme, le corectez și îți spun înainte să testezi.
+Modulul 3 e gata de testat. Build-ul trece fără avertismente, toate cele 1051 de teste trec, iar rularea de verificare a trecut: 7 opțiuni în meniul principal, vocea RHVoice, nicio eroare. Nu am publicat nimic.
 
-## Subagenții (`.claude/agents/`)
-- `implementer`: scrie o bucată de cod după specificația mea. Rulează pe modelul principal, cel pe care îl folosesc și eu.
-- `test-writer`: scrie transcrieri și teste. Rulează pe Sonnet.
-- `docs-writer`: scrie scenarii, regresie, ghid și licențe. Rulează pe Sonnet.
+**Pornire:** `dotnet run --project src\Hasi.App -- --diagnostic`
 
-Claude Code îi recunoaște după nume abia din sesiunea următoare. Până atunci i-am pornit ca agenți generali, cu regulile din fișierul fiecăruia.
+**Scenarii:** `docs/manual-tests/faza-1-modul-3.md`, de la C3-01 la C3-49. Secțiunea J îți spune ce retestezi din modulul 2. Regresia e în `docs/manual-tests/regresie.md`, pașii 1–55; pașii 51–55 sunt noi.
 
-## Ce poți testa
-- **Pornire:** `dotnet run --project src\Hasi.App -- --diagnostic`.
-- **Scenariile:** `docs/manual-tests/faza-1-modul-2.md`, de la C2-01 la C2-38. Regresia e în `docs/manual-tests/regresie.md`, pașii 1–50; pașii 46–50 sunt noi.
-- **Meniul principal** are acum: Ceas și calendar, **Editor de text**, Setări, Învață tastele, Despre HASI, Ieșire.
-- **Editorul** are trei opțiuni: Document nou, Deschide un document (.txt, .docx) și Documente recente. Tastele sunt cele din plan, §3.2.
-- **Salvarea și ieșirea:**
-  - Control S cere doar numele și propune primele cuvinte din text. Documentul se salvează ca .docx în Documente.
-  - Un .docx scris în Word nu se modifică niciodată; HASI îl salvează ca document nou.
-  - Cu modificări nesalvate, HASI te întreabă ce faci înainte de Escape, Alt+F4, repornire, oprire și actualizare.
-  - Ciorna se salvează la 30 de secunde și ți se oferă la următoarea pornire.
-- **Jurnalul de diagnostic** nu mai conține textul scris și nici numele documentelor.
-- **Despre HASI** are un rând nou: Open XML SDK, sub licența MIT.
+## Recenziile Codex pe nucleu
+- **Modulul 2:** 5 probleme reale, toate corectate.
+  - Trei te privesc direct: tastele apăsate după „La revedere” se pierdeau; cuvinte dintr-un document ajungeau în jurnal; o copie de siguranță întreruptă trecea drept completă.
+  - **De retestat:** C3-49 (tastele ignorate după „La revedere”) și C3-38 (jurnalul).
+- **Modulul 3:** 7 probleme reale, toate corectate. Cele mai importante: „Citește tot” se putea opri sau putea sări text, iar RHVoice anunța sfârșitul unei propoziții înainte să se fi auzit.
+  - **De retestat:** secțiunea G, „Citește tot” cu fiecare voce. Ascultă dacă se taie ultimul cuvânt sau dacă apar pauze lungi între propoziții.
 
-## Decizii luate de mine, de confirmat
-1. **Operațiile în fundal** (deschidere și salvare cu oprire la cerere) le amân la modulul 3. Deschiderea și salvarea unui .txt sau .docx durează puțin; PDF-urile mari vor avea nevoie de ele.
-2. **Profilul de taste pentru editare** l-am adus acum, nu la modulul 4, cum era în plan: editorul are nevoie de el pentru Home/End și pentru săgețile stânga și dreapta.
-3. **O singură ciornă:** dacă lași o ciornă „pentru mai târziu” și lucrezi la alt document nesalvat, după 30 de secunde ciorna nouă o înlocuiește pe cea veche.
-4. **Ordinea la Alt+F4:** după „Salvează și continuă”, HASI salvează, apoi întreabă „Sigur doriți să închideți HASI?”. Ajungi să confirmi de două ori, dar nimic nu se pierde din greșeală.
-5. **Scrierea fișierelor:** .txt se scrie UTF-8 cu marcaj de început, ca să-l citească corect și programele vechi. Un rând gol de la sfârșitul unui .txt nu se păstrează.
-6. **Alegerea fișierelor:** spațiul liber de pe stick se spune ca în Windows (de exemplu „15 gigaocteți liberi”). Folderele de sistem și fișierele ascunse nu apar.
+## Ciornele (decizia ta 3)
+Acum HASI păstrează câte o ciornă pentru fiecare document nesalvat, cel mult 10. La pornire le oferă într-o listă. Când se ajunge la limită, HASI spune ce ciornă se șterge înainte să o șteargă. Scenariile sunt C3-44…C3-48.
+
+## Decizii de confirmat
+1. **O tastă apăsată în timpul citirii** doar oprește citirea și nu spune nimic. Escape și F10 opresc citirea și își fac apoi treaba obișnuită.
+2. **Tasta 5 de pe tastatura numerică** pornește „Citește tot” în cititor.
+3. **Un PDF scanat în întregime** nu se deschide. HASI spune că documentul conține doar imagini.
+4. **La „Citește tot”**, titlurile se citesc ca propoziții obișnuite, fără „Titlu 2:”.
+5. **Poziția de citire** se salvează la 5 secunde. Dacă închizi cu Alt+F4 în timp ce citești, se pot pierde ultimele câteva secunde.
+
+## Lista pentru publicarea 0.2.0 (plan §6)
+
+| Condiție | Stare |
+|---|---|
+| Salvarea, ciorna și recuperarea după o eroare gravă | Pentru o singură ciornă, **verificată de tine** (modulul 2). Ciornele multiple sunt noi: **de verificat de tine** (C3-44…48). |
+| Jurnalul de diagnostic nu conține textul scris | **Verificată de mine** prin teste, plus cele două recenzii Codex; pentru editor, verificată și de tine (C2-36). Pentru documentele citite: **de verificat de tine** (C3-38). |
+| Tastele noi merg cu NVDA | Editorul: **verificată de tine** (C2-38). Cititorul: **de verificat de tine** (C3-39, C3-40). |
+| O actualizare instalată păstrează documentele, ciornele și pozițiile de citire | **Nefăcută.** Datele stau în `%LOCALAPPDATA%\HASI\userdata`, iar actualizarea nu atinge acel folder, dar trebuie încercat. Îți pot pregăti două pachete de test într-un folder local, ca la X-05; instalarea o faci tu. |
+| Ghidul și README spun ce se șterge la dezinstalare și cum se face copia de siguranță | Partea cu ștergerea: **verificată de mine**. Copia de siguranță: **nefăcută**, pentru că vine cu agenda (modulul 5). Pentru 0.2.0 propun ca ghidul să spună că încă nu există copie de siguranță, iar documentele salvate rămân în Documente. |
+| (Riscul F9) Licențele sunt în pachet | **Verificată de mine.** Am găsit o lipsă: licența HASI, textul MIT și `THIRD-PARTY-NOTICES.md` nu intrau în pachet. Am adăugat-o în folderul `licente\` și am verificat cu o publicare de test. |
 
 ## Ce nu e făcut
-- **Recenzia Codex** pe nucleu (vezi sus).
-- **Selecția, copierea, lipirea și căutarea** rămân în afara Fazei 1, cum scrie în plan.
-- **„Citește tot”** apare în meniul documentului abia cu modulul 3.
+- **Nu am publicat nimic.** Pachetele de test pentru verificarea actualizării le pregătesc doar dacă îmi spui.
+- **„Citește tot” e verificat doar prin teste**, care simulează vocea. Cât de bine se aude (pauze, sfârșitul propozițiilor) se poate afla doar ascultând.
