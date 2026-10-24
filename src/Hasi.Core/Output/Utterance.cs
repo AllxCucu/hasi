@@ -49,4 +49,5 @@ public sealed record Utterance(
 }
 
 /// <summary>What output channels receive: the utterance plus the exact text sent to speech.</summary>
-public sealed record Announcement(Utterance Utterance, string SpokenText);
+/// <param name="Id">Given by the announcer to every announcement, so the speech channel can report its end (0 = none).</param>
+public sealed record Announcement(Utterance Utterance, string SpokenText, long Id = 0);

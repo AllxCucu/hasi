@@ -242,6 +242,12 @@ public sealed class Shell : IShellServices, IScreenContext
         return ScreenResult.Push(new UnsavedWorkScreen(work, () => GuardUnsaved(proceed, [.. settled, work]), Localizer));
     }
 
+    /// <summary>The speech channel reports the end of announcement <paramref name="announcementId"/>; on the shell's thread.</summary>
+    public void SpeechFinished(long announcementId, SpeechOutcome outcome) { } // Module 3 (WP-A).
+
+    public BackgroundJob RunInBackground<T>(IScreen owner, Func<CancellationToken, T> work, Func<T, IScreenContext, ScreenResult> onDone,
+        Utterance? slowNotice = null) => throw new NotImplementedException("Module 3 (WP-B).");
+
     public ScreenResult ConfirmExit() => GuardUnsaved(() => ScreenResult.Confirm(
         Localizer.Get("shell.exit.confirm"),
         () =>
@@ -447,6 +453,13 @@ public sealed class Shell : IShellServices, IScreenContext
                 break;
             case UnhandledResult:
                 Say(new Utterance(Localizer.Get("shell.keyUnavailable"), Earcon: Earcon.Unavailable));
+                break;
+            case SayTrackedResult tracked: // Module 3 (WP-A) tracks them; until then they are only said.
+                for (var i = 0; i < tracked.Items.Count; i++)
+                {
+                    var item = tracked.Items[i].Utterance;
+                    Say(i == 0 ? item : item with { Priority = UtterancePriority.Queue });
+                }
                 break;
             case PopToResult popTo:
                 var target = _stack.LastIndexOf(popTo.Screen);

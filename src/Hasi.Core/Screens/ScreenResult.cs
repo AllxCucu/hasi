@@ -32,6 +32,12 @@ public abstract record ScreenResult
     public static ScreenResult PopTo(IScreen screen, Utterance? prefix = null, ScreenResult? then = null) =>
         new PopToResult(screen, prefix, then);
 
+    /// <summary>
+    /// Says the messages in order (the first with its own priority, the others queued) and reports the end of each one
+    /// to the current screen through <see cref="ISpeechListener"/>, with its token.
+    /// </summary>
+    public static ScreenResult SayTracked(params TrackedSpeech[] items) => new SayTrackedResult(items);
+
     /// <summary>Asks a yes/no question; <paramref name="onYes"/> runs only after Enter.</summary>
     /// <param name="cancelled">Said after Escape instead of "Anulat."</param>
     public static ScreenResult Confirm(string question, Func<ScreenResult> onYes, Utterance? cancelled = null) =>
@@ -49,6 +55,8 @@ public sealed record PushResult(IScreen Screen) : ScreenResult;
 public sealed record ReplaceResult(IScreen Screen) : ScreenResult;
 
 public sealed record PopResult(Utterance? Prefix, bool Announce, ScreenResult? Then) : ScreenResult;
+
+public sealed record SayTrackedResult(IReadOnlyList<TrackedSpeech> Items) : ScreenResult;
 
 public sealed record PopToResult(IScreen Screen, Utterance? Prefix, ScreenResult? Then) : ScreenResult;
 

@@ -14,4 +14,10 @@ public enum KeyProfile
     /// forward, Ctrl+S saves, Ctrl+Z/Ctrl+Y undo and redo, F10 and Ctrl+M open the screen's menu.
     /// </summary>
     TextEditing,
+
+    /// <summary>
+    /// Reading a document (no typing): the TextEditing moves, plus Enter = read all from here, H / Shift+H = next /
+    /// previous heading, PageDown / PageUp = next / previous page (PDF) or chapter (EPUB), F10 and Ctrl+M = menu.
+    /// </summary>
+    TextReading,
 }

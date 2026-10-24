@@ -40,6 +40,11 @@ public enum Command
     /// <summary>The current screen's own menu (F10, Ctrl+M).</summary>
     ScreenMenu,
 
+    // Reading documents (KeyProfile.TextReading).
+    ReadAll,
+    NextHeading,
+    PreviousHeading,
+
     // Global commands, handled by the shell on every screen.
     Help,
     RepeatLast,

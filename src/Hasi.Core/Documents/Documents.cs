@@ -7,17 +7,38 @@ public enum DocumentFormat
 
     /// <summary>Word document (.docx), Office Open XML.</summary>
     Word,
+
+    /// <summary>PDF, read only: its text, page by page.</summary>
+    Pdf,
+
+    /// <summary>EPUB e-book, read only: its chapters in reading order.</summary>
+    Epub,
 }
 
 /// <param name="HeadingLevel">0 for a normal paragraph, 1–6 for a heading.</param>
-public sealed record DocumentParagraph(string Text, int HeadingLevel = 0);
+/// <param name="Page">1-based page of a PDF; 0 when the format has no pages.</param>
+/// <param name="Chapter">1-based chapter of an EPUB; 0 when the format has no chapters.</param>
+public sealed record DocumentParagraph(string Text, int HeadingLevel = 0, int Page = 0, int Chapter = 0);
 
 /// <summary>
 /// What HASI keeps of a document: its paragraphs, in reading order. Module 3 (reading documents) adds pages and
 /// chapters.
 /// </summary>
 /// <param name="MadeByHasi">The document was written by HASI, so saving over it loses nothing.</param>
-public sealed record Document(IReadOnlyList<DocumentParagraph> Paragraphs, DocumentFormat Format, bool MadeByHasi);
+public sealed record Document(IReadOnlyList<DocumentParagraph> Paragraphs, DocumentFormat Format, bool MadeByHasi)
+{
+    /// <summary>Number of pages of a PDF; 0 for other formats.</summary>
+    public int PageCount { get; init; }
+
+    /// <summary>Chapter titles of an EPUB, in reading order (index 0 = chapter 1); empty for other formats.</summary>
+    public IReadOnlyList<string> ChapterTitles { get; init; } = [];
+
+    /// <summary>1-based PDF pages that have no text (scanned images).</summary>
+    public IReadOnlyList<int> ScannedPages { get; init; } = [];
+
+    /// <summary>The text looks broken (letters without meaning, from fonts without a correct character table).</summary>
+    public bool LooksGarbled { get; init; }
+}
 
 public enum DocumentProblem
 {

@@ -87,6 +87,15 @@ public interface IShellServices
     /// Used before closing HASI, restarting or shutting down, and installing an update.
     /// </summary>
     ScreenResult GuardUnsaved(Func<ScreenResult> proceed);
+
+    /// <summary>
+    /// Runs <paramref name="work"/> off the shell's thread. When it ends, <paramref name="onDone"/> runs on the shell's
+    /// thread and its result is applied, but only if <paramref name="owner"/> is still the current screen and the job was
+    /// not cancelled; otherwise the result is dropped. When the work takes longer than a second, <paramref name="slowNotice"/>
+    /// is said once (for example "Se deschide documentul..."). Exceptions the work does not catch are logged and dropped.
+    /// </summary>
+    BackgroundJob RunInBackground<T>(IScreen owner, Func<CancellationToken, T> work, Func<T, IScreenContext, ScreenResult> onDone,
+        Output.Utterance? slowNotice = null);
 }
 
 /// <summary>Host operations the core may request, implemented by the application.</summary>
