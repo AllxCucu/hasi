@@ -32,7 +32,7 @@ Acum HASI păstrează câte o ciornă pentru fiecare document nesalvat, cel mult
 | Tastele noi merg cu NVDA | Editorul: **verificată de tine** (C2-38). Cititorul: **de verificat de tine** (C3-39, C3-40). |
 | O actualizare instalată păstrează documentele, ciornele și pozițiile de citire | **Nefăcută.** Datele stau în `%LOCALAPPDATA%\HASI\userdata`, iar actualizarea nu atinge acel folder, dar trebuie încercat. Îți pot pregăti două pachete de test într-un folder local, ca la X-05; instalarea o faci tu. |
 | Ghidul și README spun ce se șterge la dezinstalare și cum se face copia de siguranță | Partea cu ștergerea: **verificată de mine**. Copia de siguranță: **nefăcută**, pentru că vine cu agenda (modulul 5). Pentru 0.2.0 propun ca ghidul să spună că încă nu există copie de siguranță, iar documentele salvate rămân în Documente. |
-| (Riscul F9) Licențele sunt în pachet | **Verificată de mine.** Am găsit o lipsă: licența HASI, textul MIT și `THIRD-PARTY-NOTICES.md` nu intrau în pachet. Am adăugat-o în folderul `licente\` și am verificat cu o publicare de test. |
+| (Riscul F9) Licențele sunt în pachet | **Verificată de mine.** Am găsit o lipsă: licența HASI, textul MIT și `THIRD-PARTY-NOTICES.md` nu intrau în pachet. Le-am adăugat în folderul `licente\` și am verificat cu o publicare de test. |
 
 ## Ce nu e făcut
 - **Nu am publicat nimic.** Pachetele de test pentru verificarea actualizării le pregătesc doar dacă îmi spui.
