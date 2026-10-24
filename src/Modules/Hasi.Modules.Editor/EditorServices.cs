@@ -93,18 +93,21 @@ internal sealed class EditorServices(IModuleContext context)
             }
             drafts.Add(draft);
         }
-        if (!data.Write(DraftsName, drafts)) return false;
 
-        // Said only after the write: a failed one is tried again at every tick and must not repeat the sentence.
-        foreach (var oldest in dropped)
+        // Owner's rule: the user hears which draft goes BEFORE it is deleted. A failed write is tried again at every
+        // tick, so each dropped draft is announced only once.
+        foreach (var oldest in dropped.Where(d => _announcedDrops.Add(d.Id)))
         {
             var (date, time) = DraftMoment(oldest);
             var said = Localizer.Get("editor.draft.limit",
                 ("count", MaxDrafts), ("words", DraftWords(oldest)), ("date", date), ("time", time));
             context.Shell.Show(ScreenResult.Say(new Utterance(said, Sensitive: true)), UtterancePriority.Queue);
         }
-        return true;
+        return data.Write(DraftsName, drafts);
     }
+
+    /// <summary>Drafts whose removal at the limit has already been announced.</summary>
+    private readonly HashSet<string> _announcedDrops = [];
 
     /// <summary>Deletes only this document's draft; the others stay.</summary>
     public void DeleteDraft(string id)

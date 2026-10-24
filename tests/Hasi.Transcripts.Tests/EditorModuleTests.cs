@@ -977,7 +977,7 @@ public class EditorModuleTests
     }
 
     [Fact]
-    public void A_draft_that_cannot_be_written_deletes_nothing_and_says_nothing()
+    public void A_draft_that_cannot_be_written_deletes_nothing_and_is_announced_once()
     {
         var time = Clock();
         var drafts = Enumerable.Range(0, 10).Select(i =>
@@ -991,7 +991,9 @@ public class EditorModuleTests
         Tick(h, time, TimeSpan.FromSeconds(30));
         Tick(h, time, TimeSpan.FromSeconds(30));
 
-        Assert.Equal(said, h.Output.Announcements.Count);
+        // The owner's rule: the sentence comes before the deletion, so it is heard once even if the write fails.
+        Assert.Equal(said + 1, h.Output.Announcements.Count);
+        Assert.StartsWith("Sunt deja 10 documente nesalvate păstrate.", h.Output.Announcements[^1].Utterance.Text, StringComparison.Ordinal);
         Assert.Contains(StoredDrafts(h), d => d.Id == "d0");
     }
 
