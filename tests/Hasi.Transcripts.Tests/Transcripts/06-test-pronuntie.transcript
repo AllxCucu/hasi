@@ -4,7 +4,9 @@
 # "> scrie: ..." tastează textul (ecoul fiecărui caracter nu e verificat aici).
 
 > start
-< Bun venit în HASI. Meniu principal. 4 opțiuni. Selectat: Setări, 1 din 4.
+< Bun venit în HASI. Meniu principal. 5 opțiuni. Selectat: Ceas și calendar, 1 din 5.
+> Down
+< Setări, 2 din 5.
 > Enter
 < Setări. 12 opțiuni. Selectat: Voce, 1 din 12.
 > End

@@ -44,8 +44,8 @@ respectă asta deja.
 
 | # | Modul | De ce aici |
 |---|---|---|
-| 0 | Corecturile din 0.11 | Mici; le auzi la prima oprire, împreună cu modulul 1. |
-| 1 | Ceas, dată și calendar | Mic. Verifică pe ceva simplu: un modul nou, un fișier de date, timpul simulat în teste. Aduce alegerea unei date, refolosită de agendă. |
+| 0 | Corecturile din 0.11 (**făcute**) | Mici; le auzi la prima oprire, împreună cu modulul 1. |
+| 1 | Ceas, dată și calendar (**gata pentru testul tău**, 24 octombrie 2026) | Mic. Verifică pe ceva simplu: un modul nou, un fișier de date, timpul simulat în teste. Aduce alegerea unei date, refolosită de agendă. |
 | 2 | Editor de text | Aduce navigarea în text, alegerea fișierelor, salvarea sigură și locul datelor personale (§5). |
 | 3 | Citire documente | Folosește navigarea din editor; adaugă formatele și „citește tot”. |
 | 4 | Calculator | Mic, independent; cere un „profil de taste” (§3.4). |
@@ -372,7 +372,7 @@ aprobarea ta explicită.
 
 - Fiecare modul: commit-uri mici, teste `ShellHarness`, transcrieri, scenarii în `docs/manual-tests/` și câțiva
   pași noi în regresie; apoi **oprire**, versiune care rulează, rularea de verificare cu `--diagnostic`.
-- Lista de regresie: propun ca `regresie-faza-0.md` să devină `regresie.md`, cu o secțiune nouă pentru fiecare
+- Lista de regresie: `regresie-faza-0.md` a devenit `regresie.md` (modulul 1), cu o secțiune nouă pentru fiecare
   modul (3–5 pași esențiali), ca să rămână o singură sesiune.
 - Fiecare bibliotecă nouă intră în `THIRD-PARTY-NOTICES.md` și în „Despre HASI” în același commit.
 - Gata, pentru Faza 1, înseamnă: scenariile tuturor modulelor și regresia trec la tine pe Windows 11; Windows 10

@@ -7,6 +7,7 @@
   </Folder>
   <Folder Name="/src/Modules/">
     <Project Path="src/Modules/Hasi.Modules.About/Hasi.Modules.About.csproj" />
+    <Project Path="src/Modules/Hasi.Modules.Clock/Hasi.Modules.Clock.csproj" />
     <Project Path="src/Modules/Hasi.Modules.Exit/Hasi.Modules.Exit.csproj" />
     <Project Path="src/Modules/Hasi.Modules.KeyTutor/Hasi.Modules.KeyTutor.csproj" />
     <Project Path="src/Modules/Hasi.Modules.Settings/Hasi.Modules.Settings.csproj" />

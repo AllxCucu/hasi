@@ -245,7 +245,7 @@ Build-ul din CI e copiat în `%LOCALAPPDATA%\HASI\rhvoice-ci-1.18.4`. Cel de acu
 |---|---|---|
 | W-01 | În folderul `%LOCALAPPDATA%\HASI\comparatie-rhvoice` asculți pe rând `fraza-1-A-actual-1.18.2.wav` și `fraza-1-B-din-CI.wav`, apoi frazele 2…5 | fiecare pereche sună la fel: aceeași voce, viteză, intonație, aceleași pauze |
 | W-02 | Pornești B; în jurnalul de diagnostic cauți rândul `RHVOICE version` | `RHVOICE version 1.19.2, voices Paul` (build-ul nostru se declară 1.19.2, ca scriptul RHVoice; A spune 1.18.2) și `dll=…rhvoice-ci-1.18.4\lib\x64\RHVoice.dll` |
-| W-03 | Cu B: pașii 1–23 din `regresie-faza-0.md` | totul ca în A: bun venit fără întârziere, oprire imediată a vorbirii, nicio pocnitură, Test pronunție la fel |
+| W-03 | Cu B: pașii 1–23 din `regresie.md` | totul ca în A: bun venit fără întârziere, oprire imediată a vorbirii, nicio pocnitură, Test pronunție la fel |
 | W-04 | Cu B: Setări → Diagnostic → Comparare voci, Enter pe fiecare frază | „Varianta unu, Paul prin SAPI…”, apoi „Varianta doi, Paul prin RHVoice direct…”; varianta doi sună ca până acum |
 
 ## Etapa 0.11, pașii 2–3 – instalare, pornire automată, actualizare, dezinstalare (X-00…X-10)

@@ -1,0 +1,36 @@
+# Sărbătorile legale în care nu se lucrează, pentru modulul „Ceas și calendar” al HASI.
+#
+# Sursa: Codul muncii (Legea nr. 53/2003, republicată), art. 139 alin. (1), forma consolidată la
+# 27 aprilie 2026, de pe legislatie.just.ro (DetaliiDocument/128647). Alin. (1) a fost rescris de
+# Legea nr. 176/2016 (în vigoare din 16 octombrie 2016); de aceea fiecare regulă e verificată abia
+# din 2017, iar HASI nu spune nimic despre anii dinainte. Paștele, Vinerea Mare și Rusaliile sunt
+# cele ortodoxe. Legea nu dă data pentru Adormirea Maicii Domnului și pentru Crăciun: sunt datele
+# Bisericii Ortodoxe Române. Lista pe 2026 a fost comparată cu calendar.patriarhia.ro.
+#
+# Format, câte o regulă pe rând, cu câmpurile despărțite de „|”:
+#   cheie | regulă | de la anul | temei
+# - cheie: numele rostit, din src/Hasi.App/Resources/ro.json (de exemplu holiday.labourDay);
+# - regulă: „fix LL-ZZ” (aceeași zi în fiecare an) sau „paste +N” / „paste -N” (zile față de
+#   duminica Paștelui ortodox; „paste 0” este chiar duminica);
+# - de la anul: primul an în care se aplică;
+# - temei: doar pentru cine citește fișierul.
+# Ordinea rândurilor este ordinea în care se rostesc două sărbători căzute în aceeași zi.
+# Un rând greșit este sărit; testele automate verifică fișierul.
+
+holiday.newYear1     | fix 01-01 | 2017 | art. 139 alin. (1)
+holiday.newYear2     | fix 01-02 | 2017 | art. 139 alin. (1)
+holiday.epiphany     | fix 01-06 | 2024 | Legea nr. 52/2023, în vigoare din 9 martie 2023
+holiday.saintJohn    | fix 01-07 | 2024 | Legea nr. 52/2023, în vigoare din 9 martie 2023
+holiday.unification  | fix 01-24 | 2017 | art. 139 alin. (1)
+holiday.goodFriday   | paste -2  | 2018 | Legea nr. 64/2018, în vigoare din 16 martie 2018
+holiday.easter1      | paste 0   | 2017 | art. 139 alin. (1)
+holiday.easter2      | paste +1  | 2017 | art. 139 alin. (1)
+holiday.labourDay    | fix 05-01 | 2017 | art. 139 alin. (1)
+holiday.childrensDay | fix 06-01 | 2017 | Legea nr. 220/2016, în vigoare din 21 noiembrie 2016
+holiday.pentecost1   | paste +49 | 2017 | art. 139 alin. (1)
+holiday.pentecost2   | paste +50 | 2017 | art. 139 alin. (1)
+holiday.dormition    | fix 08-15 | 2017 | art. 139 alin. (1)
+holiday.saintAndrew  | fix 11-30 | 2017 | art. 139 alin. (1)
+holiday.nationalDay  | fix 12-01 | 2017 | art. 139 alin. (1)
+holiday.christmas1   | fix 12-25 | 2017 | art. 139 alin. (1)
+holiday.christmas2   | fix 12-26 | 2017 | art. 139 alin. (1)

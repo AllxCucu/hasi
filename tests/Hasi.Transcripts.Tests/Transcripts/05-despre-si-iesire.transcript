@@ -1,12 +1,14 @@
 ﻿# Despre HASI (M0-20) și Ieșire (M0-21 … M0-23), etapa 0.7.
 
 > start
-< Bun venit în HASI. Meniu principal. 4 opțiuni. Selectat: Setări, 1 din 4.
+< Bun venit în HASI. Meniu principal. 5 opțiuni. Selectat: Ceas și calendar, 1 din 5.
+> Down
+< Setări, 2 din 5.
 
 > Down
-< Învață tastele, 2 din 4.
+< Învață tastele, 3 din 5.
 > Down
-< Despre HASI, 3 din 4.
+< Despre HASI, 4 din 5.
 > Enter
 < Despre HASI. 11 rânduri. Selectat: HASI, Human Assisted Information, versiunea 0.1.0, 1 din 11.
 > Down
@@ -26,11 +28,11 @@
 > Down
 < Componenta System.Speech, de la .NET Foundation, sub licența MIT, 9 din 11.
 > Escape
-< Meniu principal. Selectat: Despre HASI, 3 din 4.
+< Meniu principal. Selectat: Despre HASI, 4 din 5.
 
 # M0-21 Ieșire, apoi renunț
 > Down
-< Ieșire, 4 din 4.
+< Ieșire, 5 din 5.
 > Enter
 < Ieșire. 3 opțiuni. Selectat: Închide HASI, 1 din 3.
 > F1

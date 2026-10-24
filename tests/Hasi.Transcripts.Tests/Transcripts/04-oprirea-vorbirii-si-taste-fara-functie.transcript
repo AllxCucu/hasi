@@ -2,7 +2,9 @@
 # Întreruperea propriu-zisă se aude doar în aplicație. Aici verificăm că nu se spune nimic în plus.
 
 > start
-< Bun venit în HASI. Meniu principal. 4 opțiuni. Selectat: Setări, 1 din 4.
+< Bun venit în HASI. Meniu principal. 5 opțiuni. Selectat: Ceas și calendar, 1 din 5.
+> Down
+< Setări, 2 din 5.
 
 # M0-12 Control singur: liniște
 > LeftCtrl

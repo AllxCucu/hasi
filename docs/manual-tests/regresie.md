@@ -1,6 +1,7 @@
-# Regresie Faza 0 – o singură sesiune (40 de pași)
+# Regresie – o singură sesiune (45 de pași)
 
-Lista se parcurge de sus în jos, fără să închizi HASI, până la pasul 37. Pașii care se pot verifica fără sunet
+Lista se parcurge de sus în jos, fără să închizi HASI, până la pasul 37. Pașii 1–40 vin din Faza 0; fiecare modul
+din Faza 1 adaugă la final câțiva pași esențiali (secțiunea J și următoarele). Pașii care se pot verifica fără sunet
 sunt și test automat: `tests/Hasi.Transcripts.Tests/Transcripts/08-regresie.transcript`. Fiecare pas spune ce apeși și ce
 trebuie să auzi. Numerele din mesaje se aud în cuvinte („patru opțiuni”, „unu din patru”). [sunet] înseamnă
 sunetul scurt de la capătul listei sau de eroare. Între paranteze sunt scenariile vechi acoperite.
@@ -16,26 +17,26 @@ Dacă un pas nu sună cum scrie aici, notează numărul pasului și ce ai auzit,
 
 | # | Ce apăs | Ce trebuie să aud |
 |---|---|---|
-| 1 | (nimic, HASI pornește) | „Bun venit în HASI. Meniu principal. 4 opțiuni. Selectat: Setări, 1 din 4.”, fără întârziere (M0-01, R-16) |
-| 2 | Săgeata jos de 3 ori, apoi ții apăsată săgeata jos | „Învață tastele, 2 din 4.”, „Despre HASI, 3 din 4.”, „Ieșire, 4 din 4.”, apoi o singură dată [sunet] „Sfârșitul listei. Ieșire, 4 din 4.” (M0-02, M0-03, P-14) |
-| 3 | Control + săgeata sus, apoi Control + săgeata jos | „Setări, 1 din 4.”, apoi „Ieșire, 4 din 4.” (M0-04) |
-| 4 | Home, apoi Escape | „Setări, 1 din 4.”, apoi „Sunteți în meniul principal. Pentru a închide HASI, alegeți Ieșire.” (M0-07) |
-| 5 | Cu Num Lock **oprit**, de pe tastatura numerică: 2, 8, 5, apoi 0 | „Învață tastele, 2 din 4.”, „Setări, 1 din 4.”, „Setări. 11 opțiuni. Selectat: Voce, 1 din 11.”, „Meniu principal. Selectat: Setări, 1 din 4.” (R-11, N-05) |
+| 1 | (nimic, HASI pornește) | „Bun venit în HASI. Meniu principal. 5 opțiuni. Selectat: Ceas și calendar, 1 din 5.”, fără întârziere (M0-01, R-16) |
+| 2 | Săgeata jos de 4 ori, apoi ții apăsată săgeata jos | „Setări, 2 din 5.”, „Învață tastele, 3 din 5.”, „Despre HASI, 4 din 5.”, „Ieșire, 5 din 5.”, apoi o singură dată [sunet] „Sfârșitul listei. Ieșire, 5 din 5.” (M0-02, M0-03, P-14) |
+| 3 | Control + săgeata sus, apoi Control + săgeata jos | „Ceas și calendar, 1 din 5.”, apoi „Ieșire, 5 din 5.” (M0-04) |
+| 4 | Home, apoi Escape | „Ceas și calendar, 1 din 5.”, apoi „Sunteți în meniul principal. Pentru a închide HASI, alegeți Ieșire.” (M0-07) |
+| 5 | Cu Num Lock **oprit**, de pe tastatura numerică: 2, 8, 2, 5, apoi 0 | „Setări, 2 din 5.”, „Ceas și calendar, 1 din 5.”, „Setări, 2 din 5.”, „Setări. 12 opțiuni. Selectat: Voce, 1 din 12.”, „Meniu principal. Selectat: Setări, 2 din 5.” (R-11, N-05) |
 | 6 | Enter pe Setări, apoi Control + H | „Ajutor pentru Setări. Folosiți săgețile sus și jos …”, care se termină cu „Aici schimbați vocea, viteza vorbirii, culorile și alte preferințe. Fiecare schimbare se salvează imediat.” (M0-08) |
-| 7 | Săgeata jos, apoi Control + R, apoi Control + U | „Viteză, 2 din 11.” de două ori, apoi „Sunteți în: Meniu principal, Setări.” (M0-09, M0-10) |
-| 8 | F1 și, în timp ce vorbește, săgeata jos; apoi F1 și, în timp ce vorbește, Control | vorbirea se oprește imediat și auzi doar „Volum, 3 din 11.”; apoi liniște imediată. Nicio pocnitură, la oprire sau la pornire. (M0-11, M0-12, R-03, R-04) |
+| 7 | Săgeata jos, apoi Control + R, apoi Control + U | „Viteză, 2 din 12.” de două ori, apoi „Sunteți în: Meniu principal, Setări.” (M0-09, M0-10) |
+| 8 | F1 și, în timp ce vorbește, săgeata jos; apoi F1 și, în timp ce vorbește, Control | vorbirea se oprește imediat și auzi doar „Volum, 3 din 12.”; apoi liniște imediată. Nicio pocnitură, la oprire sau la pornire. (M0-11, M0-12, R-03, R-04) |
 
 ## B. Setări
 
 | # | Ce apăs | Ce trebuie să aud |
 |---|---|---|
 | 9 | Home, Enter pe Voce; săgețile până la capăt | doar voci românești, cu „, actual” la vocea de acum, iar ultima opțiune e „Arată toate vocile” (S-01) |
-| 10 | Alegi „Paul, RHVoice direct” și Enter | „Vocea a fost schimbată: Paul, RHVoice direct. Setări. Selectat: Voce, 1 din 11.”, rostit deja cu vocea nouă (S-01) |
+| 10 | Alegi „Paul, RHVoice direct” și Enter | „Vocea a fost schimbată: Paul, RHVoice direct. Setări. Selectat: Voce, 1 din 12.”, rostit deja cu vocea nouă (S-01) |
 | 11 | Viteză: Enter; săgeata dreapta de 2 ori, stânga de 2 ori; Escape | „Viteză. 50, viteza normală. Săgețile stânga și dreapta schimbă valoarea. Enter sau Escape vă întoarce.”, „55”, „60”, „55”, „50, viteza normală”, fiecare cu viteza nouă (S-03) |
 | 12 | Volum: stânga de 2 ori, dreapta de 2 ori; Escape | „90”, „80” (tot mai încet), „90”, „100, volumul maxim” (S-04) |
 | 13 | Culori → „Negru pe galben”, Enter; apoi înapoi la „Galben pe negru” | „Culori: Negru pe galben.” și ecranul se schimbă imediat; apoi „Culori: Galben pe negru.” (S-08) |
-| 14 | Capătul listei → „Salt la celălalt capăt”; Escape; în meniul principal End, apoi săgeata jos | „Capătul listei: Salt la celălalt capăt. …”; apoi [sunet] „Setări, 1 din 4.” Pui la loc „Oprire la capăt, cu sunet”. (S-09) |
-| 15 | Ecoul tastelor → „Fiecare cuvânt” | „Ecoul tastelor: Fiecare cuvânt. Setări. Selectat: Ecoul tastelor, 5 din 11.” (S-06, continuă la pasul 18) |
+| 14 | Capătul listei → „Salt la celălalt capăt”; Escape; în meniul principal End, apoi săgeata jos | „Capătul listei: Salt la celălalt capăt. …”; apoi [sunet] „Ceas și calendar, 1 din 5.” Pui la loc „Oprire la capăt, cu sunet”. (S-09) |
+| 15 | Ecoul tastelor → „Fiecare cuvânt” | „Ecoul tastelor: Fiecare cuvânt. Setări. Selectat: Ecoul tastelor, 5 din 12.” (S-06, continuă la pasul 18) |
 
 ## C. Test pronunție (Setări → Diagnostic → Test pronunție)
 
@@ -65,8 +66,8 @@ Enter nu golește câmpul. Ca să pornești de la un câmp gol, apeși Escape, a
 | # | Ce apăs | Ce trebuie să aud |
 |---|---|---|
 | 27 | Escape, Escape; Învață tastele; apoi: săgeata jos, Control + săgeata sus, `ș`, Control + Shift + D, Alt + F4 | „Învață tastele. Apăsați orice tastă …”, „Săgeata jos: trece la opțiunea următoare.”, „Control plus săgeata sus: duce la prima opțiune.”, „Litera ș: când scrieți, scrie acest caracter. …”, „Control plus Shift plus litera D: pornește sau oprește modul de diagnostic.”, „Alt plus F4: închide HASI, după confirmare.”. Nimic nu se execută. (K-02…K-06, G-04) |
-| 28 | Escape, altă tastă, apoi Escape de două ori la rând | „Escape: înapoi la ecranul anterior. Apăsați încă o dată Escape …”; după al doilea Escape la rând: „Meniu principal. Selectat: Învață tastele, 2 din 4.” (K-07) |
-| 29 | Despre HASI; săgeata jos până la capăt | 9 rânduri; rândul 4: „Sinteza vocală RHVoice, de Olga Yakovleva și colaboratorii. …”; rândul 7: MULTEXT-East; rândul 9: System.Speech (D-01, M0-20) |
+| 28 | Escape, altă tastă, apoi Escape de două ori la rând | „Escape: înapoi la ecranul anterior. Apăsați încă o dată Escape …”; după al doilea Escape la rând: „Meniu principal. Selectat: Învață tastele, 3 din 5.” (K-07) |
+| 29 | Despre HASI; săgeata jos până la capăt | 11 rânduri; rândul 4: „Sinteza vocală RHVoice versiunea 1.18.4, de Olga Yakovleva și colaboratorii. …”, terminat cu „Sursa exactă este indicată în fișierul de licențe”, **fără commit în voce**; pe ecran apare și „(commit fa9dd196)”; rândul 7: MULTEXT-East; rândul 9: System.Speech (D-01, M0-20) |
 
 ## F. Ieșire, fără să închizi nimic
 
@@ -98,6 +99,16 @@ Enter nu golește câmpul. Ca să pornești de la un câmp gol, apeși Escape, a
 | 38 | Pornești `dotnet run --project src\Hasi.App -- --diagnostic --test-error crash` și aștepți 10 secunde | bun venit; după 5 secunde „A apărut o problemă gravă. HASI se repornește.”; HASI pornește singur: bun venit, apoi „HASI a fost repornit după o problemă neașteptată. Ne cerem scuze.”. Nicio fereastră Windows de eroare. (G-07, I-05) |
 | 39 | Ieșire → Închide HASI → Enter; pornești Naratorul (Control + tasta Windows + Enter); pornești HASI | după bun venit: „Naratorul Windows este pornit și va vorbi peste HASI. Pentru a-l opri, apăsați împreună Control, tasta Windows și Enter.”. Oprești Naratorul. (M0-27) |
 | 40 | Setări → Voce, apoi Escape; Ieșire → Închide HASI → Enter | „Voce. … Selectat: Paul, RHVoice direct, actual, …” (vocea s-a păstrat); apoi „La revedere.” și HASI se închide (S-02, M0-21) |
+
+## J. Faza 1, modulul 1: Ceas și calendar (pornești HASI din nou)
+
+| # | Ce apăs | Ce trebuie să aud |
+|---|---|---|
+| 41 | Pornești HASI; Enter pe Ceas și calendar; Enter pe Ora; săgeata jos și Enter pe Data | „Ceas și calendar. 4 opțiuni. Selectat: Ora, 1 din 4.”; „Este ora …” (ora ceasului din bara de activități); „Astăzi este …”, cu ziua săptămânii, data și anul de azi |
+| 42 | Săgeata jos, Enter pe Calendar; săgeata jos; Page Down; săgeata stânga; End; Escape | „Calendar. …, astăzi.”; ziua de mâine; aceeași zi luna viitoare; înapoi luna aceasta; ultima zi a lunii; „Ceas și calendar. Selectat: Calendar, 3 din 4.” |
+| 43 | Săgeata jos, Enter pe Sărbători legale; săgeata dreapta; săgeata sus; Escape | lista anului, cu următoarea sărbătoare selectată (de exemplu „Luni, 30 noiembrie: Sfântul Apostol Andrei, Ocrotitorul României”); lista anului următor, de la 1 ianuarie; [sunet] „Începutul listei. …”; înapoi în Ceas și calendar |
+| 44 | Escape, Escape; în meniul principal, Control + T; apoi Setări, Enter, și Control + T | de fiecare dată „Este ora …”, fără să se schimbe ecranul sau selecția |
+| 45 | În Setări, „Ora fixă rostită”, Enter | „Ora fixă rostită. 2 opțiuni. Selectat: Nu, actual, 2 din 2.” (oprită implicit); Escape fără să schimbi nimic |
 
 ## În afara sesiunii (o dată, înainte de 0.11)
 

@@ -1,37 +1,41 @@
-# Lista de regresie a Fazei 0 (docs/manual-tests/regresie-faza-0.md): pașii care se pot verifica fără
+# Lista de regresie (docs/manual-tests/regresie.md): pașii care se pot verifica fără
 # sunet și fără fereastră. Numerotarea din comentarii e cea din listă.
 
 # 1
 > start
-< Bun venit în HASI. Meniu principal. 4 opțiuni. Selectat: Setări, 1 din 4.
+< Bun venit în HASI. Meniu principal. 5 opțiuni. Selectat: Ceas și calendar, 1 din 5.
 # 2
 > Down
-< Învață tastele, 2 din 4.
+< Setări, 2 din 5.
 > Down
-< Despre HASI, 3 din 4.
+< Învață tastele, 3 din 5.
 > Down
-< Ieșire, 4 din 4.
+< Despre HASI, 4 din 5.
 > Down
-< [sunet] Sfârșitul listei. Ieșire, 4 din 4.
+< Ieșire, 5 din 5.
+> Down
+< [sunet] Sfârșitul listei. Ieșire, 5 din 5.
 # 3
 > Ctrl+Up
-< Setări, 1 din 4.
+< Ceas și calendar, 1 din 5.
 > Ctrl+Down
-< Ieșire, 4 din 4.
+< Ieșire, 5 din 5.
 # 4
 > Home
-< Setări, 1 din 4.
+< Ceas și calendar, 1 din 5.
 > Escape
 < Sunteți în meniul principal. Pentru a închide HASI, alegeți Ieșire.
 # 5
 > NumPad2
-< Învață tastele, 2 din 4.
+< Setări, 2 din 5.
 > NumPad8
-< Setări, 1 din 4.
+< Ceas și calendar, 1 din 5.
+> NumPad2
+< Setări, 2 din 5.
 > Clear
 < Setări. 12 opțiuni. Selectat: Voce, 1 din 12.
 > NumPad0
-< Meniu principal. Selectat: Setări, 1 din 4.
+< Meniu principal. Selectat: Setări, 2 din 5.
 # 6
 > Enter
 < Setări. 12 opțiuni. Selectat: Voce, 1 din 12.
@@ -126,9 +130,9 @@
 > Escape
 < Setări. Selectat: Diagnostic, 11 din 12.
 > Escape
-< Meniu principal. Selectat: Setări, 1 din 4.
+< Meniu principal. Selectat: Setări, 2 din 5.
 > End
-< Ieșire, 4 din 4.
+< Ieșire, 5 din 5.
 > Enter
 < Ieșire. 3 opțiuni. Selectat: Închide HASI, 1 din 3.
 # 31 (fără alte programe în harness)

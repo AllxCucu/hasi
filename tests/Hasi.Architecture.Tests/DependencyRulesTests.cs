@@ -5,7 +5,7 @@ namespace Hasi.Architecture.Tests;
 public class DependencyRulesTests
 {
     private static readonly string[] Modules =
-        ["Hasi.Modules.Settings", "Hasi.Modules.KeyTutor", "Hasi.Modules.About", "Hasi.Modules.Exit"];
+        ["Hasi.Modules.Clock", "Hasi.Modules.Settings", "Hasi.Modules.KeyTutor", "Hasi.Modules.About", "Hasi.Modules.Exit"];
 
     private static string[] HasiReferences(string assemblyName) =>
         Assembly.Load(assemblyName)

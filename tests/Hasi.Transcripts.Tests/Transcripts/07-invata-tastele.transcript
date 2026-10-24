@@ -2,9 +2,11 @@
 # Pentru a ieși: Escape de două ori la rând.
 
 > start
-< Bun venit în HASI. Meniu principal. 4 opțiuni. Selectat: Setări, 1 din 4.
+< Bun venit în HASI. Meniu principal. 5 opțiuni. Selectat: Ceas și calendar, 1 din 5.
 > Down
-< Învață tastele, 2 din 4.
+< Setări, 2 din 5.
+> Down
+< Învață tastele, 3 din 5.
 > Enter
 < Învață tastele. Apăsați orice tastă ca să aflați ce face; nimic nu se execută. Pe orice tastatură, și pe laptop: Control H pentru ajutor, Control R pentru a repeta, Control U pentru a afla unde sunteți, săgețile pentru a vă deplasa, Enter pentru a alege și Escape pentru a vă întoarce. Ca să ieșiți de aici, apăsați Escape de două ori.
 
@@ -67,4 +69,4 @@
 > Escape
 < Escape: înapoi la ecranul anterior. Apăsați încă o dată Escape ca să ieșiți din Învață tastele.
 > Escape
-< Meniu principal. Selectat: Învață tastele, 2 din 4.
+< Meniu principal. Selectat: Învață tastele, 3 din 5.

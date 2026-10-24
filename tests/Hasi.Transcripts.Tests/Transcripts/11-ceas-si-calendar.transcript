@@ -1,0 +1,56 @@
+# Modulul 1, Ceas și calendar. Ceasul testului: sâmbătă, 24 octombrie 2026, ora 14:32 în România.
+# Pe ecran și în această transcriere: „14:32”; vocea spune „paisprezece și treizeci și două de minute”.
+
+# Intrarea în modul și ora
+> start
+< Bun venit în HASI. Meniu principal. 5 opțiuni. Selectat: Ceas și calendar, 1 din 5.
+> Enter
+< Ceas și calendar. 4 opțiuni. Selectat: Ora, 1 din 4.
+> Enter
+< Este ora 14:32.
+
+# Data de azi
+> Down
+< Data, 2 din 4.
+> Enter
+< Astăzi este sâmbătă, 24 octombrie 2026.
+
+# Calendarul pornește pe azi; săgețile schimbă ziua, Page Down și săgeata dreapta luna
+> Down
+< Calendar, 3 din 4.
+> Enter
+< Calendar. Sâmbătă, 24 octombrie 2026, astăzi.
+> Down
+< Duminică, 25 octombrie 2026.
+> PageDown
+< Miercuri, 25 noiembrie 2026.
+> End
+< Luni, 30 noiembrie 2026. Sărbătoare legală: Sfântul Apostol Andrei, Ocrotitorul României.
+> Down
+< Marți, 1 decembrie 2026. Sărbătoare legală: Ziua Națională a României.
+> Right
+< Vineri, 1 ianuarie 2027. Sărbătoare legală: Anul Nou, prima zi.
+> Escape
+< Ceas și calendar. Selectat: Calendar, 3 din 4.
+
+# Sărbătorile legale: lista pornește la următoarea sărbătoare; stânga și dreapta schimbă anul
+> Down
+< Sărbători legale, 4 din 4.
+> Enter
+< Sărbători legale 2026. 16 zile de sărbătoare. Selectat: Luni, 30 noiembrie: Sfântul Apostol Andrei, Ocrotitorul României, 13 din 16.
+> Up
+< Sâmbătă, 15 august: Adormirea Maicii Domnului, 12 din 16.
+> Up
+< Luni, 1 iunie: Ziua Copilului și Rusaliile ortodoxe, a doua zi, 11 din 16.
+> Right
+< Sărbători legale 2027. 17 zile de sărbătoare. Selectat: Vineri, 1 ianuarie: Anul Nou, prima zi, 1 din 17.
+> Ctrl+U
+< Sunteți în: Meniu principal, Ceas și calendar, Sărbători legale 2027.
+> Escape
+< Ceas și calendar. Selectat: Sărbători legale, 4 din 4.
+
+# Control T spune ora oriunde
+> Ctrl+T
+< Este ora 14:32.
+> Escape
+< Meniu principal. Selectat: Ceas și calendar, 1 din 5.

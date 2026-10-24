@@ -1,6 +1,8 @@
-# Ecran generic de test; modulul Ceas nu este încă în meniul principal.
+# Selectorul generic de dată, deschis direct (fără sărbători); calendarul cu sărbători e în 11-ceas-si-calendar.
 > start
-< Bun venit în HASI. Meniu principal. 4 opțiuni. Selectat: Setări, 1 din 4.
+< Bun venit în HASI. Meniu principal. 5 opțiuni. Selectat: Ceas și calendar, 1 din 5.
+> Down
+< Setări, 2 din 5.
 > calendar: 2026-10-24
 < Calendar. Sâmbătă, 24 octombrie 2026, astăzi.
 > Enter
@@ -24,7 +26,7 @@
 > F1
 < Săgețile sus și jos schimbă ziua. Săgețile stânga și dreapta sau Page Up și Page Down schimbă luna. Home și End duc la prima și ultima zi a lunii. Enter alege ziua sau o repetă. Escape vă întoarce.
 > Escape
-< Meniu principal. Selectat: Setări, 1 din 4.
+< Meniu principal. Selectat: Setări, 2 din 5.
 > calendar: 2028-01-31
 < Calendar. Luni, 31 ianuarie 2028.
 > NumPad3
@@ -36,18 +38,18 @@
 > NumPad9
 < Sâmbătă, 29 ianuarie 2028.
 > Escape
-< Meniu principal. Selectat: Setări, 1 din 4.
+< Meniu principal. Selectat: Setări, 2 din 5.
 > calendar: 1900-01-01
 < Calendar. Luni, 1 ianuarie 1900.
 > Up
 < [sunet] Începutul calendarului. Luni, 1 ianuarie 1900.
 > Escape
-< Meniu principal. Selectat: Setări, 1 din 4.
+< Meniu principal. Selectat: Setări, 2 din 5.
 > calendar: 2099-12-31
 < Calendar. Joi, 31 decembrie 2099.
 > Down
 < [sunet] Sfârșitul calendarului. Joi, 31 decembrie 2099.
 > Escape
-< Meniu principal. Selectat: Setări, 1 din 4.
+< Meniu principal. Selectat: Setări, 2 din 5.
 > PageDown
 < [sunet] Această tastă nu are nicio funcție aici. Pentru ajutor, apăsați F1 sau Control H.
