@@ -344,7 +344,9 @@ De ce:
 - tastele cu NVDA, inclusiv tasta 5: trecute la tine;
 - licențele în pachet: verificate (commit `264ebc9`);
 - ghidul și README: spun că încă nu există copie de siguranță;
-- actualizarea păstrează datele: test pregătit în `docs/manual-tests/actualizare-0.2.md`, așteaptă testul tău.
+- actualizarea păstrează datele: `docs/manual-tests/actualizare-0.2.md`, trecut la tine (25 octombrie 2026).
+
+**Publicat pe 25 octombrie 2026,** la cererea ta („publică acum, direct”): https://github.com/AllxCucu/hasi/releases/tag/v0.2.0, prin `release.yml`. Următorul pas: cererea SignPath (`architecture.md` §5.1).
 
 Condiția „dezinstalare + reinstalare păstrează datele personale” a fost scoasă: dezinstalarea șterge tot (§5).
 

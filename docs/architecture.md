@@ -458,7 +458,7 @@ Condițiile sunt cele din termenii publicați pe signpath.org/terms (pagina e ma
 **Ce ai tu de făcut, în ordine:**
 1. Activezi MFA pe contul GitHub, dacă nu e deja activ.
 2. Îmi spui numele contului sau al organizației GitHub. Eu creez depozitul public, dar numai după confirmarea ta, pentru că e o publicare.
-3. Publicăm prima versiune **nesemnată** în GitHub Releases. Fără o versiune publicată, cererea nu e acceptată. **Schimbare din 24 octombrie 2026:** nu mai e 0.1.0, după etapa 0.11, ci prima versiune din Faza 1 (§6).
+3. Publicăm prima versiune **nesemnată** în GitHub Releases. Fără o versiune publicată, cererea nu e acceptată. **Schimbare din 24 octombrie 2026:** nu mai e 0.1.0, după etapa 0.11, ci prima versiune din Faza 1 (§6). **Făcut pe 25 octombrie 2026:** HASI 0.2.0, https://github.com/AllxCucu/hasi/releases/tag/v0.2.0.
 4. Completezi formularul de pe signpath.org/apply. Formularul se încarcă dinamic și nu i-am putut citi câmpurile, deci le verificăm împreună atunci.
 5. După acceptare, eu integrez semnarea în GitHub Actions, iar tu aprobi manual fiecare cerere de semnare.
 

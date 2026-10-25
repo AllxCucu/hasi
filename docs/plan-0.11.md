@@ -131,7 +131,12 @@
 
 **Oprire după pașii 2–3:** instalare, pornire automată, actualizare din folder local, dezinstalare.
 
-### Pasul 4 – CI și prima versiune – **AMÂNAT** (24 octombrie 2026) până după primele module din Faza 1
+### Pasul 4 – CI și prima versiune – **FĂCUT** (25 octombrie 2026): HASI 0.2.0 publicat
+
+> 25 octombrie 2026: tagul `v0.2.0` a pornit `.github/workflows/release.yml` (build, teste, RHVoice din CI, `vpk pack`,
+> `vpk upload github`). Versiunea: https://github.com/AllxCucu/hasi/releases/tag/v0.2.0, nesemnată. Urmează SignPath.
+
+#### Ce scria înainte (amânat pe 24 octombrie 2026 până după primele module din Faza 1)
 
 > Ce scrie mai jos rămâne valabil, cu o singură schimbare: prima versiune publică nu mai e 0.1.0, ci cea
 > stabilită în `docs/plan-faza-1.md`, §6.
