@@ -1,0 +1,65 @@
+name: Release
+
+# Builds, tests, packages and publishes HASI with HASI's CI build of RHVoice.
+# A tag is a publication: push it only with the owner's explicit approval (plan-0.11 step 4).
+# Releases remain unsigned until SignPath acceptance and signing integration.
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+  actions: read
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_NOLOGO: 1
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+      - run: dotnet restore
+      - run: dotnet build --no-restore -c Release
+      - run: dotnet test --no-build -c Release
+
+      - name: Read the version and require release notes
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME -replace '^v', ''
+          if (-not (Test-Path -LiteralPath "docs/versiuni/$version.md" -PathType Leaf)) {
+            throw "Release notes are missing: docs/versiuni/$version.md. Add them before publishing this tag."
+          }
+          "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Download HASI's latest successful RHVoice build on main
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $runId = gh run list --repo $env:GITHUB_REPOSITORY --workflow rhvoice.yml --branch main --status success --limit 1 --json databaseId -q '.[0].databaseId'
+          if ($LASTEXITCODE -ne 0) { throw 'Failed to find a successful RHVoice workflow run on main.' }
+          if ([string]::IsNullOrWhiteSpace($runId)) { throw 'No successful run of rhvoice.yml on main was found. Build RHVoice before releasing HASI.' }
+          gh run download $runId --repo $env:GITHUB_REPOSITORY -n rhvoice-x64 -D rhvoice-ci
+          if ($LASTEXITCODE -ne 0) { throw "Failed to download rhvoice-x64 from RHVoice run $runId." }
+          Get-Content rhvoice-ci/BUILD-INFO.txt
+
+      - name: Pack the installer
+        shell: pwsh
+        run: ./installer/pack.ps1 -Version $env:VERSION -RhVoice rhvoice-ci -Output artifacts/installer -ReleaseNotes docs/versiuni/$env:VERSION.md
+
+      - name: Publish the GitHub release
+        shell: pwsh
+        run: |
+          dotnet vpk upload github --outputDir artifacts/installer --repoUrl "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY" `
+            --token ${{ github.token }} --publish --releaseName "HASI $env:VERSION" --tag $env:GITHUB_REF_NAME
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: installer
+          path: artifacts/installer

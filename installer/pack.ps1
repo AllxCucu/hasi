@@ -17,13 +17,17 @@ BUILD-INFO.txt: only that build is shipped, never a copy installed by hand.
 .PARAMETER Output
 Where Setup.exe and the packages go. Default: artifacts\installer.
 
+.PARAMETER ReleaseNotes
+Optional path to a Markdown file with release notes, passed to vpk pack --releaseNotes when provided.
+
 .EXAMPLE
 pwsh installer\pack.ps1 -Version 0.1.0 -RhVoice $env:LOCALAPPDATA\HASI\rhvoice-ci-1.18.4
 #>
 param(
     [Parameter(Mandatory)] [string] $Version,
     [Parameter(Mandatory)] [string] $RhVoice,
-    [string] $Output = 'artifacts\installer'
+    [string] $Output = 'artifacts\installer',
+    [string] $ReleaseNotes
 )
 $ErrorActionPreference = 'Stop'
 Push-Location (Split-Path $PSScriptRoot -Parent)
@@ -40,8 +44,10 @@ try {
 
     dotnet tool restore
     if ($LASTEXITCODE -ne 0) { throw 'dotnet tool restore failed' }
+    $releaseNotesArgs = @()
+    if ($ReleaseNotes) { $releaseNotesArgs = @('--releaseNotes', $ReleaseNotes) }
     dotnet vpk pack --packId HASI.App --packTitle HASI --packAuthors 'HASI contributors' --packVersion $Version `
-        --packDir $publish --mainExe hasi.exe --outputDir $Output --noPortable
+        --packDir $publish --mainExe hasi.exe --outputDir $Output --noPortable @releaseNotesArgs
     if ($LASTEXITCODE -ne 0) { throw 'vpk pack failed' }
     Get-ChildItem $Output | Select-Object Name, @{ n = 'MB'; e = { [math]::Round($_.Length / 1MB, 1) } } | Format-Table -AutoSize
 }

@@ -4,7 +4,9 @@ Mediu de lucru vorbit, simplu, pentru nevăzători și slabvăzători din Român
 HASI nu este un cititor de ecran. Este un „shell” cu meniuri liniare care vorbește direct
 prin sintetizator: o singură operație odată, puține taste, feedback vocal permanent.
 
-> Stare: în dezvoltare (Faza 0). Încă nu există o versiune pentru utilizatori.
+> Stare: 0.2.0 este prima versiune pentru utilizatori, cu ceas și calendar, editor de text și citire de documente.
+> Descarcă `HASI.App-win-Setup.exe` de la [cea mai recentă versiune](https://github.com/AllxCucu/hasi/releases/latest).
+> Dezvoltarea continuă în Faza 1.
 
 ## Pentru dezvoltatori
 
@@ -36,6 +38,27 @@ HASI nu colectează și nu trimite date despre utilizator. Datele stau local, ia
 în Windows Credential Manager. Singura legătură la internet este verificarea actualizărilor: o cerere către
 pagina de versiuni a HASI pe GitHub, la pornire (se poate opri din Setări → Actualizări). Vezi
 [docs/data-sources.md](docs/data-sources.md).
+
+## Code signing policy
+
+HASI is applying for free code signing by SignPath Foundation. Acceptance is pending; releases remain unsigned
+until acceptance and signing integration.
+
+Once accepted, the following attribution will apply: "Free code signing provided by
+[SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/)".
+
+- Committers and reviewers: AllxCucu.
+- Approvers: AllxCucu.
+
+Only binaries built from this repository by GitHub Actions ([release.yml](.github/workflows/release.yml)) will
+be signed. RHVoice is HASI's own CI build from upstream source ([rhvoice.yml](.github/workflows/rhvoice.yml)).
+Each signing request will require manual approval.
+
+## Privacy policy
+
+HASI does not transfer information to other networked systems except for the update check: one request to this
+repository's releases page at startup, with no personal data. You can turn it off in Settings → Updates.
+User data stays on your computer.
 
 ## Licență
 

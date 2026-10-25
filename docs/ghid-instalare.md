@@ -4,6 +4,8 @@ Pentru cine instalează HASI pentru sine sau pentru altcineva. Toți pașii merg
 
 ## Ce primești
 
+Descarcă `HASI.App-win-Setup.exe` din lista „Assets” de pe [pagina celei mai recente versiuni](https://github.com/AllxCucu/hasi/releases/latest).
+
 Un singur fișier: `HASI.App-win-Setup.exe` (programul de instalare). Nu are nevoie de drepturi de administrator și nu instalează nimic altceva.
 Vocea românească Paul și tot ce trebuie pentru ea sunt incluse.
 
