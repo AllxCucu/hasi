@@ -1,39 +1,34 @@
-﻿# HASI – Faza 1, modulul 3: Citire documente
+﻿# HASI – Testul actualizării pentru 0.2.0
 
-Modulul 3 e gata de testat. Build-ul trece fără avertismente, toate cele 1051 de teste trec, iar rularea de verificare a trecut: 7 opțiuni în meniul principal, vocea RHVoice, nicio eroare. Nu am publicat nimic.
+Am notat rezultatele tale pentru modulul 3 și deciziile 1–5 în `docs/plan-faza-1.md`. Testele C3-39 și C3-40 au trecut, deci tasta 5 ajunge la HASI și cu NVDA pornit. N-a fost nevoie de o tastă nouă; de altfel, Enter pornește deja „Citește tot” de pe tastatura obișnuită. Nu am publicat nimic.
 
-**Pornire:** `dotnet run --project src\Hasi.App -- --diagnostic`
+## Ce testezi acum
+**Scenariul:** `docs/manual-tests/actualizare-0.2.md`, pașii U-01…U-09:
+1. instalezi 0.2.0;
+2. creezi un document salvat (`Test actualizare`), o ciornă (`Ciornă de test`) și o poziție de citire;
+3. actualizezi la 0.2.1 dintr-un folder local;
+4. verifici că toate au rămas.
 
-**Scenarii:** `docs/manual-tests/faza-1-modul-3.md`, de la C3-01 la C3-49. Secțiunea J îți spune ce retestezi din modulul 2. Regresia e în `docs/manual-tests/regresie.md`, pașii 1–55; pașii 51–55 sunt noi.
+**Pachetele de test** (doar pe calculatorul tău):
+- programul de instalare: `C:\Users\cucua\Documents\dev\workspace\Hasi\artifacts\HASI-0.2.0-Setup.exe`;
+- sursa actualizării: `C:\Users\cucua\Documents\dev\workspace\Hasi\artifacts\feed-0.2`.
 
-## Recenziile Codex pe nucleu
-- **Modulul 2:** 5 probleme reale, toate corectate.
-  - Trei te privesc direct: tastele apăsate după „La revedere” se pierdeau; cuvinte dintr-un document ajungeau în jurnal; o copie de siguranță întreruptă trecea drept completă.
-  - **De retestat:** C3-49 (tastele ignorate după „La revedere”) și C3-38 (jurnalul).
-- **Modulul 3:** 7 probleme reale, toate corectate. Cele mai importante: „Citește tot” se putea opri sau putea sări text, iar RHVoice anunța sfârșitul unei propoziții înainte să se fi auzit.
-  - **De retestat:** secțiunea G, „Citește tot” cu fiecare voce. Ascultă dacă se taie ultimul cuvânt sau dacă apar pauze lungi între propoziții.
+Am verificat că în pachet sunt licențele, RHVoice și versiunea corectă.
 
-## Ciornele (decizia ta 3)
-Acum HASI păstrează câte o ciornă pentru fiecare document nesalvat, cel mult 10. La pornire le oferă într-o listă. Când se ajunge la limită, HASI spune ce ciornă se șterge înainte să o șteargă. Scenariile sunt C3-44…C3-48.
+**Comanda pentru actualizare (U-05):** după ce ai închis HASI, Windows + R, apoi:
+`%LOCALAPPDATA%\HASI.App\hasi.exe --update-source "folder:C:\Users\cucua\Documents\dev\workspace\Hasi\artifacts\feed-0.2"`
 
-## Decizii de confirmat
-1. **O tastă apăsată în timpul citirii** doar oprește citirea și nu spune nimic. Escape și F10 opresc citirea și își fac apoi treaba obișnuită.
-2. **Tasta 5 de pe tastatura numerică** pornește „Citește tot” în cititor.
-3. **Un PDF scanat în întregime** nu se deschide. HASI spune că documentul conține doar imagini.
-4. **La „Citește tot”**, titlurile se citesc ca propoziții obișnuite, fără „Titlu 2:”.
-5. **Poziția de citire** se salvează la 5 secunde. Dacă închizi cu Alt+F4 în timp ce citești, se pot pierde ultimele câteva secunde.
+**De știut înainte:**
+- HASI instalat și HASI pornit din build folosesc același folder de date (`%LOCALAPPDATA%\HASI\userdata`). Pot apărea ciorne din testele vechi; la lista de ciorne apeși Escape, ca să le păstrezi.
+- Nu dezinstala la final dacă vrei să păstrezi ciornele vechi: dezinstalarea șterge tot folderul.
 
-## Lista pentru publicarea 0.2.0 (plan §6)
+## Ce am schimbat în documente
+- **Ghidul și README:** spun acum că HASI încă nu are copie de siguranță și că documentele salvate rămân în Documente. Am adăugat și pozițiile de citire în lista datelor personale care se șterg la dezinstalare.
+- **`docs/architecture.md` §7, planul mare:** fazele sunt acum în ordinea ta: 1 Uzul zilnic, 2 Comunicare și informare, 3 Servicii românești, 4 Pilot cu utilizatori reali, 5 Human Assisted, 6 Extinderi. Tot acolo scrie că cererea SignPath se face imediat după 0.2.0 și că testul pe Windows 10 se face înainte de pilot.
 
-| Condiție | Stare |
-|---|---|
-| Salvarea, ciorna și recuperarea după o eroare gravă | Pentru o singură ciornă, **verificată de tine** (modulul 2). Ciornele multiple sunt noi: **de verificat de tine** (C3-44…48). |
-| Jurnalul de diagnostic nu conține textul scris | **Verificată de mine** prin teste, plus cele două recenzii Codex; pentru editor, verificată și de tine (C2-36). Pentru documentele citite: **de verificat de tine** (C3-38). |
-| Tastele noi merg cu NVDA | Editorul: **verificată de tine** (C2-38). Cititorul: **de verificat de tine** (C3-39, C3-40). |
-| O actualizare instalată păstrează documentele, ciornele și pozițiile de citire | **Nefăcută.** Datele stau în `%LOCALAPPDATA%\HASI\userdata`, iar actualizarea nu atinge acel folder, dar trebuie încercat. Îți pot pregăti două pachete de test într-un folder local, ca la X-05; instalarea o faci tu. |
-| Ghidul și README spun ce se șterge la dezinstalare și cum se face copia de siguranță | Partea cu ștergerea: **verificată de mine**. Copia de siguranță: **nefăcută**, pentru că vine cu agenda (modulul 5). Pentru 0.2.0 propun ca ghidul să spună că încă nu există copie de siguranță, iar documentele salvate rămân în Documente. |
-| (Riscul F9) Licențele sunt în pachet | **Verificată de mine.** Am găsit o lipsă: licența HASI, textul MIT și `THIRD-PARTY-NOTICES.md` nu intrau în pachet. Le-am adăugat în folderul `licente\` și am verificat cu o publicare de test. |
+## Ce urmează
+După ce trece testul actualizării, pregătesc publicarea 0.2.0 ca la pasul 4 din `plan-0.11.md`: README, notele versiunii în română și lista exactă a fișierelor. Apoi mă opresc. Public doar după ce îmi scrii „publică 0.2.0”.
 
 ## Ce nu e făcut
-- **Nu am publicat nimic.** Pachetele de test pentru verificarea actualizării le pregătesc doar dacă îmi spui.
-- **„Citește tot” e verificat doar prin teste**, care simulează vocea. Cât de bine se aude (pauze, sfârșitul propozițiilor) se poate afla doar ascultând.
+- Actualizarea e verificată doar de mine, prin construirea pachetelor. Încă nu a fost instalată.
+- Codex a scris documentele de mai sus, iar eu am verificat textele rostite față de `ro.json`. Sandboxul lui implicit, cel elevat, nu pornește pe calculatorul tău („setup refresh had errors”). L-am rulat cu sandboxul neelevat, doar pentru această rulare, fără să-i schimb configurarea.
