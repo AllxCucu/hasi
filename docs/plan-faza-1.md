@@ -49,10 +49,21 @@ respectă asta deja.
 | 0 | Corecturile din 0.11 (**făcute**) | Mici; le auzi la prima oprire, împreună cu modulul 1. |
 | 1 | Ceas, dată și calendar (**făcut**, testat 24 octombrie 2026) | Mic. Verifică pe ceva simplu: un modul nou, un fișier de date, timpul simulat în teste. Aduce alegerea unei date, refolosită de agendă. |
 | 2 | Editor de text (**făcut**, testat 24 octombrie 2026) | Aduce navigarea în text, alegerea fișierelor, salvarea sigură și locul datelor personale (§5). |
-| 3 | Citire documente (**gata pentru testul tău**) | Folosește navigarea din editor; adaugă formatele și „citește tot”. |
+| 3 | Citire documente (**făcut**, testat 25 octombrie 2026) | Folosește navigarea din editor; adaugă formatele și „citește tot”. |
 | 4 | Calculator | Mic, independent; cere un „profil de taste” (§3.4). |
 | 5 | Agendă | Cere programatorul de evenimente și prioritatea de anunț (§4). |
 | 6 | Manager de fișiere | Folosește alegerea fișierelor din modulul 2 și deschiderea documentelor din 3. |
+
+**Modulul 3 a trecut testul tău pe 25 octombrie 2026:** C3-01…C3-49, retestările G, C3-38 și C3-49 și regresia,
+pașii 1–55, toate trecute. Deciziile 1–5 din `raspuns.md` sunt acceptate:
+
+1. O tastă în timpul citirii doar o oprește; Escape și F10 își fac apoi treaba obișnuită.
+2. Tasta 5 de pe tastatura numerică pornește „Citește tot”; Enter face deja același lucru.
+3. Un PDF scanat în întregime nu se deschide.
+4. În „Citește tot”, titlurile se citesc ca propoziții obișnuite.
+5. La Alt+F4 se pot pierde ultimele secunde din poziția de citire.
+
+C3-39 și C3-40 au trecut cu NVDA; nu este nevoie de o tastă suplimentară.
 
 ---
 
@@ -323,15 +334,27 @@ De ce:
 - jurnalul de diagnostic nu conține textul scris;
 - tastele noi merg cu NVDA pornit;
 - o actualizare instalată (din folder local, ca la X-05) păstrează documentele, ciornele și pozițiile de citire;
-- ghidul și README spun că dezinstalarea șterge și datele personale și cum se face copia de siguranță.
+- ghidul și README spun că dezinstalarea șterge și datele personale, că încă nu există copie de siguranță și că
+  documentele salvate rămân în Documente.
+
+**Stare la 25 octombrie 2026:**
+
+- salvarea, ciornele și recuperarea: trecute la tine;
+- confidențialitatea jurnalului: trecută la tine;
+- tastele cu NVDA, inclusiv tasta 5: trecute la tine;
+- licențele în pachet: verificate (commit `264ebc9`);
+- ghidul și README: spun că încă nu există copie de siguranță;
+- actualizarea păstrează datele: test pregătit în `docs/manual-tests/actualizare-0.2.md`, așteaptă testul tău.
 
 Condiția „dezinstalare + reinstalare păstrează datele personale” a fost scoasă: dezinstalarea șterge tot (§5).
 
 **Apoi:** propun o versiune mică de întreținere (0.2.1, cu calculatorul sau doar cu corecturi), ca prima
 actualizare reală prin GitHub să nu fie cea care aduce agenda. Agenda vine în 0.3.0.
 
-Pașii de publicare sunt cei pregătiți în `plan-0.11.md`, pasul 4, neschimbați. Publicarea o fac numai după
-aprobarea ta explicită.
+După ce trece testul actualizării, pregătim publicarea după `plan-0.11.md`, pasul 4: README, notele versiunii
+în română și lista exactă a fișierelor. Publicăm numai după ce scrii „publică 0.2.0”.
+
+Ordinea fazelor din planul mare s-a schimbat pe 25 octombrie 2026: vezi `architecture.md` §7.
 
 ---
 

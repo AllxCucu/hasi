@@ -25,9 +25,10 @@ Ghidul, cu pașii pentru cititoarele de ecran: [docs/ghid-instalare.md](docs/ghi
 per-utilizator, fără drepturi de administrator. Windows 11: testat. Windows 10: suportat, netestat.
 
 **Dezinstalarea șterge toate setările, jurnalele și datele personale HASI** (`%APPDATA%\HASI` și
-`%LOCALAPPDATA%\HASI`, inclusiv `userdata`: ciornele și documentele recente ale editorului, iar din modulul 5
-agenda), pe lângă program și pornirea automată. Documentele salvate în Documente rămân. Când va exista agenda,
-fă o copie de rezervă înainte de dezinstalare.
+`%LOCALAPPDATA%\HASI`, inclusiv `userdata`: ciornele și documentele recente ale editorului, documentele recente
+din „Citire documente” cu pozițiile de citire, iar din modulul 5 agenda), pe lângă program și pornirea automată.
+HASI nu are încă o copie de siguranță pentru datele personale. Documentele pe care le-ai salvat în Documente
+rămân; dezinstalarea nu le atinge.
 
 ## Confidențialitate
 

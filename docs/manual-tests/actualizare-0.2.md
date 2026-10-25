@@ -1,0 +1,25 @@
+# Testul actualizării 0.2.0 → 0.2.1 (condiția din plan-faza-1.md §6)
+
+**Pregătire:** cele două pachete sunt locale, nimic nu este publicat. Programul de instalare este
+`C:\Users\cucua\Documents\dev\workspace\Hasi\artifacts\HASI-0.2.0-Setup.exe`, iar sursa actualizării este
+`C:\Users\cucua\Documents\dev\workspace\Hasi\artifacts\feed-0.2` (conține 0.2.0 și 0.2.1).
+Închide toate instanțele HASI, inclusiv cea pornită din build, înainte de instalare.
+**Important:** HASI instalat și HASI pornit din build folosesc același folder de date personale,
+`%LOCALAPPDATA%\HASI\userdata`. Pot apărea ciorne sau documente recente din testele anterioare; la lista de
+ciorne de la pornire, apasă Escape ca să le păstrezi pentru mai târziu. Folosește numele de mai jos ca să
+recunoști datele acestui test. Programul de instalare nu este semnat: SmartScreen avertizează; tastele sunt
+în `docs/ghid-instalare.md`. Numerele se aud în cuvinte.
+
+| # | Ce apăs | Ce trebuie să aud |
+|---|---|---|
+| U-01 | Deschizi `HASI-0.2.0-Setup.exe` de la calea de mai sus; treci de SmartScreen ca în ghid. După pornire, Escape dacă apar ciorne; apoi Despre HASI. | Instalarea arată o bară de progres fără voce; HASI pornește singur: „Bun venit în HASI. Meniu principal. 7 opțiuni. Selectat: Ceas și calendar, 1 din 7.” În Despre HASI, primul rând: „HASI, Human Assisted Information, versiunea 0.2.0”. |
+| U-02 | Escape la meniul principal; Editor de text → Document nou; scrii `Test actualizare`; Control + S; scrii numele `Test actualizare`; Enter. Apoi Escape ca să închizi documentul salvat. | „Document nou. Documentul este gol.” La salvare: „Numele documentului. Scrieți numele documentului și apăsați Enter. Dacă apăsați Enter fără să scrieți, se folosește numele propus: Test actualizare.” Apoi „Documentul a fost salvat: Test actualizare.” În Documente apare `Test actualizare.docx`. |
+| U-03 | Editor de text → Document nou; scrii `Ciornă de test`, fără să salvezi. Aștepți 35 de secunde; într-o fereastră cmd rulezi `taskkill /f /im hasi.exe`. Repornești HASI din scurtătura de pe Desktop; la ciorne apeși Escape. | HASI tace imediat la închiderea bruscă. La repornire: „Am găsit un document nesalvat: …, din …, ora ….” Dacă sunt mai multe, de exemplu două: „Am găsit 2 documente nesalvate. Selectat: …, din …, ora …, 1 din 2.” Ciorna se recunoaște în listă după primele cuvinte, `Ciornă de test`. Escape înseamnă mai târziu: toate ciornele se păstrează. |
+| U-04 | Citire documente → Deschide un document → Documente. Alegi un `.docx` sau `.pdf` al tău, cu mai multe pagini și cel puțin șase rânduri; Enter. După ce termină de vorbit, Control + Home; săgeata jos de 5 ori, ascultând fiecare rând până la capăt. Reții numele documentului și ultimul rând auzit; Escape înapoi. | Titlul și rândul de la cursor; Control + Home duce la începutul documentului. La fiecare săgeată jos, rândul de la cursor, citit întreg. Escape închide documentul și păstrează poziția. |
+| U-05 | Închizi HASI: Ieșire → Închide HASI → Enter. Windows + R; scrii `%LOCALAPPDATA%\HASI.App\hasi.exe --update-source "folder:C:\Users\cucua\Documents\dev\workspace\Hasi\artifacts\feed-0.2"`; Enter. Dacă apar ciorne, Escape ca să le păstrezi. La întrebarea de actualizare, Enter; după repornire verifici Despre HASI (dacă apar ciorne, Escape). | După bun venit: „Este disponibilă versiunea 0.2.1 a HASI. Doriți să actualizați acum? HASI se va închide și va porni din nou. Apăsați Enter pentru da sau Escape pentru nu.” După Enter: „Se descarcă actualizarea.”, eventual progresul în procente, apoi „Actualizarea este gata. HASI pornește din nou.” HASI repornește singur, spune bun venit, apoi „HASI a fost actualizat la versiunea zero punct doi punct unu.” În Despre HASI, primul rând: „HASI, Human Assisted Information, versiunea 0.2.1”. |
+| U-06 | La repornirea de după actualizare, sau la următoarea pornire din scurtătura de pe Desktop, alegi ciorna cu primele cuvinte `Ciornă de test`; Enter, apoi Enter pe Deschide documentul. Dacă ai amânat-o în U-05 ca să verifici versiunea, închizi HASI și îl pornești din nou. După ce asculți textul, Control + S, numele `Ciornă de test`, Enter; Escape închide documentul. | HASI oferă din nou documentul nesalvat, ca în U-03; documentul se deschide și auzi textul `Ciornă de test`. |
+| U-07 | Editor de text → Documente recente; alegi `Test actualizare`, Enter. Verifici și în Explorer, în Documente. Apoi Escape până la meniul principal. | În lista Documente recente găsești `Test actualizare`; la deschidere, titlul și textul `Test actualizare`. În Documente există în continuare `Test actualizare.docx`. |
+| U-08 | Citire documente → Documente recente; Enter pe documentul din U-04. | La `.docx`: „Continui de unde ați rămas.” La PDF: „Continui de la pagina ….” Apoi rândul reținut în U-04, nu începutul documentului. |
+| U-09 | Opțional, la final: citești avertismentul din ghid despre dezinstalare. | Dezinstalarea acum ar șterge și datele personale din testele anterioare, fiindcă folderul este comun. Documentele salvate în Documente rămân. Dezinstalarea este opțională. |
+
+Rezultat: (de completat de tine)

@@ -39,11 +39,11 @@ Verificarea automată se oprește din Setări → Actualizări → Verificare au
 - pornirea automată;
 - setările (`%APPDATA%\HASI`): vocea, viteza, culorile și toate celelalte;
 - jurnalele de diagnostic și de erori (`%LOCALAPPDATA%\HASI`);
-- datele personale (`%LOCALAPPDATA%\HASI\userdata`): ciornele editorului de text și lista documentelor recente
-  (și, din modulul 5, agenda).
+- datele personale (`%LOCALAPPDATA%\HASI\userdata`): ciornele și documentele recente ale editorului, documentele
+  recente din „Citire documente” cu pozițiile de citire (și, din modulul 5, agenda).
 
 **Documentele pe care le-ai salvat în Documente rămân**; dezinstalarea nu le atinge.
-Când va exista agenda (modulul 5), fă o copie de rezervă a ei înainte de dezinstalare.
+HASI nu are încă o copie de siguranță pentru datele personale; aceasta vine cu agenda (modulul 5).
 
 Dacă vrei să păstrezi jurnalele (de exemplu ca să le trimiți cuiva), folosește înainte
 Setări → Diagnostic → Copiază jurnalul pe Desktop.

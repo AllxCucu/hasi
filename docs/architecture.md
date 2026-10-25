@@ -2,6 +2,7 @@
 
 > **Stare:** APROBAT pe 21 octombrie 2026, cu ajustările cerute (vezi §5). Plan modificat pe 23 octombrie 2026: etapa 0.9 (cititoarele de ecran) a fost scoasă, iar detectarea Naratorului a trecut în 0.10 (§1.6, ADR 0003).
 > **24 octombrie 2026: Faza 0 este încheiată** pe Windows 11 (scenariile X-00…X-10 au trecut); Windows 10 rămâne suportat, netestat. Publicarea 0.1.0 **nu se mai face**: prima publicare va fi după primele module din Faza 1 (§4, §6).
+> **25 octombrie 2026: ordinea fazelor a fost schimbată la decizia testerului**; pilotul vine după serviciile românești (§7).
 > Deciziile importante sunt explicate și în `docs/adr/`.
 
 Cuprins:
@@ -12,6 +13,7 @@ Cuprins:
 4. Planul Fazei 0 și scenariile de testare manuală
 5. Decizii aprobate
 6. Faza 1
+7. Planul mare: fazele
 
 ---
 
@@ -309,7 +311,7 @@ Hasi/
 | R5 | **Pierderea focusului:** notificări, UAC, Windows Update sau alte aplicații fură fereastra și utilizatorul „se pierde”. Pe desktopul securizat UAC, HASI nu poate nici vorbi, nici asculta. | Mare | Tastă globală de revenire; detectarea pierderii focusului și anunț; instalare per-utilizator, ca să evităm UAC; documentăm limita UAC. |
 | R6 | **Hook-uri globale de taste** (dacă le adăugăm mai târziu): Windows le elimină în tăcere dacă răspund greu (LowLevelHooksTimeout), nu primesc tastele aplicațiilor ridicate (UIPI), iar unele antivirusuri le consideră keyloggere. | Mediu | Evitate în Faza 0. Dacă devin necesare, rulează pe un fir dedicat, fără alocări în callback. |
 | R7 | **SmartScreen/antivirus pe un executabil nesemnat.** Un utilizator nevăzător nu poate trece singur de acel dialog. | Mare | SignPath Foundation (§5.1), cu Azure Artifact Signing (cost lunar) ca rezervă. Până atunci, instalare asistată. |
-| R8 | **Windows 10:** suportul pentru consumatori, inclusiv ESU, s-a încheiat pe 13 octombrie 2026. Vocile OneCore românești pot lipsi. | Mic–mediu | Testăm și pe Windows 10, dar nu folosim API-uri exclusive Windows 11 fără alternativă. |
+| R8 | **Windows 10:** suportul pentru consumatori, inclusiv ESU, s-a încheiat pe 13 octombrie 2026. Vocile OneCore românești pot lipsi. | Mic–mediu | Testăm și pe Windows 10, dar nu folosim API-uri exclusive Windows 11 fără alternativă. Testul pe Windows 10 se face înainte de pilot (faza 4, §7). |
 | R9 | **Dispozitivul audio** se schimbă (căști Bluetooth, revenire din repaus). | Mediu | Motorul detectează schimbarea și se reinițializează; test manual dedicat. |
 | R10 | **Româna e complexă la normalizare:** genul numeralelor, „de” după 20, „întâi”, abrevieri ambigue (de exemplu „st.”). | Mediu | Tabele mari de teste; tu raportezi pronunțiile greșite, iar fiecare devine un caz de test. |
 | R11 | **Taste ținute apăsate** (autorepetare) produc avalanșe de mesaje. | Mic | Doar ultimul mesaj se rostește; repetarea de navigare are o limită. |
@@ -469,6 +471,27 @@ Condițiile sunt cele din termenii publicați pe signpath.org/terms (pagina e ma
 Module, în ordinea propusă de tester: ceas, dată și calendar (cu sărbătorile legale din Codul muncii, art. 139); editor de text simplu (.txt, .docx); citire documente (.txt, .docx, .pdf cu text, .epub); calculator vorbit; agendă (contacte, programări cu memento rostit); manager de fișiere simplificat (copiere, mutare, ștergere, stick USB). Fiecare modul înseamnă o oprire pentru testul după ureche și câțiva pași noi în lista de regresie.
 
 Înainte de modulul 1 se fac și corecturile rămase din 0.11: în „Despre HASI”, commitul RHVoice nu se mai rostește (rămâne doar pe ecran), iar installer-ul nu mai produce arhiva portabilă (ADR 0007).
+
+## 7. Planul mare: fazele
+
+**Ordinea fazelor, schimbată pe 25 octombrie 2026 la decizia ta:** pilotul cu utilizatori reali vine după
+serviciile românești.
+
+0. Faza 0 (încheiată pe 24 octombrie 2026).
+1. Uzul zilnic (în lucru: `docs/plan-faza-1.md`); este „MVP util zilnic” din §6.
+2. Comunicare și informare.
+3. Servicii românești.
+4. Pilot cu utilizatori reali.
+5. Human Assisted.
+6. Extinderi.
+
+Fiecare fază viitoare va avea propriul plan, pe care îl aprobi înainte de orice cod, conform `CLAUDE.md`.
+
+Două puncte fixe:
+
+- cererea către SignPath Foundation (§5.1) se face imediat după publicarea 0.2.0;
+- testul pe Windows 10 se face înainte de faza 4 (pilotul cu utilizatori reali); până atunci, Windows 10
+  rămâne „suportat, netestat” (§4, R8).
 
 ## Surse
 
