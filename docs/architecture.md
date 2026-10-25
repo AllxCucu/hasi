@@ -310,7 +310,7 @@ Hasi/
 | R4 | **RHVoice prin SAPI:** installer-ul poate cere drepturi de administrator; oprirea prin SAPI e mai lentă; nu știm ce formă a diacriticelor așteaptă lexiconul lui Paul; numerele pot fi citite inconsecvent de motor. | Mediu | Test de oprire (țintă sub 50 ms). Test de pronunție pe o listă de cuvinte cu ș/ț (ambele forme). Normalizarea noastră trimite deja numerele scrise în litere. |
 | R5 | **Pierderea focusului:** notificări, UAC, Windows Update sau alte aplicații fură fereastra și utilizatorul „se pierde”. Pe desktopul securizat UAC, HASI nu poate nici vorbi, nici asculta. | Mare | Tastă globală de revenire; detectarea pierderii focusului și anunț; instalare per-utilizator, ca să evităm UAC; documentăm limita UAC. |
 | R6 | **Hook-uri globale de taste** (dacă le adăugăm mai târziu): Windows le elimină în tăcere dacă răspund greu (LowLevelHooksTimeout), nu primesc tastele aplicațiilor ridicate (UIPI), iar unele antivirusuri le consideră keyloggere. | Mediu | Evitate în Faza 0. Dacă devin necesare, rulează pe un fir dedicat, fără alocări în callback. |
-| R7 | **SmartScreen/antivirus pe un executabil nesemnat.** Un utilizator nevăzător nu poate trece singur de acel dialog. | Mare | SignPath Foundation (§5.1), cu Azure Artifact Signing (cost lunar) ca rezervă. Până atunci, instalare asistată. |
+| R7 | **SmartScreen/antivirus pe un executabil nesemnat.** Un utilizator nevăzător nu poate trece singur de acel dialog. | Mare | SignPath Foundation (§5.1), cu Azure Artifact Signing (cost lunar) ca rezervă, **în faza 4** (decizia din 25 octombrie 2026, §7). Până atunci, instalare asistată; testerul a instalat 0.2.0 trecând de SmartScreen fără probleme. |
 | R8 | **Windows 10:** suportul pentru consumatori, inclusiv ESU, s-a încheiat pe 13 octombrie 2026. Vocile OneCore românești pot lipsi. | Mic–mediu | Testăm și pe Windows 10, dar nu folosim API-uri exclusive Windows 11 fără alternativă. Testul pe Windows 10 se face înainte de pilot (faza 4, §7). |
 | R9 | **Dispozitivul audio** se schimbă (căști Bluetooth, revenire din repaus). | Mediu | Motorul detectează schimbarea și se reinițializează; test manual dedicat. |
 | R10 | **Româna e complexă la normalizare:** genul numeralelor, „de” după 20, „întâi”, abrevieri ambigue (de exemplu „st.”). | Mediu | Tabele mari de teste; tu raportezi pronunțiile greșite, iar fiecare devine un caz de test. |
@@ -429,12 +429,14 @@ Formulările sunt propuneri; tu le validezi după ureche.
 | 4 | Taste | §1.7. Fiecare comandă globală are și o alternativă fără taste F (Ctrl+H, Ctrl+R, Ctrl+U, Ctrl+↑/↓, Ctrl+Shift+D), toate configurabile din `KeyMap`. Revenirea cu Ctrl+Alt+H e aprobată. |
 | 5 | Capătul listei | Fără salt, cu sunet și „Sfârșitul listei”. Saltul se poate activa din Setări, pentru utilizatorii avansați. |
 | 6 | Găzduire | Depozit GitHub public, cu versiunile în GitHub Releases. Sursa actualizărilor e configurabilă (§1.8). |
-| 7 | Semnare | Încercăm SignPath Foundation (§5.1). Până atunci construim nesemnat. |
+| 7 | Semnare | Încercăm SignPath Foundation (§5.1), în faza 4 (mutată pe 25 octombrie 2026, §7). Până atunci publicăm nesemnat. |
 | – | Test pronunție | Ecran separat, în Setări → Diagnostic, nu în „Învață tastele”. |
 | – | Jurnal | Fiecare mesaj apare cu `text`, `normalized` și `SPEAK` (§4.1). |
 | – | Ritm | Oprire obligatorie după etapa 0.3, pentru testul tău după ureche. |
 
 ### 5.1 SignPath Foundation: condiții și ce ai de făcut
+
+> **25 octombrie 2026:** cererea și semnarea se mută în faza 4 (§7). Condițiile de mai jos le reverificăm atunci.
 
 Condițiile sunt cele din termenii publicați pe signpath.org/terms (pagina e marcată „draft”, deci le reverificăm la aplicare).
 
@@ -489,7 +491,9 @@ Fiecare fază viitoare va avea propriul plan, pe care îl aprobi înainte de ori
 
 Două puncte fixe:
 
-- cererea către SignPath Foundation (§5.1) se face imediat după publicarea 0.2.0;
+- semnarea (cererea către SignPath Foundation, §5.1, și integrarea în `release.yml`) se face în faza 4, înainte ca
+  HASI să ajungă la utilizatorii din pilot (decizia ta din 25 octombrie 2026; înainte era „imediat după 0.2.0”).
+  Până atunci versiunile sunt nesemnate, iar ghidul de instalare explică SmartScreen;
 - testul pe Windows 10 se face înainte de faza 4 (pilotul cu utilizatori reali); până atunci, Windows 10
   rămâne „suportat, netestat” (§4, R8).
 

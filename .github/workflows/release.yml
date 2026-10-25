@@ -2,7 +2,7 @@ name: Release
 
 # Builds, tests, packages and publishes HASI with HASI's CI build of RHVoice.
 # A tag is a publication: push it only with the owner's explicit approval (plan-0.11 step 4).
-# Releases remain unsigned until SignPath acceptance and signing integration.
+# Releases are unsigned; signing (SignPath) is planned for phase 4 (docs/architecture.md section 7).
 
 on:
   push:

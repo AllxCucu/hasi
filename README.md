@@ -41,10 +41,10 @@ pagina de versiuni a HASI pe GitHub, la pornire (se poate opri din Setări → A
 
 ## Code signing policy
 
-HASI is applying for free code signing by SignPath Foundation. Acceptance is pending; releases remain unsigned
-until acceptance and signing integration.
+Releases are currently unsigned. HASI plans to apply for free code signing by SignPath Foundation before its pilot
+with real users; no application has been made yet.
 
-Once accepted, the following attribution will apply: "Free code signing provided by
+If accepted, the following attribution will apply: "Free code signing provided by
 [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/)".
 
 - Committers and reviewers: AllxCucu.

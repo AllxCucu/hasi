@@ -327,7 +327,7 @@ De ce:
 - agenda, cu mementourile de medicamente, e partea cea mai delicată. Vine după ce publicarea și actualizarea au
   mers în lumea reală;
 - **SignPath** cere o versiune publicată; cererea poate porni imediat după 0.2.0 (acceptarea și durata ei nu le
-  putem garanta).
+  putem garanta). **Schimbat pe 25 octombrie 2026:** semnarea se mută în faza 4 (`architecture.md` §7).
 
 **Condiții pentru publicare** (o listă de verificat la oprirea modulului 3, nu doar „modulul e gata”):
 - salvarea, ciorna și recuperarea după o eroare gravă trec la tine;
@@ -346,7 +346,7 @@ De ce:
 - ghidul și README: spun că încă nu există copie de siguranță;
 - actualizarea păstrează datele: `docs/manual-tests/actualizare-0.2.md`, trecut la tine (25 octombrie 2026).
 
-**Publicat pe 25 octombrie 2026,** la cererea ta („publică acum, direct”): https://github.com/AllxCucu/hasi/releases/tag/v0.2.0, prin `release.yml`. Următorul pas: cererea SignPath (`architecture.md` §5.1).
+**Publicat pe 25 octombrie 2026,** la cererea ta („publică acum, direct”): https://github.com/AllxCucu/hasi/releases/tag/v0.2.0, prin `release.yml`. Instalarea cu SmartScreen a mers fără probleme la tine; semnarea se mută în faza 4 (`architecture.md` §7).
 
 Condiția „dezinstalare + reinstalare păstrează datele personale” a fost scoasă: dezinstalarea șterge tot (§5).
 
